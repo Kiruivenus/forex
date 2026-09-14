@@ -9,6 +9,7 @@ export default function Footer() {
         {/* Brand Column */}
         <div className="space-y-3">
           <div className="flex items-center space-x-2 font-bold text-base text-slate-100">
+            <img src="/logo.png" alt="ApexTrader Logo" className="w-6 h-6 object-contain mix-blend-screen shrink-0" />
             <span className="bg-gradient-to-r from-white via-slate-200 to-purple-300 bg-clip-text text-transparent text-lg">
               Apex<span className="text-purple-400">Trader</span>
             </span>

@@ -53,9 +53,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <aside className="w-64 bg-[#0e0c1f] border-r border-purple-950/80 flex flex-col justify-between shrink-0">
         <div>
           <div className="h-14 px-6 border-b border-purple-950/80 flex items-center space-x-2 font-bold text-sm">
-            <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center text-slate-950 shadow-md">
-              <Lock className="w-4 h-4" />
-            </div>
+            <img src="/logo.png" alt="ApexTrader Logo" className="w-7 h-7 object-contain mix-blend-screen shrink-0" />
             <span className="text-slate-100">ApexTrader <span className="text-amber-400">Admin</span></span>
           </div>
 

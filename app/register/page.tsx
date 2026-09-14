@@ -72,8 +72,8 @@ export default function RegisterPage() {
       <main className="flex-1 flex items-center justify-center p-4 py-12">
         <div className="bg-[#120f26] border border-purple-900/60 rounded-2xl w-full max-w-lg p-6 sm:p-8 shadow-2xl space-y-6">
           <div className="text-center space-y-2">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center mx-auto shadow-lg shadow-purple-900/50">
-              <TrendingUp className="w-6 h-6 text-white" />
+            <div className="flex justify-center">
+              <img src="/logo.png" alt="ApexTrader Logo" className="w-14 h-14 object-contain mix-blend-screen" />
             </div>
             <h2 className="text-2xl font-extrabold tracking-tight text-slate-100">Create Trader Account</h2>
             <p className="text-xs text-slate-400">Join thousands of active traders worldwide</p>
