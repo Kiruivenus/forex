@@ -20,20 +20,20 @@ const DEFAULT_INSTRUMENTS = [
 export async function GET() {
   try {
     await connectToDatabase();
-    let instruments = await Instrument.find({ isActive: true }).sort({ category: 1, symbol: 1 });
 
-    if (!instruments || instruments.length === 0) {
-      // Auto-populate default instruments into database if empty
-      for (const inst of DEFAULT_INSTRUMENTS) {
-        await Instrument.findOneAndUpdate({ symbol: inst.symbol }, inst, { upsert: true, new: true });
-      }
-      instruments = await Instrument.find({ isActive: true }).sort({ category: 1, symbol: 1 });
+    // Delete any legacy non-volatility instruments (BTCUSD, EURUSD, GBPUSD, etc.) from MongoDB
+    await Instrument.deleteMany({ symbol: { $not: /^VOL/ } });
+
+    // Upsert all Volatility Synthetic Indices into MongoDB
+    for (const inst of DEFAULT_INSTRUMENTS) {
+      await Instrument.findOneAndUpdate({ symbol: inst.symbol }, inst, { upsert: true, new: true });
     }
+
+    const instruments = await Instrument.find({ symbol: /^VOL/, isActive: true }).sort({ symbol: 1 });
 
     return NextResponse.json({ success: true, instruments: instruments.length > 0 ? instruments : DEFAULT_INSTRUMENTS });
   } catch (error) {
     console.error('Fetch Instruments Error:', error);
-    // Return default instruments fallback even on database connection delay
     return NextResponse.json({ success: true, instruments: DEFAULT_INSTRUMENTS });
   }
 }

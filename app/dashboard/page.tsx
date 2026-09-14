@@ -112,9 +112,12 @@ export default function DashboardPage() {
       if (res.ok) {
         const data = await res.json();
         if (data.success && data.instruments && data.instruments.length > 0) {
-          setInstruments(data.instruments);
-          setSelectedInstrument(data.instruments[0]);
-          setLivePrice(data.instruments[0].currentPrice);
+          const volOnly = data.instruments.filter((inst: Instrument) => inst.symbol.startsWith('VOL'));
+          if (volOnly.length > 0) {
+            setInstruments(volOnly);
+            setSelectedInstrument(volOnly[0]);
+            setLivePrice(volOnly[0].currentPrice);
+          }
         }
       }
     } catch (err) {
