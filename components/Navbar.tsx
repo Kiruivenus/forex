@@ -152,17 +152,6 @@ export default function Navbar({ onOpenAIScanner, accountMode = 'DEMO', onAccoun
 
         {/* Right Action Bar */}
         <div className="flex items-center space-x-2">
-          {/* AI Entry Scanner Action Button */}
-          {onOpenAIScanner && (
-            <button
-              onClick={onOpenAIScanner}
-              className="flex items-center space-x-1.5 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white text-xs font-semibold px-2.5 py-1.5 rounded-md shadow-md shadow-purple-900/30 transition-all border border-purple-400/30"
-            >
-              <Cpu className="w-3.5 h-3.5 text-purple-200 animate-pulse" />
-              <span className="hidden sm:inline">AI Scanner</span>
-            </button>
-          )}
-
           {user ? (
             <>
               {/* Account Switcher & Wallet Display */}
