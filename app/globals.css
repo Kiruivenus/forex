@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-main: #0b0e17;
+    --bg-card: #121726;
+    --bg-panel: #18132b;
+    --bg-panel-header: #1e1838;
+    --accent-purple: #7c3aed;
+    --accent-purple-light: #8b5cf6;
+    --accent-green: #10b981;
+    --accent-red: #ef4444;
+    --border-subtle: rgba(124, 58, 237, 0.2);
+    --border-dark: #1e293b;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+  }
+
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    overflow-x: hidden;
+  }
+}
+
+/* Custom Trading Terminal Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0b0e17;
+}
+::-webkit-scrollbar-thumb {
+  background: #261f42;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #7c3aed;
+}
+
+/* Pulse animation for trading ticks */
+@keyframes tickPulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.15); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.tick-pulse {
+  animation: tickPulse 1.2s infinite ease-in-out;
+}
