@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import TradingChart from '@/components/TradingChart';
 import AIEntryScannerModal from '@/components/AIEntryScannerModal';
@@ -195,6 +195,11 @@ export default function DashboardPage() {
   const lostCount = closedPositions.filter((t) => t.status === 'LOST').length;
   const sessionPL = closedPositions.reduce((acc, t) => acc + (t.profit || 0), 0);
 
+  const tradeExecutingRef = useRef(false);
+  useEffect(() => {
+    tradeExecutingRef.current = tradeExecuting;
+  }, [tradeExecuting]);
+
   // Check Target Profit / Stop Loss Thresholds (Active Auto-Trading Session Only)
   useEffect(() => {
     if (!isAutoTrading || closedPositions.length === 0) return;
@@ -228,8 +233,10 @@ export default function DashboardPage() {
       return;
     }
 
-    const autoInterval = setInterval(() => {
-      if (!tradeExecuting) {
+    setLeftTab('OPEN');
+
+    const triggerNextTrade = () => {
+      if (!tradeExecutingRef.current) {
         if (accountMode === 'REAL' && stake > (wallet?.availableBalance ?? 0)) {
           updateAutoTrading(false);
           setIsInsufficientModalOpen(true);
@@ -239,10 +246,17 @@ export default function DashboardPage() {
         const randomDir = directions[Math.floor(Math.random() * directions.length)];
         handleExecuteTrade(randomDir);
       }
-    }, 4000);
+    };
+
+    // Execute first trade IMMEDIATELY on starting auto-trading
+    triggerNextTrade();
+
+    const autoInterval = setInterval(() => {
+      triggerNextTrade();
+    }, 4500);
 
     return () => clearInterval(autoInterval);
-  }, [isAutoTrading, tradeExecuting, tradeType, accountMode, stake, wallet]);
+  }, [isAutoTrading, accountMode]);
 
   const handleToggleAutoTrading = () => {
     if (!isAutoTrading) {
@@ -256,6 +270,7 @@ export default function DashboardPage() {
         });
         return;
       }
+      setLeftTab('OPEN');
       updateAutoTrading(true);
     } else {
       updateAutoTrading(false);
@@ -290,7 +305,7 @@ export default function DashboardPage() {
           direction,
           stake,
           barrier,
-          durationSeconds: 3,
+          durationSeconds: 5,
           accountMode,
           isAiScanner: isAiScannerActive,
         }),
@@ -301,7 +316,10 @@ export default function DashboardPage() {
         if (data.wallet) {
           setWallet(data.wallet);
         }
-        // Switch left tab to OPEN so trader sees active contract card
+        if (data.trade) {
+          setTrades((prev) => [data.trade, ...prev.filter((t) => t.tradeId !== data.trade.tradeId)]);
+        }
+        // Switch left tab to OPEN so trader sees active contract card immediately
         setLeftTab('OPEN');
         setTradeFeedback({
           status: 'OPEN',
@@ -310,10 +328,10 @@ export default function DashboardPage() {
 
         fetchTrades(accountMode);
 
-        // Auto-settle refresh after 3.5 seconds
+        // Auto-settle refresh after 5.5 seconds
         setTimeout(() => {
           fetchTrades(accountMode);
-        }, 3500);
+        }, 5500);
       } else {
         setTradeFeedback({
           status: 'ERROR',
