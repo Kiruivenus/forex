@@ -813,8 +813,17 @@ export default function DashboardPage() {
       <AIEntryScannerModal
         isOpen={isAIScannerOpen}
         onClose={() => setIsAIScannerOpen(false)}
-        currentSymbol={selectedInstrument?.symbol}
-        onExecuteAISignal={(dir) => handleExecuteTrade(dir)}
+        allInstruments={instruments}
+        onLoadMarket={(symbol, category) => {
+          const inst = instruments.find((i) => i.symbol === symbol || i.name.toLowerCase().includes(symbol.toLowerCase()));
+          if (inst) {
+            setSelectedInstrument(inst);
+            setLivePrice(inst.currentPrice);
+          }
+          if (category) {
+            setTradeType(category as any);
+          }
+        }}
       />
 
       <DepositModal
