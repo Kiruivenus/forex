@@ -30,14 +30,17 @@ interface UserSession {
 
 interface WalletState {
   availableBalance: number;
+  demoBalance?: number;
   currency: string;
 }
 
 interface NavbarProps {
   onOpenAIScanner?: () => void;
+  accountMode?: 'DEMO' | 'REAL';
+  onAccountModeChange?: (mode: 'DEMO' | 'REAL') => void;
 }
 
-export default function Navbar({ onOpenAIScanner }: NavbarProps) {
+export default function Navbar({ onOpenAIScanner, accountMode = 'DEMO', onAccountModeChange }: NavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<UserSession | null>(null);
@@ -45,6 +48,7 @@ export default function Navbar({ onOpenAIScanner }: NavbarProps) {
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
 
   const fetchSession = async () => {
     try {
@@ -160,16 +164,86 @@ export default function Navbar({ onOpenAIScanner }: NavbarProps) {
 
           {user ? (
             <>
-              {/* Wallet Balance Display */}
+              {/* Account Switcher & Wallet Display */}
+              <div className="relative">
+                <button
+                  onClick={() => setAccountDropdownOpen(!accountDropdownOpen)}
+                  className="flex items-center space-x-1.5 bg-[#1b1633] border border-purple-800/60 hover:border-purple-500/80 px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition-all shadow-sm"
+                >
+                  <span
+                    className={`w-5 h-5 rounded flex items-center justify-center font-black text-[11px] ${
+                      accountMode === 'DEMO' ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'
+                    }`}
+                  >
+                    {accountMode === 'DEMO' ? 'D' : 'R'}
+                  </span>
+                  <span className="text-slate-100 text-xs tracking-tight">
+                    ${accountMode === 'DEMO'
+                      ? (wallet?.demoBalance ?? 10000.0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                      : (wallet?.availableBalance ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </button>
+
+                {accountDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-[#16122c] border border-purple-900/80 rounded-xl shadow-2xl py-2 z-50 text-xs">
+                    <div className="px-3 py-1.5 border-b border-purple-950 text-[10px] uppercase font-bold text-slate-400">
+                      Select Trading Account
+                    </div>
+                    <button
+                      onClick={() => {
+                        if (onAccountModeChange) onAccountModeChange('DEMO');
+                        setAccountDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-purple-900/40 transition-colors ${
+                        accountMode === 'DEMO' ? 'bg-purple-900/50 font-bold text-white' : 'text-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <span className="w-5 h-5 rounded bg-rose-600 text-white flex items-center justify-center font-bold text-[10px]">
+                          D
+                        </span>
+                        <div>
+                          <p className="font-semibold leading-tight">Demo Account</p>
+                          <p className="text-[10px] text-slate-400 font-mono">
+                            ${(wallet?.demoBalance ?? 10000.0).toFixed(2)} USD
+                          </p>
+                        </div>
+                      </div>
+                      {accountMode === 'DEMO' && <span className="text-purple-400 font-bold text-[11px]">Active</span>}
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        if (onAccountModeChange) onAccountModeChange('REAL');
+                        setAccountDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-purple-900/40 transition-colors ${
+                        accountMode === 'REAL' ? 'bg-purple-900/50 font-bold text-white' : 'text-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <span className="w-5 h-5 rounded bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px]">
+                          R
+                        </span>
+                        <div>
+                          <p className="font-semibold leading-tight">Real Account</p>
+                          <p className="text-[10px] text-slate-400 font-mono">
+                            ${(wallet?.availableBalance ?? 0).toFixed(2)} USD
+                          </p>
+                        </div>
+                      </div>
+                      {accountMode === 'REAL' && <span className="text-emerald-400 font-bold text-[11px]">Active</span>}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Deposit Quick Action Button */}
               <Link
                 href="/deposit"
-                className="flex items-center space-x-2 bg-[#1b1633] border border-purple-800/40 hover:border-purple-600/60 px-3 py-1 rounded-lg text-xs transition-all"
+                className="hidden sm:flex items-center space-x-1 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow-md shadow-purple-950/40 transition-all"
               >
-                <Wallet className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="text-slate-400 hidden sm:inline">Balance:</span>
-                <span className="font-bold text-emerald-400 text-sm">
-                  ${wallet ? wallet.availableBalance.toFixed(2) : '0.00'}
-                </span>
+                <span>Deposit</span>
               </Link>
 
               {/* User Avatar Menu Dropdown */}

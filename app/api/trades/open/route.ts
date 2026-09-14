@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { symbol, tradeType, direction, stake, barrier, durationSeconds = 3 } = await req.json();
+    const { symbol, tradeType, direction, stake, barrier, durationSeconds = 3, accountMode = 'REAL' } = await req.json();
 
     if (!symbol || !tradeType || !direction || !stake || stake <= 0) {
       return NextResponse.json(
@@ -57,37 +57,51 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const wallet = await Wallet.findOne({ userId: auth.user.userId });
-    if (!wallet || wallet.availableBalance < stake) {
+    let wallet = await Wallet.findOne({ userId: auth.user.userId });
+    if (!wallet) {
+      wallet = await Wallet.create({ userId: auth.user.userId, availableBalance: 0, demoBalance: 10000.0 });
+    }
+
+    const isDemo = accountMode === 'DEMO';
+    const currentBal = isDemo ? (wallet.demoBalance || 10000.0) : wallet.availableBalance;
+
+    if (currentBal < stake) {
       return NextResponse.json(
         {
           success: false,
           code: 'INSUFFICIENT_BALANCE',
-          message: `Insufficient available balance ($${wallet?.availableBalance.toFixed(2) || '0.00'}) for $${stake} trade.`,
+          message: `Insufficient ${isDemo ? 'demo' : 'available'} balance ($${currentBal.toFixed(2)}) for $${stake} trade.`,
         },
         { status: 400 }
       );
     }
 
-    // Deduct stake atomically
-    const balanceBeforeStake = wallet.availableBalance;
+    // Deduct stake atomically from appropriate balance
+    const balanceBeforeStake = currentBal;
     const balanceAfterStake = Number((balanceBeforeStake - stake).toFixed(2));
-    wallet.availableBalance = balanceAfterStake;
+
+    if (isDemo) {
+      wallet.demoBalance = balanceAfterStake;
+    } else {
+      wallet.availableBalance = balanceAfterStake;
+    }
     await wallet.save();
 
     const tradeId = `TRD_${Date.now()}_${Math.floor(1000 + Math.random() * 9000)}`;
     const entryPrice = instrument.currentPrice;
 
-    // Record initial stake ledger
-    await LedgerEntry.create({
-      userId: auth.user.userId,
-      type: 'TRADE_STAKE',
-      amount: -stake,
-      balanceBefore: balanceBeforeStake,
-      balanceAfter: balanceAfterStake,
-      referenceId: tradeId,
-      description: `Trade Stake on ${symbol} (${tradeType} - ${direction})`,
-    });
+    if (!isDemo) {
+      // Record initial stake ledger for real account
+      await LedgerEntry.create({
+        userId: auth.user.userId,
+        type: 'TRADE_STAKE',
+        amount: -stake,
+        balanceBefore: balanceBeforeStake,
+        balanceAfter: balanceAfterStake,
+        referenceId: tradeId,
+        description: `Trade Stake on ${symbol} (${tradeType} - ${direction})`,
+      });
+    }
 
     // Calculate potential payout based on contract type
     let multiplier = 1.95;
@@ -103,6 +117,7 @@ export async function POST(req: NextRequest) {
     const trade = await Trade.create({
       tradeId,
       userId: auth.user.userId,
+      accountMode: isDemo ? 'DEMO' : 'REAL',
       instrumentId: instrument._id,
       symbol,
       tradeType,
@@ -130,10 +145,11 @@ export async function POST(req: NextRequest) {
         stake: trade.stake,
         entryPrice: trade.entryPrice,
         status: trade.status,
+        accountMode: trade.accountMode,
         durationSeconds: trade.durationSeconds,
         closeTime: trade.closeTime,
       },
-      updatedBalance: wallet.availableBalance,
+      updatedBalance: isDemo ? wallet.demoBalance : wallet.availableBalance,
     });
   } catch (error) {
     console.error('Trade Execution Error:', error);

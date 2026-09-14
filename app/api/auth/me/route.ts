@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
 
   let wallet = await Wallet.findOne({ userId: user._id });
   if (!wallet) {
-    wallet = await Wallet.create({ userId: user._id, availableBalance: 0.0, lockedBalance: 0.0, currency: 'USD' });
+    wallet = await Wallet.create({ userId: user._id, availableBalance: 0.0, demoBalance: 10000.0, lockedBalance: 0.0, currency: 'USD' });
   }
 
   return NextResponse.json({
@@ -37,6 +37,7 @@ export async function GET(req: NextRequest) {
     },
     wallet: {
       availableBalance: wallet.availableBalance,
+      demoBalance: wallet.demoBalance || 10000.0,
       lockedBalance: wallet.lockedBalance,
       totalDeposited: wallet.totalDeposited,
       totalWithdrawn: wallet.totalWithdrawn,

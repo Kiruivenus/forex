@@ -66,12 +66,17 @@ export default function DashboardPage() {
   const [trades, setTrades] = useState<TradeRecord[]>([]);
   const [leftTab, setLeftTab] = useState<'OPEN' | 'CLOSED' | 'TRANSACTIONS'>('OPEN');
   const [mobileTab, setMobileTab] = useState<'TRADE' | 'POSITIONS'>('TRADE');
+  const [accountMode, setAccountMode] = useState<'DEMO' | 'REAL'>('DEMO');
 
   // Trade Ticket Form State
   const [tradeType, setTradeType] = useState<'RISE_FALL' | 'EVEN_ODD' | 'MATCH_DIFFER' | 'OVER_UNDER'>('RISE_FALL');
-  const [stake, setStake] = useState<number>(1);
+  const [stake, setStake] = useState<number>(15);
   const [barrier, setBarrier] = useState<number>(5);
+  const [targetProfit, setTargetProfit] = useState<number>(200);
+  const [stopLoss, setStopLoss] = useState<number>(999);
+  const [multiplierValue, setMultiplierValue] = useState<number>(2);
   const [tradeExecuting, setTradeExecuting] = useState(false);
+  const [closingTradeId, setClosingTradeId] = useState<string | null>(null);
   const [tradeFeedback, setTradeFeedback] = useState<{ status: string; message: string; code?: string } | null>(null);
 
   // Modals
@@ -137,14 +142,13 @@ export default function DashboardPage() {
           stake,
           barrier,
           durationSeconds: 3,
+          accountMode,
         }),
       });
 
       const data = await res.json();
       if (res.ok && data.success) {
-        const t = data.trade;
-
-        // Switch left tab to OPEN so trader sees contract
+        // Switch left tab to OPEN so trader sees active contract card
         setLeftTab('OPEN');
         setTradeFeedback({
           status: 'OPEN',
@@ -153,7 +157,7 @@ export default function DashboardPage() {
 
         fetchTrades();
 
-        // Auto-settle after 3.5 seconds
+        // Auto-settle refresh after 3.5 seconds
         setTimeout(() => {
           fetchTrades();
         }, 3500);
@@ -174,12 +178,35 @@ export default function DashboardPage() {
     }
   };
 
+  const handleCloseTrade = async (tradeId: string) => {
+    setClosingTradeId(tradeId);
+    try {
+      const res = await fetch('/api/trades/close', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tradeId }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setTradeFeedback({
+          status: data.trade.status,
+          message: data.message,
+        });
+        fetchTrades();
+      }
+    } catch (err) {
+      console.error('Error closing trade:', err);
+    } finally {
+      setClosingTradeId(null);
+    }
+  };
+
   // Quick Stake Adjustment
   const adjustStake = (delta: number) => {
     setStake((prev) => Math.max(1, Math.min(1000, Number((prev + delta).toFixed(2)))));
   };
 
-  // Multiplier preview
+  // Multiplier calculation preview
   let multiplier = 1.95;
   if (tradeType === 'MATCH_DIFFER') multiplier = 8.5;
   else if (tradeType === 'OVER_UNDER') multiplier = 1.9;
@@ -188,16 +215,24 @@ export default function DashboardPage() {
 
   const openPositions = trades.filter((t) => t.status === 'OPEN' || t.status === 'PENDING');
   const closedPositions = trades.filter((t) => t.status === 'WON' || t.status === 'LOST');
+  const wonCount = closedPositions.filter((t) => t.status === 'WON').length;
+  const lostCount = closedPositions.filter((t) => t.status === 'LOST').length;
+
+  const sessionPL = closedPositions.reduce((acc, t) => acc + (t.profit || 0), 0);
 
   return (
     <div className="min-h-screen bg-[#0b0e17] text-slate-100 flex flex-col font-sans pb-16 md:pb-0">
-      <Navbar onOpenAIScanner={() => setIsAIScannerOpen(true)} />
+      <Navbar
+        accountMode={accountMode}
+        onAccountModeChange={(mode) => setAccountMode(mode)}
+        onOpenAIScanner={() => setIsAIScannerOpen(true)}
+      />
 
       {/* Main Terminal Workspace 3-Panel Layout */}
       <main className="flex-1 max-w-[1600px] w-full mx-auto p-2 sm:p-4 grid grid-cols-1 lg:grid-cols-12 gap-3 items-start">
         {/* LEFT PANEL: Trade History & Positions (Desktop Col 3) */}
         <div
-          className={`lg:col-span-3 bg-[#120f26] border border-purple-950/80 rounded-xl overflow-hidden flex flex-col h-[600px] ${
+          className={`lg:col-span-3 bg-[#120f26] border border-purple-950/80 rounded-xl overflow-hidden flex flex-col h-[650px] ${
             mobileTab === 'POSITIONS' ? 'block' : 'hidden lg:flex'
           }`}
         >
@@ -213,7 +248,7 @@ export default function DashboardPage() {
                 onClick={() => setLeftTab('CLOSED')}
                 className={`flex-1 py-1 rounded transition-colors ${leftTab === 'CLOSED' ? 'bg-purple-600 text-white font-bold' : 'text-slate-400 hover:text-white'}`}
               >
-                Closed
+                Closed ({closedPositions.length})
               </button>
               <button
                 onClick={() => setLeftTab('TRANSACTIONS')}
@@ -224,37 +259,81 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="flex-1 p-3 overflow-y-auto space-y-2 text-xs">
+          {/* Position Cards List Body */}
+          <div className="flex-1 p-3 overflow-y-auto space-y-2.5 text-xs">
             {leftTab === 'OPEN' ? (
               openPositions.length > 0 ? (
                 openPositions.map((t) => (
-                  <div key={t.tradeId} className="bg-[#181335] p-3 rounded-lg border border-purple-900/50 space-y-1.5 animate-pulse">
+                  <div
+                    key={t.tradeId}
+                    className="bg-[#181335] p-3 rounded-xl border border-purple-900/60 space-y-2 relative shadow-lg"
+                  >
                     <div className="flex items-center justify-between font-semibold">
-                      <span className="text-purple-300 font-bold">{t.symbol} ({t.direction})</span>
-                      <span className="text-amber-400 font-mono text-[10px] bg-amber-950/50 px-2 py-0.5 rounded border border-amber-500/30 flex items-center space-x-1">
+                      <div className="flex items-center space-x-1.5">
+                        <span className="font-bold text-slate-100 text-xs">{t.symbol}</span>
+                        <span className="text-[10px] bg-purple-900/60 text-purple-300 px-1.5 py-0.5 rounded font-mono border border-purple-800/40">
+                          ● {t.direction}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-amber-400 font-mono flex items-center space-x-1 bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-500/30">
                         <Clock className="w-3 h-3 animate-spin" />
-                        <span>OPEN</span>
+                        <span>Tick 1</span>
                       </span>
                     </div>
-                    <div className="flex justify-between text-slate-300 text-[11px]">
-                      <span>Stake: ${t.stake}</span>
-                      <span>Entry: {t.entryPrice}</span>
+
+                    <div className="text-[10px] bg-[#0d091e] p-2 rounded-lg space-y-1 font-mono text-slate-300">
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">USD Tag:</span>
+                        <span className="font-bold text-slate-200">USD</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Total Profit/Loss:</span>
+                        <span className="text-amber-400 font-bold animate-pulse">0.00</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Contract Value:</span>
+                        <span>0.00</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Stake:</span>
+                        <span className="font-bold text-white">${t.stake.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Potential Payout:</span>
+                        <span className="text-purple-300 font-bold">${(t.stake * 1.95).toFixed(3)}</span>
+                      </div>
                     </div>
+
+                    {/* Manual Close Position Action Button */}
+                    <button
+                      onClick={() => handleCloseTrade(t.tradeId)}
+                      disabled={closingTradeId === t.tradeId}
+                      className="w-full py-1.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-lg shadow-md transition-all flex items-center justify-center space-x-1"
+                    >
+                      {closingTradeId === t.tradeId ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <span>CLOSE POSITION</span>
+                      )}
+                    </button>
                   </div>
                 ))
               ) : (
                 <div className="py-16 text-center text-slate-400 text-xs space-y-2">
                   <Clock className="w-8 h-8 text-purple-400 mx-auto" />
                   <p className="font-semibold text-slate-300">No Open Positions</p>
-                  <p className="text-[11px]">Active trades will appear here automatically.</p>
+                  <p className="text-[11px]">Active trade contracts will appear here automatically.</p>
                 </div>
               )
             ) : leftTab === 'CLOSED' ? (
               closedPositions.length > 0 ? (
                 closedPositions.map((t) => (
-                  <div key={t.tradeId} className="bg-[#181335] p-3 rounded-lg border border-purple-900/40 space-y-1.5">
+                  <div key={t.tradeId} className="bg-[#181335] p-3 rounded-xl border border-purple-900/40 space-y-1.5">
                     <div className="flex items-center justify-between font-semibold">
-                      <span className="text-slate-200">{t.symbol} ({t.direction})</span>
+                      <div className="flex items-center space-x-1.5">
+                        <span className="text-slate-200 font-bold">{t.symbol}</span>
+                        <span className="text-[10px] text-purple-300">● {t.direction}</span>
+                      </div>
                       <span
                         className={`font-bold font-mono text-[11px] px-2 py-0.5 rounded ${
                           t.status === 'WON' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800/40' : 'bg-rose-950 text-rose-400 border border-rose-800/40'
@@ -264,8 +343,8 @@ export default function DashboardPage() {
                       </span>
                     </div>
                     <div className="flex justify-between text-slate-400 text-[10px] font-mono">
-                      <span>Stake: ${t.stake}</span>
-                      <span>Exit: {t.exitPrice?.toFixed(4)}</span>
+                      <span>Stake: ${t.stake.toFixed(2)}</span>
+                      <span>Contract Val: {t.payout.toFixed(2)}</span>
                     </div>
                   </div>
                 ))
@@ -287,6 +366,25 @@ export default function DashboardPage() {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Session Summary Footer Bar (Reference UI Match) */}
+          <div className="bg-[#16112e] p-3 border-t border-purple-950 space-y-1.5 font-mono text-xs">
+            <div className="flex items-center justify-between">
+              <span className="flex items-center space-x-1.5 text-amber-400 font-semibold text-[11px]">
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping inline-block" />
+                <span>● Auto-Trading</span>
+              </span>
+              <span className="text-slate-400 text-[10px]">
+                {trades.length} trades ({wonCount}W / {lostCount}L)
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-xs font-bold pt-1 border-t border-purple-900/40">
+              <span className="text-slate-300">Session P/L:</span>
+              <span className={sessionPL >= 0 ? 'text-emerald-400 font-extrabold' : 'text-rose-400 font-extrabold'}>
+                {sessionPL >= 0 ? `+${sessionPL.toFixed(2)} USD` : `${sessionPL.toFixed(2)} USD`}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -454,15 +552,61 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Potential Payout Metrics */}
-          <div className="bg-[#0b0818] p-3 rounded-xl border border-purple-900/40 space-y-2 font-mono">
-            <div className="flex justify-between text-[11px]">
-              <span className="text-slate-400">Multiplier Rate:</span>
-              <span className="font-bold text-purple-300">{multiplier}x</span>
+          {/* Target Profit, Stop Loss, Multiplier Widgets (Reference Match) */}
+          <div className="grid grid-cols-3 gap-1.5 text-center font-mono">
+            <div className="bg-[#0b0818] p-2 rounded-xl border border-emerald-900/40">
+              <span className="block text-[9px] text-emerald-400 font-bold uppercase tracking-wider">Target Profit</span>
+              <div className="flex items-center justify-center space-x-1 mt-1 text-slate-100 font-bold text-xs">
+                <span className="text-emerald-400">$</span>
+                <input
+                  type="number"
+                  value={targetProfit}
+                  onChange={(e) => setTargetProfit(Number(e.target.value))}
+                  className="w-12 bg-transparent text-center text-emerald-300 font-bold text-xs focus:outline-none"
+                />
+              </div>
             </div>
-            <div className="flex justify-between text-xs pt-1 border-t border-purple-950">
-              <span className="text-slate-300 font-semibold">Potential Payout:</span>
-              <span className="font-extrabold text-emerald-400 text-sm">${potentialPayout.toFixed(2)} USD</span>
+
+            <div className="bg-[#0b0818] p-2 rounded-xl border border-rose-900/40">
+              <span className="block text-[9px] text-rose-400 font-bold uppercase tracking-wider">Stop Loss</span>
+              <div className="flex items-center justify-center space-x-1 mt-1 text-slate-100 font-bold text-xs">
+                <span className="text-rose-400">$</span>
+                <input
+                  type="number"
+                  value={stopLoss}
+                  onChange={(e) => setStopLoss(Number(e.target.value))}
+                  className="w-12 bg-transparent text-center text-rose-300 font-bold text-xs focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="bg-[#0b0818] p-2 rounded-xl border border-amber-900/40">
+              <span className="block text-[9px] text-amber-400 font-bold uppercase tracking-wider">Multiplier</span>
+              <div className="flex items-center justify-center space-x-0.5 mt-1 text-amber-300 font-bold text-xs">
+                <span>x</span>
+                <input
+                  type="number"
+                  value={multiplierValue}
+                  onChange={(e) => setMultiplierValue(Number(e.target.value))}
+                  className="w-8 bg-transparent text-center text-amber-300 font-bold text-xs focus:outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Live Trading Metrics Bar (Reference Match) */}
+          <div className="bg-[#181335] p-2.5 rounded-xl border border-purple-900/50 flex items-center justify-between font-mono text-xs">
+            <div className="flex items-center space-x-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-slate-300 text-[10px] font-bold">
+                LIVE {trades.length}T · {wonCount}W - {lostCount}L
+              </span>
+            </div>
+            <div className="text-right">
+              <span className={`font-bold text-xs ${sessionPL >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                {sessionPL >= 0 ? `+$${sessionPL.toFixed(2)}` : `-$${Math.abs(sessionPL).toFixed(2)}`}
+              </span>
+              <p className="text-[9px] text-slate-400">Stake ${stake}</p>
             </div>
           </div>
 

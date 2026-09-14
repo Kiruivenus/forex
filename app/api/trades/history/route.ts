@@ -55,38 +55,45 @@ export async function GET(req: NextRequest) {
 
       const wallet = await Wallet.findOne({ userId: auth.user.userId });
       if (wallet) {
+        const isDemo = t.accountMode === 'DEMO';
         if (outcome.status === 'WON' && actualPayout > 0) {
-          const balanceBeforePayout = wallet.availableBalance;
-          const balanceAfterPayout = Number((balanceBeforePayout + actualPayout).toFixed(2));
-          wallet.availableBalance = balanceAfterPayout;
-          wallet.totalProfit = Number((wallet.totalProfit + netProfit).toFixed(2));
-          await wallet.save();
+          if (isDemo) {
+            wallet.demoBalance = Number(((wallet.demoBalance || 10000.0) + actualPayout).toFixed(2));
+          } else {
+            const balanceBeforePayout = wallet.availableBalance;
+            const balanceAfterPayout = Number((balanceBeforePayout + actualPayout).toFixed(2));
+            wallet.availableBalance = balanceAfterPayout;
+            wallet.totalProfit = Number((wallet.totalProfit + netProfit).toFixed(2));
 
-          await LedgerEntry.create({
-            userId: auth.user.userId,
-            type: 'TRADE_PAYOUT',
-            amount: actualPayout,
-            balanceBefore: balanceBeforePayout,
-            balanceAfter: balanceAfterPayout,
-            referenceId: t.tradeId,
-            description: `Trade Win Payout for ${t.tradeId} (${t.symbol})`,
-          });
+            await LedgerEntry.create({
+              userId: auth.user.userId,
+              type: 'TRADE_PAYOUT',
+              amount: actualPayout,
+              balanceBefore: balanceBeforePayout,
+              balanceAfter: balanceAfterPayout,
+              referenceId: t.tradeId,
+              description: `Trade Win Payout for ${t.tradeId} (${t.symbol})`,
+            });
+          }
+          await wallet.save();
 
           await Notification.create({
             userId: auth.user.userId,
             type: 'TRADE',
             title: 'Trade Won! 🎉',
-            message: `Your $${t.stake} trade on ${t.symbol} won! Payout credited: +$${actualPayout} USD.`,
+            message: `Your $${t.stake} ${isDemo ? '(Demo)' : ''} trade on ${t.symbol} won! Payout credited: +$${actualPayout} USD.`,
           });
         } else {
-          wallet.totalLoss = Number((wallet.totalLoss + t.stake).toFixed(2));
-          await wallet.save();
+          if (!isDemo) {
+            wallet.totalLoss = Number((wallet.totalLoss + t.stake).toFixed(2));
+            await wallet.save();
+          }
 
           await Notification.create({
             userId: auth.user.userId,
             type: 'TRADE',
             title: 'Trade Expired',
-            message: `Your $${t.stake} trade on ${t.symbol} expired.`,
+            message: `Your $${t.stake} ${isDemo ? '(Demo)' : ''} trade on ${t.symbol} expired.`,
           });
         }
       }

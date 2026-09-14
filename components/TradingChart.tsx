@@ -237,6 +237,60 @@ export default function TradingChart({ instrument, onPriceUpdate }: TradingChart
           <span>LIVE TICK STREAM</span>
         </div>
       </div>
+
+      {/* Last Digit Statistics Bar (Reference UI Match) */}
+      {(() => {
+        const lastDigit = Math.abs(Math.floor(currentPrice * 100)) % 10;
+        // Calculate distribution percentages from recent ticks
+        const digitCounts = Array(10).fill(0);
+        ticks.forEach((t) => {
+          const d = Math.abs(Math.floor(t.price * 100)) % 10;
+          digitCounts[d]++;
+        });
+        const total = ticks.length || 1;
+        const digitPercentages = digitCounts.map((c) => ((c / total) * 100).toFixed(1));
+
+        return (
+          <div className="bg-[#120e29] border-t border-purple-950 px-3 py-2 space-y-1.5">
+            {/* Active Tick Digit Badge Bubble */}
+            <div className="flex justify-center">
+              <div className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-3 py-0.5 rounded-full font-mono text-xs font-bold flex items-center space-x-1.5 shadow-sm shadow-emerald-950">
+                <span>{currentPrice.toFixed(2)}</span>
+                <span className="w-5 h-5 rounded-full bg-emerald-500 text-slate-950 font-black text-xs flex items-center justify-center animate-bounce">
+                  {lastDigit}
+                </span>
+              </div>
+            </div>
+
+            {/* 0..9 Digit Percentages Bar */}
+            <div className="grid grid-cols-10 gap-1 text-center font-mono">
+              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((digit) => {
+                const isActive = lastDigit === digit;
+                const pct = digitPercentages[digit];
+                return (
+                  <div
+                    key={digit}
+                    className={`p-1 rounded-lg border transition-all flex flex-col items-center justify-center ${
+                      isActive
+                        ? 'bg-emerald-500/30 border-emerald-400 text-emerald-300 font-extrabold shadow-md shadow-emerald-950 scale-105'
+                        : 'bg-[#181335] border-purple-950/80 text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    <span
+                      className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs ${
+                        isActive ? 'bg-emerald-400 text-slate-950' : 'bg-purple-950/80 text-slate-300'
+                      }`}
+                    >
+                      {digit}
+                    </span>
+                    <span className="text-[9px] mt-0.5 font-medium">{pct}%</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
