@@ -284,27 +284,41 @@ export default function TradingChart({
           </div>
         </div>
 
-        {/* Dropdown Popover for selecting any instrument */}
+        {/* Dropdown Popover for selecting Volatility Synthetic Indices (Exact Screenshot Match) */}
         {isDropdownOpen && allInstruments.length > 0 && (
-          <div className="absolute top-full left-0 mt-2 w-64 bg-[#1a1e2d] border border-slate-700/80 rounded-xl shadow-2xl py-1.5 z-40 text-xs max-h-64 overflow-y-auto">
-            <div className="px-3 py-1 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-800">
-              Select Market Symbol
-            </div>
-            {allInstruments.map((inst) => (
-              <button
-                key={inst.symbol}
-                onClick={() => {
-                  if (onSelectInstrument) onSelectInstrument(inst);
-                  setIsDropdownOpen(false);
-                }}
-                className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-purple-900/40 transition-colors ${
-                  instrument.symbol === inst.symbol ? 'bg-purple-900/50 font-bold text-white' : 'text-slate-300'
-                }`}
-              >
-                <span>{inst.name}</span>
-                <span className="font-mono text-[10px] text-slate-400">{inst.currentPrice.toFixed(2)}</span>
-              </button>
-            ))}
+          <div className="absolute top-full left-0 mt-2 w-72 bg-[#171c2b] border border-slate-700/80 rounded-2xl shadow-2xl py-2 z-40 text-xs max-h-80 overflow-y-auto font-sans">
+            {allInstruments
+              .filter((inst) => inst.symbol.startsWith('VOL'))
+              .map((inst) => {
+                const isSelected = instrument.symbol === inst.symbol;
+                return (
+                  <button
+                    key={inst.symbol}
+                    onClick={() => {
+                      if (onSelectInstrument) onSelectInstrument(inst);
+                      setIsDropdownOpen(false);
+                    }}
+                    className={`w-full text-left px-3.5 py-2.5 flex items-center justify-between transition-colors ${
+                      isSelected ? 'bg-[#1e2a3a] text-teal-300 font-bold' : 'text-slate-200 hover:bg-[#1e2334]'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+                          isSelected ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30' : 'bg-[#1f2638] text-slate-400'
+                        }`}
+                      >
+                        <BarChart2 className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="font-semibold text-xs text-slate-100">{inst.name}</span>
+                    </div>
+
+                    {isSelected && (
+                      <span className="w-2.5 h-2.5 rounded-full bg-teal-400 shadow-sm shadow-teal-950" />
+                    )}
+                  </button>
+                );
+              })}
           </div>
         )}
       </div>
