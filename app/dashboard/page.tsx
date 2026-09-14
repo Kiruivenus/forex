@@ -102,6 +102,22 @@ export default function DashboardPage() {
     }
     return false;
   });
+  const [sessionStartTime, setSessionStartTime] = useState<number | null>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = sessionStorage.getItem('apex_session_start_time');
+      return saved ? parseInt(saved, 10) : null;
+    }
+    return null;
+  });
+
+  const startNewSession = () => {
+    const now = Date.now();
+    setSessionStartTime(now);
+    setHasTriggeredTarget(false);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('apex_session_start_time', now.toString());
+    }
+  };
 
   const updateAutoTrading = (active: boolean) => {
     setIsAutoTrading(active);
@@ -189,8 +205,11 @@ export default function DashboardPage() {
     return () => clearInterval(interval);
   }, [accountMode]);
 
-  // Compute Session Metrics
-  const closedPositions = trades.filter((t) => t.status === 'WON' || t.status === 'LOST');
+  // Compute Active Session Metrics (trades opened during current auto-trading session)
+  const sessionTrades = sessionStartTime
+    ? trades.filter((t) => new Date(t.createdAt).getTime() >= sessionStartTime - 1000)
+    : trades;
+  const closedPositions = sessionTrades.filter((t) => t.status === 'WON' || t.status === 'LOST');
   const wonCount = closedPositions.filter((t) => t.status === 'WON').length;
   const lostCount = closedPositions.filter((t) => t.status === 'LOST').length;
   const sessionPL = closedPositions.reduce((acc, t) => acc + (t.profit || 0), 0);
@@ -270,6 +289,7 @@ export default function DashboardPage() {
         });
         return;
       }
+      startNewSession();
       setLeftTab('OPEN');
       updateAutoTrading(true);
     } else {
@@ -942,6 +962,7 @@ export default function DashboardPage() {
               message: `Insufficient Real Balance ($${(wallet?.availableBalance ?? 0).toFixed(2)} USD available) for $${stake} USD trade. Please top up your wallet to trade.`,
             });
           } else {
+            startNewSession();
             setTradingMode('AUTO');
             updateAutoTrading(true);
             setIsAiScannerActive(true);
