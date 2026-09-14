@@ -5,12 +5,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { TrendingUp, Lock, Mail, AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
+import { Lock, Mail, AlertCircle, ArrowRight, Loader2, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -56,86 +58,145 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0e17] text-slate-100 flex flex-col justify-between">
+    <div className="min-h-screen bg-[#090714] text-slate-100 flex flex-col font-sans">
       <Navbar />
 
-      <main className="flex-1 flex items-center justify-center p-4 pt-20 sm:pt-24 pb-12">
-        <div className="bg-[#120f26] border border-purple-900/60 rounded-2xl w-full max-w-md p-6 sm:p-8 shadow-2xl space-y-6">
-          <div className="text-center space-y-2">
-            <div className="flex justify-center">
-              <img src="/logo.png" alt="ApexTrader Logo" className="w-14 h-14 object-contain mix-blend-screen" />
-            </div>
-            <h2 className="text-2xl font-extrabold tracking-tight text-slate-100">Welcome Back</h2>
-            <p className="text-xs text-slate-400">Sign in to access your trading workspace</p>
-          </div>
+      {/* Main split layout container */}
+      <main className="flex-1 grid grid-cols-1 md:grid-cols-2 pt-14 min-h-[calc(100vh)]">
+        {/* Left Hero Panel (Desktop Mode) */}
+        <div className="hidden md:flex flex-col justify-center px-8 lg:px-16 py-12 bg-gradient-to-br from-fuchsia-700 via-purple-700 to-indigo-950 relative overflow-hidden text-white border-r border-purple-900/30">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-pink-500/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/25 rounded-full blur-3xl pointer-events-none" />
 
-          {errorMsg && (
-            <div className="bg-rose-950/50 border border-rose-600/40 p-3 rounded-xl flex items-start space-x-2 text-xs text-rose-300">
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-              <p>{errorMsg}</p>
+          <div className="relative z-10 max-w-lg space-y-8">
+            {/* Frameless Badge */}
+            <div className="inline-flex items-center space-x-2.5 px-4 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-xl">
+              <img src="/logo.png" alt="ApexTrader Logo" className="w-7 h-7 object-contain mix-blend-screen" />
+              <span className="font-extrabold text-xl tracking-tight text-white">ApexTrader</span>
             </div>
-          )}
 
-          <form onSubmit={handleLogin} className="space-y-4 text-xs">
-            <div>
-              <label className="block text-slate-300 font-medium mb-1.5">Email Address</label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="trader@example.com"
-                  className="w-full bg-[#0b0818] border border-purple-900/60 rounded-xl pl-9 pr-3 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-purple-500"
-                  required
-                />
+            <div className="space-y-4">
+              <h1 className="text-4xl lg:text-5xl font-black tracking-tight leading-tight text-white">
+                Trade smarter with real-time markets
+              </h1>
+              <p className="text-purple-100 text-sm lg:text-base leading-relaxed opacity-90">
+                Access 100+ assets, microsecond execution, and up to 95% returns — all from one institutional trading terminal.
+              </p>
+            </div>
+
+            {/* Platform Stats Row */}
+            <div className="grid grid-cols-3 gap-4 pt-6 border-t border-white/15">
+              <div>
+                <p className="text-2xl lg:text-3xl font-black text-white">1M+</p>
+                <p className="text-xs text-purple-200/80 uppercase font-medium tracking-wider mt-0.5">Traders</p>
+              </div>
+              <div>
+                <p className="text-2xl lg:text-3xl font-black text-white">100+</p>
+                <p className="text-xs text-purple-200/80 uppercase font-medium tracking-wider mt-0.5">Assets</p>
+              </div>
+              <div>
+                <p className="text-2xl lg:text-3xl font-black text-white">95%</p>
+                <p className="text-xs text-purple-200/80 uppercase font-medium tracking-wider mt-0.5">Payout</p>
               </div>
             </div>
+          </div>
+        </div>
 
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="text-slate-300 font-medium">Password</label>
-                <Link href="/forgot-password" className="text-purple-400 hover:underline text-[11px]">
+        {/* Right Form Column (Directly on dark background, NO card container) */}
+        <div className="flex flex-col justify-center items-center px-6 sm:px-12 lg:px-16 py-12 bg-[#090714] w-full">
+          <div className="w-full max-w-md space-y-6">
+            <div className="space-y-1.5">
+              <h2 className="text-3xl font-extrabold tracking-tight text-slate-100">Welcome back</h2>
+              <p className="text-xs sm:text-sm text-slate-400">Sign in to your account to continue</p>
+            </div>
+
+            {errorMsg && (
+              <div className="bg-rose-950/60 border border-rose-600/40 p-3.5 rounded-xl flex items-start space-x-2.5 text-xs text-rose-300">
+                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                <p>{errorMsg}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleLogin} className="space-y-4 text-xs">
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1.5">Email</label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="w-full bg-[#120f24] border border-purple-950 focus:border-purple-500/80 rounded-xl pl-10 pr-4 py-3 text-slate-100 text-sm focus:outline-none transition-colors"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1.5">Password</label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    className="w-full bg-[#120f24] border border-purple-950 focus:border-purple-500/80 rounded-xl pl-10 pr-10 py-3 text-slate-100 text-sm focus:outline-none transition-colors"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-200"
+                    aria-label="Toggle password visibility"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <label className="flex items-center space-x-2 cursor-pointer text-slate-400 hover:text-slate-300 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="rounded border-purple-900 bg-[#120f24] text-purple-600 focus:ring-purple-500 w-3.5 h-3.5"
+                  />
+                  <span>Remember me</span>
+                </label>
+
+                <Link href="/forgot-password" className="text-purple-400 hover:text-purple-300 font-semibold text-xs transition-colors">
                   Forgot password?
                 </Link>
               </div>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full bg-[#0b0818] border border-purple-900/60 rounded-xl pl-9 pr-3 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-purple-500"
-                  required
-                />
-              </div>
-            </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Signing In...</span>
-                </>
-              ) : (
-                <>
-                  <span>Sign In to Terminal</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </form>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 bg-gradient-to-r from-purple-600 via-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-purple-950/60 transition-all flex items-center justify-center space-x-2 disabled:opacity-50 mt-2"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Signing In...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Sign In</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </form>
 
-          <div className="text-center text-xs text-slate-400 pt-2 border-t border-purple-950">
-            Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-purple-400 hover:underline font-semibold">
-              Create Free Account
-            </Link>
+            <p className="text-center text-xs text-slate-400 pt-4">
+              Don&apos;t have an account?{' '}
+              <Link href="/register" className="text-purple-400 hover:text-purple-300 font-bold transition-colors">
+                Create account
+              </Link>
+            </p>
           </div>
         </div>
       </main>
