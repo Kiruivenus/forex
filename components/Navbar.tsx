@@ -80,12 +80,17 @@ export default function Navbar({ onOpenAIScanner, accountMode = 'DEMO', onAccoun
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#120f24]/95 backdrop-blur-md border-b border-purple-950/60 text-slate-100 h-14">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 h-14 flex items-center justify-between">
-        {/* Brand / Logo */}
-        <div className="flex items-center space-x-3">
-          <Link href="/" className="flex items-center space-x-2 font-bold text-lg tracking-tight">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-700 to-violet-500 flex items-center justify-center shadow-lg shadow-purple-900/40">
-              <TrendingUp className="w-5 h-5 text-white" />
-            </div>
+        {/* Hamburger Menu & Brand */}
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle navigation menu"
+            className="p-1 text-slate-300 hover:text-white rounded-lg hover:bg-purple-900/40 transition-colors focus:outline-none"
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+
+          <Link href="/" className="flex items-center space-x-1 font-bold text-lg tracking-tight">
             <span className="bg-gradient-to-r from-white via-slate-200 to-purple-300 bg-clip-text text-transparent font-extrabold text-xl">
               Apex<span className="text-purple-400">Trader</span>
             </span>
@@ -321,14 +326,6 @@ export default function Navbar({ onOpenAIScanner, accountMode = 'DEMO', onAccoun
               </Link>
             </div>
           )}
-
-          {/* Mobile Hamburger Toggle */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800"
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
         </div>
       </div>
 
