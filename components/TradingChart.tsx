@@ -52,18 +52,24 @@ export default function TradingChart({ instrument, onPriceUpdate }: TradingChart
         const lastPrice = prev.length > 0 ? prev[prev.length - 1].price : instrument.currentPrice;
         const changePercent = (Math.random() - 0.495) * 0.0012;
         const nextPrice = Number((lastPrice * (1 + changePercent)).toFixed(4));
-
-        setCurrentPrice(nextPrice);
-        if (onPriceUpdate) onPriceUpdate(nextPrice);
-
         const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        const updated = [...prev.slice(-45), { time: timeStr, price: nextPrice }];
-        return updated;
+        return [...prev.slice(-45), { time: timeStr, price: nextPrice }];
       });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [instrument.symbol, onPriceUpdate]);
+  }, [instrument.symbol]);
+
+  // Safely sync current price & notify parent without trigger set-state during render
+  useEffect(() => {
+    if (ticks.length > 0) {
+      const latestPrice = ticks[ticks.length - 1].price;
+      setCurrentPrice(latestPrice);
+      if (onPriceUpdate) {
+        onPriceUpdate(latestPrice);
+      }
+    }
+  }, [ticks, onPriceUpdate]);
 
   // Render HTML5 Canvas Trading Graph
   useEffect(() => {
