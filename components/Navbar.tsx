@@ -19,6 +19,7 @@ import {
   X,
   Lock,
 } from 'lucide-react';
+import { getStoredAccountMode, setStoredAccountMode, EVENT_NAME, AccountMode } from '@/lib/accountMode';
 
 interface UserSession {
   id: string;
@@ -41,7 +42,7 @@ interface NavbarProps {
   liveWallet?: { availableBalance: number; demoBalance?: number } | null;
 }
 
-export default function Navbar({ onOpenAIScanner, accountMode = 'DEMO', onAccountModeChange, liveWallet }: NavbarProps) {
+export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChange, liveWallet }: NavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<UserSession | null>(null);
@@ -50,6 +51,28 @@ export default function Navbar({ onOpenAIScanner, accountMode = 'DEMO', onAccoun
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
+  const [activeMode, setActiveMode] = useState<AccountMode>('DEMO');
+
+  useEffect(() => {
+    setActiveMode(accountMode || getStoredAccountMode());
+    const handleModeEvent = (e: Event) => {
+      const customEvent = e as CustomEvent<AccountMode>;
+      if (customEvent.detail) {
+        setActiveMode(customEvent.detail);
+      }
+    };
+    window.addEventListener(EVENT_NAME, handleModeEvent);
+    return () => window.removeEventListener(EVENT_NAME, handleModeEvent);
+  }, [accountMode]);
+
+  const switchAccountMode = (mode: AccountMode) => {
+    setStoredAccountMode(mode);
+    setActiveMode(mode);
+    if (onAccountModeChange) {
+      onAccountModeChange(mode);
+    }
+    setAccountDropdownOpen(false);
+  };
 
   const fetchSession = async () => {
     try {
@@ -174,13 +197,13 @@ export default function Navbar({ onOpenAIScanner, accountMode = 'DEMO', onAccoun
                 >
                   <span
                     className={`w-5 h-5 rounded flex items-center justify-center font-black text-[11px] ${
-                      accountMode === 'DEMO' ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'
+                      activeMode === 'DEMO' ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'
                     }`}
                   >
-                    {accountMode === 'DEMO' ? 'D' : 'R'}
+                    {activeMode === 'DEMO' ? 'D' : 'R'}
                   </span>
                   <span className="text-slate-100 text-xs tracking-tight">
-                    ${accountMode === 'DEMO'
+                    ${activeMode === 'DEMO'
                       ? (liveWallet?.demoBalance ?? wallet?.demoBalance ?? 10000.0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                       : (liveWallet?.availableBalance ?? wallet?.availableBalance ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
@@ -192,12 +215,9 @@ export default function Navbar({ onOpenAIScanner, accountMode = 'DEMO', onAccoun
                       Select Trading Account
                     </div>
                     <button
-                      onClick={() => {
-                        if (onAccountModeChange) onAccountModeChange('DEMO');
-                        setAccountDropdownOpen(false);
-                      }}
+                      onClick={() => switchAccountMode('DEMO')}
                       className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-purple-900/40 transition-colors ${
-                        accountMode === 'DEMO' ? 'bg-purple-900/50 font-bold text-white' : 'text-slate-300'
+                        activeMode === 'DEMO' ? 'bg-purple-900/50 font-bold text-white' : 'text-slate-300'
                       }`}
                     >
                       <div className="flex items-center space-x-2">
@@ -211,16 +231,13 @@ export default function Navbar({ onOpenAIScanner, accountMode = 'DEMO', onAccoun
                           </p>
                         </div>
                       </div>
-                      {accountMode === 'DEMO' && <span className="text-purple-400 font-bold text-[11px]">Active</span>}
+                      {activeMode === 'DEMO' && <span className="text-purple-400 font-bold text-[11px]">Active</span>}
                     </button>
 
                     <button
-                      onClick={() => {
-                        if (onAccountModeChange) onAccountModeChange('REAL');
-                        setAccountDropdownOpen(false);
-                      }}
+                      onClick={() => switchAccountMode('REAL')}
                       className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-purple-900/40 transition-colors ${
-                        accountMode === 'REAL' ? 'bg-purple-900/50 font-bold text-white' : 'text-slate-300'
+                        activeMode === 'REAL' ? 'bg-purple-900/50 font-bold text-white' : 'text-slate-300'
                       }`}
                     >
                       <div className="flex items-center space-x-2">
@@ -234,7 +251,7 @@ export default function Navbar({ onOpenAIScanner, accountMode = 'DEMO', onAccoun
                           </p>
                         </div>
                       </div>
-                      {accountMode === 'REAL' && <span className="text-emerald-400 font-bold text-[11px]">Active</span>}
+                      {activeMode === 'REAL' && <span className="text-emerald-400 font-bold text-[11px]">Active</span>}
                     </button>
                   </div>
                 )}

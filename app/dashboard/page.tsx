@@ -28,6 +28,8 @@ import {
   Triangle,
 } from 'lucide-react';
 
+import { getStoredAccountMode, EVENT_NAME, AccountMode } from '@/lib/accountMode';
+
 interface Instrument {
   _id?: string;
   symbol: string;
@@ -77,7 +79,19 @@ export default function DashboardPage() {
   const [trades, setTrades] = useState<TradeRecord[]>([]);
   const [leftTab, setLeftTab] = useState<'OPEN' | 'CLOSED' | 'TRANSACTIONS'>('OPEN');
   const [mobileTab, setMobileTab] = useState<'TRADE' | 'POSITIONS'>('TRADE');
-  const [accountMode, setAccountMode] = useState<'DEMO' | 'REAL'>('DEMO');
+  const [accountMode, setAccountMode] = useState<AccountMode>('DEMO');
+
+  useEffect(() => {
+    setAccountMode(getStoredAccountMode());
+    const handleModeChange = (e: Event) => {
+      const customEvent = e as CustomEvent<AccountMode>;
+      if (customEvent.detail) {
+        setAccountMode(customEvent.detail);
+      }
+    };
+    window.addEventListener(EVENT_NAME, handleModeChange);
+    return () => window.removeEventListener(EVENT_NAME, handleModeChange);
+  }, []);
 
   // Trading Mode (AUTO vs MANUAL)
   const [tradingMode, setTradingMode] = useState<'AUTO' | 'MANUAL'>('AUTO');

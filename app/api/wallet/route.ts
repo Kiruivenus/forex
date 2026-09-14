@@ -16,9 +16,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ success: false, message: 'Wallet not found' }, { status: 404 });
   }
 
-  const ledger = await LedgerEntry.find({ userId: auth.user.userId })
+  const accountMode = req.nextUrl.searchParams.get('accountMode');
+  const filter: Record<string, unknown> = { userId: auth.user.userId };
+  if (accountMode) {
+    filter.accountMode = accountMode;
+  }
+
+  const ledger = await LedgerEntry.find(filter)
     .sort({ createdAt: -1 })
-    .limit(20);
+    .limit(50);
 
   return NextResponse.json({
     success: true,
