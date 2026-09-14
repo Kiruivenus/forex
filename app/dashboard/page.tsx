@@ -297,7 +297,7 @@ export default function DashboardPage() {
       <main className="flex-1 max-w-[1600px] w-full mx-auto p-2 sm:p-4 grid grid-cols-1 lg:grid-cols-12 gap-3 items-start">
         {/* LEFT PANEL: Trade History & Positions (Desktop Col 3) */}
         <div
-          className={`lg:col-span-3 bg-[#120f26] border border-purple-950/80 rounded-2xl overflow-hidden flex flex-col h-[540px] sm:h-[600px] lg:h-[calc(100vh-105px)] min-h-[540px] max-h-[750px] ${
+          className={`lg:col-span-3 bg-[#120f26] border border-purple-950/80 rounded-2xl overflow-hidden flex flex-col h-[420px] sm:h-[600px] lg:h-[calc(100vh-105px)] min-h-[400px] lg:min-h-[540px] max-h-[750px] ${
             mobileTab === 'POSITIONS' ? 'block' : 'hidden lg:flex'
           }`}
         >

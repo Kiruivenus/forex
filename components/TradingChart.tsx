@@ -257,23 +257,23 @@ export default function TradingChart({
   const digitPercentages = digitCounts.map((c) => ((c / total) * 100).toFixed(1));
 
   return (
-    <div className="relative bg-[#141722] border border-slate-800/80 rounded-2xl overflow-hidden shadow-2xl flex flex-col h-[540px] sm:h-[600px] lg:h-[calc(100vh-105px)] min-h-[540px] max-h-[750px]">
+    <div className="relative bg-[#141722] border border-slate-800/80 rounded-2xl overflow-hidden shadow-2xl flex flex-col h-[380px] sm:h-[600px] lg:h-[calc(100vh-105px)] min-h-[360px] lg:min-h-[540px] max-h-[750px]">
       {/* 1. TOP-LEFT FLOATING INSTRUMENT SELECTOR CARD (Image 1 Match) */}
-      <div className="absolute top-3 left-3 z-30">
+      <div className="absolute top-2 sm:top-3 left-2 sm:left-3 z-30">
         <div
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="bg-[#1e2334]/95 border border-slate-700/80 rounded-xl p-2.5 shadow-2xl backdrop-blur-md cursor-pointer hover:border-slate-500 transition-all flex flex-col space-y-1 min-w-[210px]"
+          className="bg-[#1e2334]/95 border border-slate-700/80 rounded-xl p-2 sm:p-2.5 shadow-2xl backdrop-blur-md cursor-pointer hover:border-slate-500 transition-all flex flex-col space-y-0.5 sm:space-y-1 min-w-[160px] sm:min-w-[210px]"
         >
           <div className="flex items-center justify-between space-x-2">
-            <div className="flex items-center space-x-2">
-              <BarChart2 className="w-4 h-4 text-slate-400" />
-              <span className="font-extrabold text-xs text-white tracking-tight">{instrument.name}</span>
+            <div className="flex items-center space-x-1.5 sm:space-x-2">
+              <BarChart2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400" />
+              <span className="font-extrabold text-[11px] sm:text-xs text-white tracking-tight">{instrument.name}</span>
             </div>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+            <ChevronDown className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-400" />
           </div>
 
-          <div className="flex items-center space-x-2 font-mono text-[11px] pt-0.5">
-            <span className="font-bold text-white text-xs tracking-tight">{currentPrice.toFixed(2)}</span>
+          <div className="flex items-center space-x-2 font-mono text-[10px] sm:text-[11px] pt-0.5">
+            <span className="font-bold text-white text-[11px] sm:text-xs tracking-tight">{currentPrice.toFixed(2)}</span>
             <span
               className={`font-semibold ${
                 instrument.change24h >= 0 ? 'text-emerald-400' : 'text-rose-400'
@@ -286,7 +286,7 @@ export default function TradingChart({
 
         {/* Dropdown Popover for selecting Volatility Synthetic Indices (Exact Screenshot Match) */}
         {isDropdownOpen && allInstruments.length > 0 && (
-          <div className="absolute top-full left-0 mt-2 w-72 bg-[#171c2b] border border-slate-700/80 rounded-2xl shadow-2xl py-2 z-40 text-xs max-h-80 overflow-y-auto font-sans">
+          <div className="absolute top-full left-0 mt-2 w-64 sm:w-72 bg-[#171c2b] border border-slate-700/80 rounded-2xl shadow-2xl py-2 z-40 text-xs max-h-80 overflow-y-auto font-sans">
             {allInstruments
               .filter((inst) => inst.symbol.startsWith('VOL'))
               .map((inst) => {
@@ -298,23 +298,23 @@ export default function TradingChart({
                       if (onSelectInstrument) onSelectInstrument(inst);
                       setIsDropdownOpen(false);
                     }}
-                    className={`w-full text-left px-3.5 py-2.5 flex items-center justify-between transition-colors ${
+                    className={`w-full text-left px-3 sm:px-3.5 py-2 sm:py-2.5 flex items-center justify-between transition-colors ${
                       isSelected ? 'bg-[#1e2a3a] text-teal-300 font-bold' : 'text-slate-200 hover:bg-[#1e2334]'
                     }`}
                   >
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2.5 sm:space-x-3">
                       <div
-                        className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+                        className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center ${
                           isSelected ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30' : 'bg-[#1f2638] text-slate-400'
                         }`}
                       >
-                        <BarChart2 className="w-3.5 h-3.5" />
+                        <BarChart2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                       </div>
-                      <span className="font-semibold text-xs text-slate-100">{inst.name}</span>
+                      <span className="font-semibold text-[11px] sm:text-xs text-slate-100">{inst.name}</span>
                     </div>
 
                     {isSelected && (
-                      <span className="w-2.5 h-2.5 rounded-full bg-teal-400 shadow-sm shadow-teal-950" />
+                      <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-teal-400 shadow-sm shadow-teal-950" />
                     )}
                   </button>
                 );
@@ -324,51 +324,51 @@ export default function TradingChart({
       </div>
 
       {/* 2. LEFT VERTICAL FLOATING TOOLBAR (Image 1 Match) */}
-      <div className="absolute top-20 left-3 z-30 flex flex-col space-y-1 bg-[#1e2334]/90 border border-slate-700/80 rounded-xl p-1 shadow-xl backdrop-blur-md text-slate-300">
-        <button className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 font-extrabold text-[11px] flex items-center justify-center border border-emerald-500/40">
+      <div className="absolute top-16 sm:top-20 left-2 sm:left-3 z-30 flex flex-col space-y-0.5 sm:space-y-1 bg-[#1e2334]/90 border border-slate-700/80 rounded-xl p-1 shadow-xl backdrop-blur-md text-slate-300">
+        <button className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/20 text-emerald-400 font-extrabold text-[10px] sm:text-[11px] flex items-center justify-center border border-emerald-500/40">
           1T
         </button>
         <button
           onClick={() => setActiveChartTool('trend')}
-          className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+          className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition-colors ${
             activeChartTool === 'trend' ? 'bg-slate-700 text-white' : 'hover:bg-slate-800 text-slate-400'
           }`}
         >
-          <TrendingUp className="w-4 h-4" />
+          <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </button>
         <button
           onClick={() => setActiveChartTool('bars')}
-          className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+          className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition-colors ${
             activeChartTool === 'bars' ? 'bg-slate-700 text-white' : 'hover:bg-slate-800 text-slate-400'
           }`}
         >
-          <BarChart2 className="w-4 h-4" />
+          <BarChart2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </button>
         <button
           onClick={() => setActiveChartTool('line')}
-          className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+          className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition-colors ${
             activeChartTool === 'line' ? 'bg-slate-700 text-white' : 'hover:bg-slate-800 text-slate-400'
           }`}
         >
-          <Pencil className="w-4 h-4" />
+          <Pencil className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </button>
-        <button className="w-8 h-8 rounded-lg hover:bg-slate-800 text-slate-400 flex items-center justify-center">
-          <Download className="w-4 h-4" />
+        <button className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg hover:bg-slate-800 text-slate-400 flex items-center justify-center">
+          <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </button>
       </div>
 
       {/* 3. TOP-RIGHT FLOATING ZOOM BADGE (Image 1 Match: 50% pill only) */}
-      <div className="absolute top-3 right-3 z-30 flex items-center space-x-2">
+      <div className="absolute top-2 sm:top-3 right-2 sm:right-3 z-30 flex items-center space-x-2">
         <button
           onClick={() => setZoomLevel(zoomLevel === '100%' ? '50%' : '100%')}
-          className="bg-[#1e2334]/90 border border-slate-700/80 px-3 py-1 rounded-xl text-slate-200 font-mono text-xs font-bold hover:bg-slate-800 transition-colors shadow-lg backdrop-blur-md"
+          className="bg-[#1e2334]/90 border border-slate-700/80 px-2.5 sm:px-3 py-1 rounded-xl text-slate-200 font-mono text-[11px] sm:text-xs font-bold hover:bg-slate-800 transition-colors shadow-lg backdrop-blur-md"
         >
           {zoomLevel}
         </button>
       </div>
 
-      {/* 4. BOTTOM-LEFT FLOATING ZOOM CONTROLS (Image 1 Match) */}
-      <div className="absolute bottom-14 left-3 z-30 flex flex-col space-y-1 bg-[#1e2334]/90 border border-slate-700/80 p-1 rounded-xl text-slate-300 shadow-xl backdrop-blur-md">
+      {/* 4. BOTTOM-LEFT FLOATING ZOOM CONTROLS (Desktop/Tablet Only) */}
+      <div className="absolute bottom-12 sm:bottom-14 left-2 sm:left-3 z-30 flex flex-col space-y-1 bg-[#1e2334]/90 border border-slate-700/80 p-1 rounded-xl text-slate-300 shadow-xl backdrop-blur-md hidden sm:flex">
         <button className="w-7 h-7 rounded-lg hover:bg-slate-800 flex items-center justify-center">
           <Plus className="w-4 h-4" />
         </button>
@@ -385,23 +385,23 @@ export default function TradingChart({
         <canvas ref={canvasRef} className="w-full h-full block" />
       </div>
 
-      {/* 6. BOTTOM FLOATING CIRCULAR DIGIT STATISTICS OVERLAY (Image 1 Match) */}
-      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-30 flex items-center space-x-1.5 sm:space-x-2">
+      {/* 6. BOTTOM FLOATING CIRCULAR DIGIT STATISTICS OVERLAY (Optimized for Smartphones) */}
+      <div className="absolute bottom-1.5 sm:bottom-2 left-1/2 -translate-x-1/2 z-30 flex items-center space-x-1 sm:space-x-2 max-w-[98vw] overflow-x-auto no-scrollbar py-0.5 px-1">
         {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((digit) => {
           const isActive = lastDigit === digit;
           const pct = digitPercentages[digit];
           return (
-            <div key={digit} className="flex flex-col items-center relative">
+            <div key={digit} className="flex flex-col items-center relative flex-shrink-0">
               <div
-                className={`w-9 h-9 sm:w-11 sm:h-11 rounded-full flex flex-col items-center justify-center font-mono transition-all shadow-xl backdrop-blur-md ${
+                className={`w-7 h-7 sm:w-11 sm:h-11 rounded-full flex flex-col items-center justify-center font-mono transition-all shadow-xl backdrop-blur-md ${
                   isActive
-                    ? 'bg-[#1b253b] border-2 border-teal-400 text-white shadow-teal-950/80 scale-110'
+                    ? 'bg-[#1b253b] border-2 border-teal-400 text-white shadow-teal-950/80 scale-105 sm:scale-110'
                     : 'bg-[#1c2235]/95 border border-slate-700/80 text-slate-300 hover:border-slate-500'
                 }`}
               >
-                <span className="font-extrabold text-xs sm:text-sm leading-none">{digit}</span>
+                <span className="font-extrabold text-[10px] sm:text-sm leading-none">{digit}</span>
                 <span
-                  className={`text-[9px] mt-0.5 font-semibold ${
+                  className={`text-[7.5px] sm:text-[9px] mt-0.5 font-semibold ${
                     isActive ? 'text-teal-400' : 'text-slate-400'
                   }`}
                 >
@@ -409,9 +409,9 @@ export default function TradingChart({
                 </span>
               </div>
 
-              {/* Active Digit Pointer Arrow (Image 1 Match) */}
+              {/* Active Digit Pointer Arrow */}
               {isActive && (
-                <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] border-t-amber-500 mt-1 animate-bounce" />
+                <div className="w-0 h-0 border-l-[3.5px] sm:border-l-[5px] border-l-transparent border-r-[3.5px] sm:border-r-[5px] border-r-transparent border-t-[4.5px] sm:border-t-[6px] border-t-amber-500 mt-0.5 sm:mt-1 animate-bounce" />
               )}
             </div>
           );
