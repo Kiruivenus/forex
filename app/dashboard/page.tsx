@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 
 interface Instrument {
-  _id: string;
+  _id?: string;
   symbol: string;
   name: string;
   category: string;
@@ -50,20 +50,29 @@ interface TradeRecord {
   createdAt: string;
 }
 
+const DEFAULT_INSTRUMENTS: Instrument[] = [
+  { symbol: 'VOL10_1S', name: 'Volatility 10 (1s) Index', category: 'SYNTHETIC', currentPrice: 6842.15, change24h: 1.25, volatility: 0.0015, minStake: 1, maxStake: 1000 },
+  { symbol: 'VOL75_1S', name: 'Volatility 75 (1s) Index', category: 'SYNTHETIC', currentPrice: 142850.40, change24h: -0.84, volatility: 0.0035, minStake: 1, maxStake: 1000 },
+  { symbol: 'VOL100', name: 'Volatility 100 Index', category: 'SYNTHETIC', currentPrice: 9420.80, change24h: 2.10, volatility: 0.0040, minStake: 1, maxStake: 1000 },
+  { symbol: 'EURUSD', name: 'EUR/USD Forex', category: 'FOREX', currentPrice: 1.0845, change24h: 0.12, volatility: 0.0008, minStake: 1, maxStake: 1000 },
+  { symbol: 'GBPUSD', name: 'GBP/USD Forex', category: 'FOREX', currentPrice: 1.2960, change24h: -0.35, volatility: 0.0010, minStake: 1, maxStake: 1000 },
+  { symbol: 'BTCUSD', name: 'Bitcoin / USD Crypto', category: 'CRYPTO', currentPrice: 64250.00, change24h: 3.45, volatility: 0.0080, minStake: 1, maxStake: 1000 },
+];
+
 export default function DashboardPage() {
-  const [instruments, setInstruments] = useState<Instrument[]>([]);
-  const [selectedInstrument, setSelectedInstrument] = useState<Instrument | null>(null);
-  const [livePrice, setLivePrice] = useState<number>(0);
+  const [instruments, setInstruments] = useState<Instrument[]>(DEFAULT_INSTRUMENTS);
+  const [selectedInstrument, setSelectedInstrument] = useState<Instrument>(DEFAULT_INSTRUMENTS[0]);
+  const [livePrice, setLivePrice] = useState<number>(DEFAULT_INSTRUMENTS[0].currentPrice);
   const [trades, setTrades] = useState<TradeRecord[]>([]);
   const [leftTab, setLeftTab] = useState<'OPEN' | 'CLOSED' | 'TRANSACTIONS'>('OPEN');
   const [mobileTab, setMobileTab] = useState<'TRADE' | 'POSITIONS'>('TRADE');
 
   // Trade Ticket Form State
   const [tradeType, setTradeType] = useState<'RISE_FALL' | 'EVEN_ODD' | 'MATCH_DIFFER' | 'OVER_UNDER'>('RISE_FALL');
-  const [stake, setStake] = useState<number>(10);
+  const [stake, setStake] = useState<number>(1);
   const [barrier, setBarrier] = useState<number>(5);
   const [tradeExecuting, setTradeExecuting] = useState(false);
-  const [tradeFeedback, setTradeFeedback] = useState<{ status: string; message: string } | null>(null);
+  const [tradeFeedback, setTradeFeedback] = useState<{ status: string; message: string; code?: string } | null>(null);
 
   // Modals
   const [isAIScannerOpen, setIsAIScannerOpen] = useState(false);
@@ -74,7 +83,7 @@ export default function DashboardPage() {
       const res = await fetch('/api/instruments');
       if (res.ok) {
         const data = await res.json();
-        if (data.success && data.instruments.length > 0) {
+        if (data.success && data.instruments && data.instruments.length > 0) {
           setInstruments(data.instruments);
           setSelectedInstrument(data.instruments[0]);
           setLivePrice(data.instruments[0].currentPrice);
@@ -141,6 +150,7 @@ export default function DashboardPage() {
       } else {
         setTradeFeedback({
           status: 'ERROR',
+          code: data.code,
           message: data.message || 'Trade execution failed.',
         });
       }
@@ -370,7 +380,7 @@ export default function DashboardPage() {
             </div>
             <div className="flex items-center space-x-2">
               <button
-                onClick={() => adjustStake(-5)}
+                onClick={() => adjustStake(-1)}
                 className="w-9 h-9 rounded-lg bg-[#181335] border border-purple-900/60 hover:bg-purple-900/40 text-slate-200 flex items-center justify-center font-bold text-base"
               >
                 -
@@ -384,7 +394,7 @@ export default function DashboardPage() {
                 className="flex-1 bg-[#0b0818] border border-purple-900/60 rounded-lg px-3 py-2 text-center text-slate-100 font-mono font-bold text-base focus:outline-none focus:border-purple-500"
               />
               <button
-                onClick={() => adjustStake(5)}
+                onClick={() => adjustStake(1)}
                 className="w-9 h-9 rounded-lg bg-[#181335] border border-purple-900/60 hover:bg-purple-900/40 text-slate-200 flex items-center justify-center font-bold text-base"
               >
                 +
@@ -446,7 +456,7 @@ export default function DashboardPage() {
           {/* Trade Result Feedback Banner */}
           {tradeFeedback && (
             <div
-              className={`p-3 rounded-xl border text-xs font-semibold flex items-center space-x-2 ${
+              className={`p-3 rounded-xl border text-xs font-semibold space-y-1.5 ${
                 tradeFeedback.status === 'WON'
                   ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-300'
                   : tradeFeedback.status === 'LOST'
@@ -454,12 +464,23 @@ export default function DashboardPage() {
                   : 'bg-amber-950/60 border-amber-500/40 text-amber-300'
               }`}
             >
-              {tradeFeedback.status === 'WON' ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              ) : (
-                <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
+              <div className="flex items-center space-x-2">
+                {tradeFeedback.status === 'WON' ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                ) : (
+                  <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                )}
+                <span>{tradeFeedback.message}</span>
+              </div>
+              {tradeFeedback.code === 'INSUFFICIENT_BALANCE' && (
+                <button
+                  onClick={() => setIsDepositOpen(true)}
+                  className="w-full py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] rounded-lg shadow-md flex items-center justify-center space-x-1"
+                >
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                  <span>Deposit via M-Pesa / Crypto Now</span>
+                </button>
               )}
-              <span>{tradeFeedback.message}</span>
             </div>
           )}
 
