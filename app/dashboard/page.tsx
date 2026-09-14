@@ -7,6 +7,7 @@ import AIEntryScannerModal from '@/components/AIEntryScannerModal';
 import DepositModal from '@/components/DepositModal';
 import MobileBottomNav from '@/components/MobileBottomNav';
 import TargetProfitModal from '@/components/TargetProfitModal';
+import InsufficientBalanceModal from '@/components/InsufficientBalanceModal';
 import {
   TrendingUp,
   Cpu,
@@ -120,6 +121,7 @@ export default function DashboardPage() {
   // Modals
   const [isAIScannerOpen, setIsAIScannerOpen] = useState(false);
   const [isDepositOpen, setIsDepositOpen] = useState(false);
+  const [isInsufficientModalOpen, setIsInsufficientModalOpen] = useState(false);
   const [isAiScannerActive, setIsAiScannerActive] = useState(false);
 
   const fetchInstruments = async () => {
@@ -204,8 +206,19 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!isAutoTrading) return;
 
+    if (accountMode === 'REAL' && stake > (wallet?.availableBalance ?? 0)) {
+      setIsAutoTrading(false);
+      setIsInsufficientModalOpen(true);
+      return;
+    }
+
     const autoInterval = setInterval(() => {
       if (!tradeExecuting) {
+        if (accountMode === 'REAL' && stake > (wallet?.availableBalance ?? 0)) {
+          setIsAutoTrading(false);
+          setIsInsufficientModalOpen(true);
+          return;
+        }
         const directions = tradeType === 'EVEN_ODD' ? ['EVEN', 'ODD'] : ['HIGHER', 'LOWER'];
         const randomDir = directions[Math.floor(Math.random() * directions.length)];
         handleExecuteTrade(randomDir);
@@ -213,19 +226,38 @@ export default function DashboardPage() {
     }, 4000);
 
     return () => clearInterval(autoInterval);
-  }, [isAutoTrading, tradeExecuting, tradeType]);
+  }, [isAutoTrading, tradeExecuting, tradeType, accountMode, stake, wallet]);
+
+  const handleToggleAutoTrading = () => {
+    if (!isAutoTrading) {
+      if (accountMode === 'REAL' && stake > (wallet?.availableBalance ?? 0)) {
+        setIsAutoTrading(false);
+        setIsInsufficientModalOpen(true);
+        setTradeFeedback({
+          status: 'ERROR',
+          code: 'INSUFFICIENT_BALANCE',
+          message: `Insufficient Real Balance ($${(wallet?.availableBalance ?? 0).toFixed(2)} USD available) for $${stake} USD trade. Please top up your wallet to trade.`,
+        });
+        return;
+      }
+      setIsAutoTrading(true);
+    } else {
+      setIsAutoTrading(false);
+    }
+  };
 
   const handleExecuteTrade = async (direction: string) => {
     if (!selectedInstrument) return;
 
     if (accountMode === 'REAL' && stake > (wallet?.availableBalance ?? 0)) {
+      setIsAutoTrading(false);
       setTradeExecuting(false);
       setTradeFeedback({
         status: 'ERROR',
         code: 'INSUFFICIENT_BALANCE',
         message: `Insufficient Real Balance ($${(wallet?.availableBalance ?? 0).toFixed(2)} USD available) for $${stake} USD trade. Please top up your wallet to trade.`,
       });
-      setTimeout(() => setIsDepositOpen(true), 600);
+      setIsInsufficientModalOpen(true);
       return;
     }
 
@@ -273,7 +305,8 @@ export default function DashboardPage() {
           message: data.message || 'Trade execution failed.',
         });
         if (data.code === 'INSUFFICIENT_BALANCE' || data.message?.toLowerCase().includes('insufficient')) {
-          setTimeout(() => setIsDepositOpen(true), 600);
+          setIsAutoTrading(false);
+          setIsInsufficientModalOpen(true);
         }
       }
     } catch {
@@ -729,7 +762,7 @@ export default function DashboardPage() {
           {tradingMode === 'AUTO' ? (
             <div className="pt-1">
               <button
-                onClick={() => setIsAutoTrading(!isAutoTrading)}
+                onClick={handleToggleAutoTrading}
                 className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-wider shadow-xl transition-all flex items-center justify-center space-x-2 ${
                   isAutoTrading
                     ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-950/60 animate-pulse'
@@ -865,19 +898,38 @@ export default function DashboardPage() {
           if (category) {
             setTradeType(category as any);
           }
-          setTradingMode('AUTO');
-          setIsAutoTrading(true);
-          setIsAiScannerActive(true);
-          setTradeFeedback({
-            status: 'OPEN',
-            message: `🚀 AI Scanner Loaded: Auto-Trading Active on ${inst?.name || symbol} (93%+ Win Confidence)`,
-          });
+          if (accountMode === 'REAL' && stake > (wallet?.availableBalance ?? 0)) {
+            setTradingMode('AUTO');
+            setIsAutoTrading(false);
+            setIsInsufficientModalOpen(true);
+            setTradeFeedback({
+              status: 'ERROR',
+              code: 'INSUFFICIENT_BALANCE',
+              message: `Insufficient Real Balance ($${(wallet?.availableBalance ?? 0).toFixed(2)} USD available) for $${stake} USD trade. Please top up your wallet to trade.`,
+            });
+          } else {
+            setTradingMode('AUTO');
+            setIsAutoTrading(true);
+            setIsAiScannerActive(true);
+            setTradeFeedback({
+              status: 'OPEN',
+              message: `🚀 AI Scanner Loaded: Auto-Trading Active on ${inst?.name || symbol} (93%+ Win Confidence)`,
+            });
+          }
         }}
       />
 
       <DepositModal
         isOpen={isDepositOpen}
         onClose={() => setIsDepositOpen(false)}
+      />
+
+      <InsufficientBalanceModal
+        isOpen={isInsufficientModalOpen}
+        onClose={() => setIsInsufficientModalOpen(false)}
+        onDeposit={() => setIsDepositOpen(true)}
+        stakeAmount={stake}
+        availableBalance={wallet?.availableBalance ?? 0}
       />
     </div>
   );

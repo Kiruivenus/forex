@@ -66,29 +66,6 @@ export default function WithdrawPage() {
       <Navbar />
 
       <main className="max-w-4xl mx-auto px-4 pt-20 sm:pt-24 pb-10 w-full flex-1 space-y-6">
-        {/* Real Account Notice Banner */}
-        <div className="bg-amber-950/40 border border-amber-600/40 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
-          <div className="flex items-start space-x-3 text-slate-200">
-            <Info className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-            <div>
-              <span className="font-bold text-white block mb-0.5">Real Balance Withdrawal Policy</span>
-              <span className="text-slate-300">
-                Payouts are processed exclusively from your <strong className="text-emerald-400 font-mono">Real Account</strong> available balance (${availableBalance.toFixed(2)} USD). Demo virtual funds (${demoBalance.toFixed(2)}) are for practice and cannot be withdrawn.
-              </span>
-            </div>
-          </div>
-
-          {accountMode === 'DEMO' && (
-            <button
-              onClick={() => setStoredAccountMode('REAL')}
-              className="shrink-0 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center space-x-1.5"
-            >
-              <span>Switch to Real Account</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
-
         <div className="bg-[#120f26] p-6 rounded-2xl border border-purple-900/60 shadow-xl space-y-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
