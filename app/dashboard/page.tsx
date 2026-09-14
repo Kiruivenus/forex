@@ -177,9 +177,9 @@ export default function DashboardPage() {
   const lostCount = closedPositions.filter((t) => t.status === 'LOST').length;
   const sessionPL = closedPositions.reduce((acc, t) => acc + (t.profit || 0), 0);
 
-  // Check Target Profit / Stop Loss Thresholds
+  // Check Target Profit / Stop Loss Thresholds (Active Auto-Trading Session Only)
   useEffect(() => {
-    if (closedPositions.length === 0) return;
+    if (!isAutoTrading || closedPositions.length === 0) return;
 
     if (!hasTriggeredTarget && targetProfit > 0 && sessionPL >= targetProfit) {
       setHasTriggeredTarget(true);
@@ -198,7 +198,7 @@ export default function DashboardPage() {
         amountGain: sessionPL,
       });
     }
-  }, [sessionPL, targetProfit, stopLoss, closedPositions.length, hasTriggeredTarget]);
+  }, [sessionPL, targetProfit, stopLoss, closedPositions.length, hasTriggeredTarget, isAutoTrading]);
 
   // Auto-Trading Engine Stream Loop
   useEffect(() => {
@@ -217,6 +217,18 @@ export default function DashboardPage() {
 
   const handleExecuteTrade = async (direction: string) => {
     if (!selectedInstrument) return;
+
+    if (accountMode === 'REAL' && stake > (wallet?.availableBalance ?? 0)) {
+      setTradeExecuting(false);
+      setTradeFeedback({
+        status: 'ERROR',
+        code: 'INSUFFICIENT_BALANCE',
+        message: `Insufficient Real Balance ($${(wallet?.availableBalance ?? 0).toFixed(2)} USD available) for $${stake} USD trade. Please top up your wallet to trade.`,
+      });
+      setTimeout(() => setIsDepositOpen(true), 600);
+      return;
+    }
+
     setTradeExecuting(true);
     setTradeFeedback(null);
 
@@ -260,6 +272,9 @@ export default function DashboardPage() {
           code: data.code,
           message: data.message || 'Trade execution failed.',
         });
+        if (data.code === 'INSUFFICIENT_BALANCE' || data.message?.toLowerCase().includes('insufficient')) {
+          setTimeout(() => setIsDepositOpen(true), 600);
+        }
       }
     } catch {
       setTradeFeedback({

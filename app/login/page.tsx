@@ -21,7 +21,7 @@ export default function LoginPage() {
       if (res.ok) {
         res.json().then((data) => {
           if (data.success && data.user) {
-            router.push('/dashboard');
+            window.location.href = '/dashboard';
           }
         });
       }
@@ -45,7 +45,7 @@ export default function LoginPage() {
         if (data.requires2FA) {
           router.push(`/2fa?userId=${data.userId}`);
         } else {
-          router.push('/dashboard');
+          window.location.href = '/dashboard';
         }
       } else {
         setErrorMsg(data.message || 'Invalid credentials. Please try again.');
