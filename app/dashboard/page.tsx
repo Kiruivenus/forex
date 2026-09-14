@@ -245,8 +245,9 @@ export default function DashboardPage() {
   // Auto-Trading Engine Stream Loop
   useEffect(() => {
     if (!isAutoTrading) return;
+    if (!wallet) return;
 
-    if (accountMode === 'REAL' && stake > (wallet?.availableBalance ?? 0)) {
+    if (accountMode === 'REAL' && stake > wallet.availableBalance) {
       updateAutoTrading(false);
       setIsInsufficientModalOpen(true);
       return;
@@ -256,7 +257,8 @@ export default function DashboardPage() {
 
     const triggerNextTrade = () => {
       if (!tradeExecutingRef.current) {
-        if (accountMode === 'REAL' && stake > (wallet?.availableBalance ?? 0)) {
+        if (!wallet) return;
+        if (accountMode === 'REAL' && stake > wallet.availableBalance) {
           updateAutoTrading(false);
           setIsInsufficientModalOpen(true);
           return;
@@ -275,17 +277,17 @@ export default function DashboardPage() {
     }, 4500);
 
     return () => clearInterval(autoInterval);
-  }, [isAutoTrading, accountMode]);
+  }, [isAutoTrading, accountMode, wallet]);
 
   const handleToggleAutoTrading = () => {
     if (!isAutoTrading) {
-      if (accountMode === 'REAL' && stake > (wallet?.availableBalance ?? 0)) {
+      if (wallet && accountMode === 'REAL' && stake > wallet.availableBalance) {
         updateAutoTrading(false);
         setIsInsufficientModalOpen(true);
         setTradeFeedback({
           status: 'ERROR',
           code: 'INSUFFICIENT_BALANCE',
-          message: `Insufficient Real Balance ($${(wallet?.availableBalance ?? 0).toFixed(2)} USD available) for $${stake} USD trade. Please top up your wallet to trade.`,
+          message: `Insufficient Real Balance ($${wallet.availableBalance.toFixed(2)} USD available) for $${stake} USD trade. Please top up your wallet to trade.`,
         });
         return;
       }
@@ -300,13 +302,13 @@ export default function DashboardPage() {
   const handleExecuteTrade = async (direction: string) => {
     if (!selectedInstrument) return;
 
-    if (accountMode === 'REAL' && stake > (wallet?.availableBalance ?? 0)) {
+    if (wallet && accountMode === 'REAL' && stake > wallet.availableBalance) {
       updateAutoTrading(false);
       setTradeExecuting(false);
       setTradeFeedback({
         status: 'ERROR',
         code: 'INSUFFICIENT_BALANCE',
-        message: `Insufficient Real Balance ($${(wallet?.availableBalance ?? 0).toFixed(2)} USD available) for $${stake} USD trade. Please top up your wallet to trade.`,
+        message: `Insufficient Real Balance ($${wallet.availableBalance.toFixed(2)} USD available) for $${stake} USD trade. Please top up your wallet to trade.`,
       });
       setIsInsufficientModalOpen(true);
       return;
@@ -952,14 +954,14 @@ export default function DashboardPage() {
           if (category) {
             setTradeType(category as any);
           }
-          if (accountMode === 'REAL' && stake > (wallet?.availableBalance ?? 0)) {
+          if (wallet && accountMode === 'REAL' && stake > wallet.availableBalance) {
             setTradingMode('AUTO');
             updateAutoTrading(false);
             setIsInsufficientModalOpen(true);
             setTradeFeedback({
               status: 'ERROR',
               code: 'INSUFFICIENT_BALANCE',
-              message: `Insufficient Real Balance ($${(wallet?.availableBalance ?? 0).toFixed(2)} USD available) for $${stake} USD trade. Please top up your wallet to trade.`,
+              message: `Insufficient Real Balance ($${wallet.availableBalance.toFixed(2)} USD available) for $${stake} USD trade. Please top up your wallet to trade.`,
             });
           } else {
             startNewSession();
