@@ -11,8 +11,6 @@ import {
   Crosshair,
   ChevronDown,
   Activity,
-  Maximize2,
-  Minimize2,
 } from 'lucide-react';
 
 interface InstrumentInfo {
@@ -51,7 +49,6 @@ export default function TradingChart({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [zoomLevel, setZoomLevel] = useState<'100%' | '50%'>('50%');
   const [activeChartTool, setActiveChartTool] = useState<'line' | 'bars' | 'trend'>('line');
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Initialize tick series
   useEffect(() => {
@@ -260,11 +257,7 @@ export default function TradingChart({
   const digitPercentages = digitCounts.map((c) => ((c / total) * 100).toFixed(1));
 
   return (
-    <div
-      className={`relative bg-[#141722] border border-slate-800/80 rounded-2xl overflow-hidden shadow-2xl flex flex-col ${
-        isFullscreen ? 'fixed inset-0 z-50 rounded-none h-screen' : 'h-[500px] sm:h-[550px]'
-      }`}
-    >
+    <div className="relative bg-[#141722] border border-slate-800/80 rounded-2xl overflow-hidden shadow-2xl flex flex-col h-[500px] sm:h-[550px]">
       {/* 1. TOP-LEFT FLOATING INSTRUMENT SELECTOR CARD (Image 1 Match) */}
       <div className="absolute top-3 left-3 z-30">
         <div
@@ -350,20 +343,13 @@ export default function TradingChart({
         </button>
       </div>
 
-      {/* 3. TOP-RIGHT FLOATING ZOOM BADGE (Image 1 Match) */}
+      {/* 3. TOP-RIGHT FLOATING ZOOM BADGE (Image 1 Match: 50% pill only) */}
       <div className="absolute top-3 right-3 z-30 flex items-center space-x-2">
         <button
           onClick={() => setZoomLevel(zoomLevel === '100%' ? '50%' : '100%')}
           className="bg-[#1e2334]/90 border border-slate-700/80 px-3 py-1 rounded-xl text-slate-200 font-mono text-xs font-bold hover:bg-slate-800 transition-colors shadow-lg backdrop-blur-md"
         >
           {zoomLevel}
-        </button>
-
-        <button
-          onClick={() => setIsFullscreen(!isFullscreen)}
-          className="bg-[#1e2334]/90 border border-slate-700/80 p-1.5 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors shadow-lg backdrop-blur-md"
-        >
-          {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
         </button>
       </div>
 
