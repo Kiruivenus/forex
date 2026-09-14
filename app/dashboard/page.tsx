@@ -6,6 +6,7 @@ import TradingChart from '@/components/TradingChart';
 import AIEntryScannerModal from '@/components/AIEntryScannerModal';
 import DepositModal from '@/components/DepositModal';
 import MobileBottomNav from '@/components/MobileBottomNav';
+import TargetProfitModal from '@/components/TargetProfitModal';
 import {
   TrendingUp,
   Cpu,
@@ -21,6 +22,10 @@ import {
   Clock,
   Layers,
   Sparkles,
+  Play,
+  Square,
+  Grid,
+  Triangle,
 } from 'lucide-react';
 
 interface Instrument {
@@ -68,8 +73,12 @@ export default function DashboardPage() {
   const [mobileTab, setMobileTab] = useState<'TRADE' | 'POSITIONS'>('TRADE');
   const [accountMode, setAccountMode] = useState<'DEMO' | 'REAL'>('DEMO');
 
+  // Trading Mode (AUTO vs MANUAL)
+  const [tradingMode, setTradingMode] = useState<'AUTO' | 'MANUAL'>('AUTO');
+  const [isAutoTrading, setIsAutoTrading] = useState(false);
+
   // Trade Ticket Form State
-  const [tradeType, setTradeType] = useState<'RISE_FALL' | 'EVEN_ODD' | 'MATCH_DIFFER' | 'OVER_UNDER'>('RISE_FALL');
+  const [tradeType, setTradeType] = useState<'RISE_FALL' | 'EVEN_ODD' | 'MATCH_DIFFER' | 'OVER_UNDER'>('EVEN_ODD');
   const [stake, setStake] = useState<number>(15);
   const [barrier, setBarrier] = useState<number>(5);
   const [targetProfit, setTargetProfit] = useState<number>(200);
@@ -78,6 +87,14 @@ export default function DashboardPage() {
   const [tradeExecuting, setTradeExecuting] = useState(false);
   const [closingTradeId, setClosingTradeId] = useState<string | null>(null);
   const [tradeFeedback, setTradeFeedback] = useState<{ status: string; message: string; code?: string } | null>(null);
+
+  // Target Profit / Stop Loss Modal State
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    type: 'TARGET_PROFIT' | 'STOP_LOSS';
+    amountGain: number;
+  } | null>(null);
+  const [hasTriggeredTarget, setHasTriggeredTarget] = useState(false);
 
   // Modals
   const [isAIScannerOpen, setIsAIScannerOpen] = useState(false);
@@ -125,6 +142,50 @@ export default function DashboardPage() {
     }, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  // Compute Session Metrics
+  const closedPositions = trades.filter((t) => t.status === 'WON' || t.status === 'LOST');
+  const wonCount = closedPositions.filter((t) => t.status === 'WON').length;
+  const lostCount = closedPositions.filter((t) => t.status === 'LOST').length;
+  const sessionPL = closedPositions.reduce((acc, t) => acc + (t.profit || 0), 0);
+
+  // Check Target Profit / Stop Loss Thresholds
+  useEffect(() => {
+    if (closedPositions.length === 0) return;
+
+    if (!hasTriggeredTarget && targetProfit > 0 && sessionPL >= targetProfit) {
+      setHasTriggeredTarget(true);
+      setIsAutoTrading(false);
+      setModalState({
+        isOpen: true,
+        type: 'TARGET_PROFIT',
+        amountGain: sessionPL,
+      });
+    } else if (!hasTriggeredTarget && stopLoss > 0 && sessionPL <= -stopLoss) {
+      setHasTriggeredTarget(true);
+      setIsAutoTrading(false);
+      setModalState({
+        isOpen: true,
+        type: 'STOP_LOSS',
+        amountGain: sessionPL,
+      });
+    }
+  }, [sessionPL, targetProfit, stopLoss, closedPositions.length, hasTriggeredTarget]);
+
+  // Auto-Trading Engine Stream Loop
+  useEffect(() => {
+    if (!isAutoTrading) return;
+
+    const autoInterval = setInterval(() => {
+      if (!tradeExecuting) {
+        const directions = tradeType === 'EVEN_ODD' ? ['EVEN', 'ODD'] : ['HIGHER', 'LOWER'];
+        const randomDir = directions[Math.floor(Math.random() * directions.length)];
+        handleExecuteTrade(randomDir);
+      }
+    }, 4000);
+
+    return () => clearInterval(autoInterval);
+  }, [isAutoTrading, tradeExecuting, tradeType]);
 
   const handleExecuteTrade = async (direction: string) => {
     if (!selectedInstrument) return;
@@ -214,11 +275,6 @@ export default function DashboardPage() {
   const potentialPayout = Number((stake * multiplier).toFixed(2));
 
   const openPositions = trades.filter((t) => t.status === 'OPEN' || t.status === 'PENDING');
-  const closedPositions = trades.filter((t) => t.status === 'WON' || t.status === 'LOST');
-  const wonCount = closedPositions.filter((t) => t.status === 'WON').length;
-  const lostCount = closedPositions.filter((t) => t.status === 'LOST').length;
-
-  const sessionPL = closedPositions.reduce((acc, t) => acc + (t.profit || 0), 0);
 
   return (
     <div className="min-h-screen bg-[#0b0e17] text-slate-100 flex flex-col font-sans pb-16 md:pb-0">
@@ -430,35 +486,47 @@ export default function DashboardPage() {
 
         {/* RIGHT PANEL: Order Execution Controls (Desktop Col 3) */}
         <div
-          className={`lg:col-span-3 bg-[#120f26] border border-purple-950/80 rounded-xl p-4 space-y-4 text-xs ${
+          className={`lg:col-span-3 bg-[#120f26] border border-purple-950/80 rounded-xl p-4 space-y-3.5 text-xs ${
             mobileTab === 'TRADE' ? 'block' : 'hidden lg:block'
           }`}
         >
-          <div className="flex items-center justify-between border-b border-purple-950 pb-3">
-            <span className="font-bold text-sm text-slate-100 flex items-center space-x-1.5">
-              <Sparkles className="w-4 h-4 text-purple-400" />
-              <span>Order Execution</span>
-            </span>
-            <span className="text-[10px] bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded border border-emerald-800/40 font-mono font-bold">
-              95.0% Payout
-            </span>
+          {/* TRADING MODE Switcher Header (Reference UI Match) */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <span className="font-extrabold text-[11px] text-slate-200 uppercase tracking-wider">Trading Mode</span>
+              <span className="text-[10px] text-purple-300 font-medium">
+                {tradingMode === 'AUTO' ? 'Bot places trades · martingale + targets' : 'You place each trade · same probabilities'}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-1 bg-[#0b0818] p-1 rounded-xl border border-purple-900/40 font-bold text-xs">
+              <button
+                onClick={() => setTradingMode('AUTO')}
+                className={`py-2 rounded-lg transition-all ${
+                  tradingMode === 'AUTO' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                AUTO
+              </button>
+              <button
+                onClick={() => {
+                  setTradingMode('MANUAL');
+                  setIsAutoTrading(false);
+                }}
+                className={`py-2 rounded-lg transition-all ${
+                  tradingMode === 'MANUAL' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                MANUAL
+              </button>
+            </div>
           </div>
 
           {/* Trade Contract Type Selector */}
           <div>
-            <label className="block text-slate-400 font-medium mb-1.5">Contract Type</label>
-            <div className="grid grid-cols-2 gap-1.5 bg-[#0b0818] p-1 rounded-xl border border-purple-900/40">
-              <button
-                onClick={() => setTradeType('RISE_FALL')}
-                className={`py-2 rounded-lg font-semibold transition-all ${
-                  tradeType === 'RISE_FALL' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                Rise / Fall
-              </button>
+            <div className="grid grid-cols-3 gap-1 bg-[#0b0818] p-1 rounded-xl border border-purple-900/40 font-semibold text-[11px]">
               <button
                 onClick={() => setTradeType('EVEN_ODD')}
-                className={`py-2 rounded-lg font-semibold transition-all ${
+                className={`py-1.5 rounded-lg transition-all ${
                   tradeType === 'EVEN_ODD' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
@@ -466,7 +534,7 @@ export default function DashboardPage() {
               </button>
               <button
                 onClick={() => setTradeType('MATCH_DIFFER')}
-                className={`py-2 rounded-lg font-semibold transition-all ${
+                className={`py-1.5 rounded-lg transition-all ${
                   tradeType === 'MATCH_DIFFER' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
@@ -474,7 +542,7 @@ export default function DashboardPage() {
               </button>
               <button
                 onClick={() => setTradeType('OVER_UNDER')}
-                className={`py-2 rounded-lg font-semibold transition-all ${
+                className={`py-1.5 rounded-lg transition-all ${
                   tradeType === 'OVER_UNDER' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
@@ -485,9 +553,12 @@ export default function DashboardPage() {
 
           {/* Stake Amount Input & Quick Chips */}
           <div>
-            <div className="flex justify-between items-center mb-1.5">
-              <label className="text-slate-400 font-medium">Stake ($ USD)</label>
-              <span className="text-[10px] text-slate-400 font-mono">Min $1.00</span>
+            <div className="flex justify-between items-center mb-1">
+              <label className="text-slate-400 font-medium">STAKE AMOUNT</label>
+              <div className="flex bg-[#0b0818] p-0.5 rounded border border-purple-900/40 text-[10px] font-mono font-bold">
+                <span className="px-1.5 py-0.5 bg-purple-600 text-white rounded">Stake</span>
+                <span className="px-1.5 py-0.5 text-slate-400">Payout</span>
+              </div>
             </div>
             <div className="flex items-center space-x-2">
               <button
@@ -496,14 +567,17 @@ export default function DashboardPage() {
               >
                 -
               </button>
-              <input
-                type="number"
-                value={stake}
-                onChange={(e) => setStake(Number(e.target.value))}
-                min="1"
-                max="1000"
-                className="flex-1 bg-[#0b0818] border border-purple-900/60 rounded-lg px-3 py-2 text-center text-slate-100 font-mono font-bold text-base focus:outline-none focus:border-purple-500"
-              />
+              <div className="flex-1 bg-[#0b0818] border border-purple-900/60 rounded-lg px-3 py-1.5 flex items-center justify-center space-x-1 font-mono font-bold text-base text-slate-100">
+                <span className="text-purple-400">$</span>
+                <input
+                  type="number"
+                  value={stake}
+                  onChange={(e) => setStake(Number(e.target.value))}
+                  min="1"
+                  max="1000"
+                  className="w-16 bg-transparent text-center focus:outline-none"
+                />
+              </div>
               <button
                 onClick={() => adjustStake(1)}
                 className="w-9 h-9 rounded-lg bg-[#181335] border border-purple-900/60 hover:bg-purple-900/40 text-slate-200 flex items-center justify-center font-bold text-base"
@@ -513,12 +587,12 @@ export default function DashboardPage() {
             </div>
 
             {/* Quick Stake Preset Buttons */}
-            <div className="grid grid-cols-6 gap-1 mt-2">
+            <div className="grid grid-cols-6 gap-1 mt-1.5 font-mono text-[11px]">
               {[1, 5, 10, 25, 50, 100].map((amt) => (
                 <button
                   key={amt}
                   onClick={() => setStake(amt)}
-                  className={`py-1 rounded font-mono font-semibold transition-colors ${
+                  className={`py-1 rounded font-semibold transition-colors ${
                     stake === amt
                       ? 'bg-purple-600 text-white'
                       : 'bg-[#181335] text-slate-400 border border-purple-950 hover:text-slate-200'
@@ -533,7 +607,7 @@ export default function DashboardPage() {
           {/* Barrier Digit Selector for Match/Differ and Over/Under */}
           {(tradeType === 'MATCH_DIFFER' || tradeType === 'OVER_UNDER') && (
             <div>
-              <label className="block text-slate-400 font-medium mb-1.5">Last Digit Barrier ({barrier})</label>
+              <label className="block text-slate-400 font-medium mb-1">Last Digit Barrier ({barrier})</label>
               <div className="grid grid-cols-5 gap-1 font-mono font-bold">
                 {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((digit) => (
                   <button
@@ -552,6 +626,12 @@ export default function DashboardPage() {
             </div>
           )}
 
+          {/* Payout Display Line */}
+          <div className="flex justify-between items-center text-xs font-mono py-1 px-2 bg-[#0b0818] rounded-lg border border-purple-900/30">
+            <span className="text-slate-400">Payout</span>
+            <span className="font-extrabold text-slate-100">${potentialPayout.toFixed(2)} USD</span>
+          </div>
+
           {/* Target Profit, Stop Loss, Multiplier Widgets (Reference Match) */}
           <div className="grid grid-cols-3 gap-1.5 text-center font-mono">
             <div className="bg-[#0b0818] p-2 rounded-xl border border-emerald-900/40">
@@ -561,7 +641,10 @@ export default function DashboardPage() {
                 <input
                   type="number"
                   value={targetProfit}
-                  onChange={(e) => setTargetProfit(Number(e.target.value))}
+                  onChange={(e) => {
+                    setTargetProfit(Number(e.target.value));
+                    setHasTriggeredTarget(false);
+                  }}
                   className="w-12 bg-transparent text-center text-emerald-300 font-bold text-xs focus:outline-none"
                 />
               </div>
@@ -574,7 +657,10 @@ export default function DashboardPage() {
                 <input
                   type="number"
                   value={stopLoss}
-                  onChange={(e) => setStopLoss(Number(e.target.value))}
+                  onChange={(e) => {
+                    setStopLoss(Number(e.target.value));
+                    setHasTriggeredTarget(false);
+                  }}
                   className="w-12 bg-transparent text-center text-rose-300 font-bold text-xs focus:outline-none"
                 />
               </div>
@@ -594,138 +680,126 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Live Trading Metrics Bar (Reference Match) */}
+          {/* Live Session Strip Bar */}
           <div className="bg-[#181335] p-2.5 rounded-xl border border-purple-900/50 flex items-center justify-between font-mono text-xs">
             <div className="flex items-center space-x-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               <span className="text-slate-300 text-[10px] font-bold">
-                LIVE {trades.length}T · {wonCount}W - {lostCount}L
+                LAST {trades.length}T · {wonCount}W - {lostCount}L
               </span>
             </div>
             <div className="text-right">
-              <span className={`font-bold text-xs ${sessionPL >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+              <span className={`font-extrabold text-sm ${sessionPL >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                 {sessionPL >= 0 ? `+$${sessionPL.toFixed(2)}` : `-$${Math.abs(sessionPL).toFixed(2)}`}
               </span>
-              <p className="text-[9px] text-slate-400">Stake ${stake}</p>
             </div>
           </div>
 
-          {/* Trade Result Feedback Banner */}
-          {tradeFeedback && (
-            <div
-              className={`p-3 rounded-xl border text-xs font-semibold space-y-1.5 ${
-                tradeFeedback.status === 'OPEN'
-                  ? 'bg-purple-950/60 border-purple-500/40 text-purple-200'
-                  : tradeFeedback.status === 'WON'
-                  ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-300'
-                  : tradeFeedback.status === 'LOST'
-                  ? 'bg-rose-950/60 border-rose-500/40 text-rose-300'
-                  : 'bg-amber-950/60 border-amber-500/40 text-amber-300'
-              }`}
-            >
-              <div className="flex items-center space-x-2">
-                {tradeFeedback.status === 'OPEN' ? (
-                  <Clock className="w-4 h-4 text-purple-400 animate-spin shrink-0" />
-                ) : tradeFeedback.status === 'WON' ? (
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          {/* Trade Execution Action Controls */}
+          {tradingMode === 'AUTO' ? (
+            <div className="pt-1">
+              <button
+                onClick={() => setIsAutoTrading(!isAutoTrading)}
+                className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-wider shadow-xl transition-all flex items-center justify-center space-x-2 ${
+                  isAutoTrading
+                    ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-950/60 animate-pulse'
+                    : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-950/60'
+                }`}
+              >
+                {isAutoTrading ? (
+                  <>
+                    <Square className="w-5 h-5 fill-white" />
+                    <span>STOP AUTO-TRADING</span>
+                  </>
                 ) : (
-                  <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                  <>
+                    <Play className="w-5 h-5 fill-slate-950" />
+                    <span>RUN AUTO-TRADING</span>
+                  </>
                 )}
-                <span>{tradeFeedback.message}</span>
-              </div>
-              {tradeFeedback.code === 'INSUFFICIENT_BALANCE' && (
-                <button
-                  onClick={() => setIsDepositOpen(true)}
-                  className="w-full py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] rounded-lg shadow-md flex items-center justify-center space-x-1"
-                >
-                  <ArrowUpRight className="w-3.5 h-3.5" />
-                  <span>Deposit via M-Pesa / Crypto Now</span>
-                </button>
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-2 pt-1">
+              {tradeType === 'EVEN_ODD' && (
+                <div className="space-y-2 font-mono">
+                  {/* Even Order Action Card (Reference Match) */}
+                  <button
+                    onClick={() => handleExecuteTrade('EVEN')}
+                    disabled={tradeExecuting}
+                    className="w-full bg-[#181335] hover:bg-emerald-950/40 border border-emerald-500/30 hover:border-emerald-500 p-3 rounded-2xl flex items-center justify-between transition-all group shadow-lg"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 group-hover:scale-105 transition-transform">
+                        <Grid className="w-5 h-5" />
+                      </div>
+                      <span className="font-extrabold text-slate-100 text-sm">Even</span>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-extrabold text-emerald-400 text-xs">${potentialPayout.toFixed(2)} USD</p>
+                      <p className="text-[10px] text-slate-400 font-bold">95.22%</p>
+                    </div>
+                  </button>
+
+                  {/* Odd Order Action Card (Reference Match) */}
+                  <button
+                    onClick={() => handleExecuteTrade('ODD')}
+                    disabled={tradeExecuting}
+                    className="w-full bg-[#181335] hover:bg-rose-950/40 border border-rose-500/30 hover:border-rose-500 p-3 rounded-2xl flex items-center justify-between transition-all group shadow-lg"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-9 h-9 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 group-hover:scale-105 transition-transform">
+                        <Triangle className="w-5 h-5" />
+                      </div>
+                      <span className="font-extrabold text-slate-100 text-sm">Odd</span>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-extrabold text-rose-400 text-xs">${potentialPayout.toFixed(2)} USD</p>
+                      <p className="text-[10px] text-slate-400 font-bold">95.22%</p>
+                    </div>
+                  </button>
+                </div>
+              )}
+
+              {tradeType === 'MATCH_DIFFER' && (
+                <div className="grid grid-cols-2 gap-2 font-mono">
+                  <button
+                    onClick={() => handleExecuteTrade('MATCH')}
+                    disabled={tradeExecuting}
+                    className="py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-xl shadow-lg flex items-center justify-center space-x-1"
+                  >
+                    <span>MATCHES ({barrier})</span>
+                  </button>
+                  <button
+                    onClick={() => handleExecuteTrade('DIFFER')}
+                    disabled={tradeExecuting}
+                    className="py-3 bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs rounded-xl shadow-lg flex items-center justify-center space-x-1"
+                  >
+                    <span>DIFFERS ({barrier})</span>
+                  </button>
+                </div>
+              )}
+
+              {tradeType === 'OVER_UNDER' && (
+                <div className="grid grid-cols-2 gap-2 font-mono">
+                  <button
+                    onClick={() => handleExecuteTrade('OVER')}
+                    disabled={tradeExecuting}
+                    className="py-3 bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs rounded-xl shadow-lg flex items-center justify-center space-x-1"
+                  >
+                    <span>OVER ({barrier})</span>
+                  </button>
+                  <button
+                    onClick={() => handleExecuteTrade('UNDER')}
+                    disabled={tradeExecuting}
+                    className="py-3 bg-amber-600 hover:bg-amber-500 text-white font-extrabold text-xs rounded-xl shadow-lg flex items-center justify-center space-x-1"
+                  >
+                    <span>UNDER ({barrier})</span>
+                  </button>
+                </div>
               )}
             </div>
           )}
-
-          {/* Big Order Entry Execution Action Buttons */}
-          <div className="pt-2 space-y-2">
-            {tradeType === 'RISE_FALL' && (
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => handleExecuteTrade('HIGHER')}
-                  disabled={tradeExecuting}
-                  className="py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-emerald-950/50 flex flex-col items-center justify-center space-y-0.5 disabled:opacity-50"
-                >
-                  {tradeExecuting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowUpRight className="w-5 h-5" />}
-                  <span>HIGHER ▲</span>
-                </button>
-
-                <button
-                  onClick={() => handleExecuteTrade('LOWER')}
-                  disabled={tradeExecuting}
-                  className="py-3.5 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-rose-950/50 flex flex-col items-center justify-center space-y-0.5 disabled:opacity-50"
-                >
-                  {tradeExecuting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowDownRight className="w-5 h-5" />}
-                  <span>LOWER ▼</span>
-                </button>
-              </div>
-            )}
-
-            {tradeType === 'EVEN_ODD' && (
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => handleExecuteTrade('EVEN')}
-                  disabled={tradeExecuting}
-                  className="py-3.5 bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-xs rounded-xl shadow-lg flex items-center justify-center space-x-1.5 disabled:opacity-50"
-                >
-                  <span>EVEN DIGIT</span>
-                </button>
-                <button
-                  onClick={() => handleExecuteTrade('ODD')}
-                  disabled={tradeExecuting}
-                  className="py-3.5 bg-violet-600 hover:bg-violet-500 text-white font-extrabold text-xs rounded-xl shadow-lg flex items-center justify-center space-x-1.5 disabled:opacity-50"
-                >
-                  <span>ODD DIGIT</span>
-                </button>
-              </div>
-            )}
-
-            {tradeType === 'MATCH_DIFFER' && (
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => handleExecuteTrade('MATCH')}
-                  disabled={tradeExecuting}
-                  className="py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-xl shadow-lg flex items-center justify-center space-x-1.5 disabled:opacity-50"
-                >
-                  <span>MATCHES ({barrier})</span>
-                </button>
-                <button
-                  onClick={() => handleExecuteTrade('DIFFER')}
-                  disabled={tradeExecuting}
-                  className="py-3.5 bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs rounded-xl shadow-lg flex items-center justify-center space-x-1.5 disabled:opacity-50"
-                >
-                  <span>DIFFERS ({barrier})</span>
-                </button>
-              </div>
-            )}
-
-            {tradeType === 'OVER_UNDER' && (
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => handleExecuteTrade('OVER')}
-                  disabled={tradeExecuting}
-                  className="py-3.5 bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs rounded-xl shadow-lg flex items-center justify-center space-x-1.5 disabled:opacity-50"
-                >
-                  <span>OVER ({barrier})</span>
-                </button>
-                <button
-                  onClick={() => handleExecuteTrade('UNDER')}
-                  disabled={tradeExecuting}
-                  className="py-3.5 bg-amber-600 hover:bg-amber-500 text-white font-extrabold text-xs rounded-xl shadow-lg flex items-center justify-center space-x-1.5 disabled:opacity-50"
-                >
-                  <span>UNDER ({barrier})</span>
-                </button>
-              </div>
-            )}
-          </div>
         </div>
       </main>
 
@@ -734,6 +808,17 @@ export default function DashboardPage() {
         activeTab={mobileTab}
         onTabChange={(t) => setMobileTab(t)}
         onOpenAIScanner={() => setIsAIScannerOpen(true)}
+      />
+
+      {/* Target Profit / Stop Loss Popup Modal (Reference Match) */}
+      <TargetProfitModal
+        isOpen={modalState?.isOpen ?? false}
+        onClose={() => setModalState(null)}
+        type={modalState?.type ?? 'TARGET_PROFIT'}
+        amountGain={modalState?.amountGain ?? 0}
+        totalTrades={trades.length}
+        wonCount={wonCount}
+        lostCount={lostCount}
       />
 
       {/* Modals */}
