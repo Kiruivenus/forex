@@ -13,6 +13,8 @@ import {
   Activity,
 } from 'lucide-react';
 
+import { getDeterministicPrice } from '@/lib/trading-engine';
+
 interface InstrumentInfo {
   _id?: string;
   symbol: string;
@@ -50,46 +52,50 @@ export default function TradingChart({
   const [zoomLevel, setZoomLevel] = useState<'100%' | '50%'>('50%');
   const [activeChartTool, setActiveChartTool] = useState<'line' | 'bars' | 'trend'>('line');
 
-  // Initialize tick series
+  // Initialize tick series deterministically based on timestamp
   useEffect(() => {
     setCurrentPrice(instrument.currentPrice);
     const initialTicks: TickPoint[] = [];
     const basePrice = instrument.currentPrice;
-    const now = Date.now();
+    const nowSec = Math.floor(Date.now() / 1000);
 
     for (let i = 40; i >= 0; i--) {
-      const timeStr = new Date(now - i * 1000).toLocaleTimeString([], {
+      const sec = nowSec - i;
+      const timeStr = new Date(sec * 1000).toLocaleTimeString([], {
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
       });
-      const variance = (Math.random() - 0.5) * (basePrice * 0.0008);
+      const price = getDeterministicPrice(instrument.symbol, basePrice, sec);
       initialTicks.push({
         time: timeStr,
-        price: Number((basePrice + variance).toFixed(2)),
+        price,
       });
     }
     setTicks(initialTicks);
-  }, [instrument.symbol]);
+  }, [instrument.symbol, instrument.currentPrice]);
 
-  // Micro tick generator simulation stream
+  // Micro tick stream updated deterministically
   useEffect(() => {
     const interval = setInterval(() => {
+      const nowSec = Math.floor(Date.now() / 1000);
+      const timeStr = new Date(nowSec * 1000).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+      const price = getDeterministicPrice(instrument.symbol, instrument.currentPrice, nowSec);
+
       setTicks((prev) => {
-        const lastPrice = prev.length > 0 ? prev[prev.length - 1].price : instrument.currentPrice;
-        const changePercent = (Math.random() - 0.495) * 0.0012;
-        const nextPrice = Number((lastPrice * (1 + changePercent)).toFixed(2));
-        const timeStr = new Date().toLocaleTimeString([], {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-        });
-        return [...prev.slice(-55), { time: timeStr, price: nextPrice }];
+        if (prev.length > 0 && prev[prev.length - 1].time === timeStr) {
+          return prev;
+        }
+        return [...prev.slice(-55), { time: timeStr, price }];
       });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [instrument.symbol]);
+  }, [instrument.symbol, instrument.currentPrice]);
 
   // Notify parent of latest price
   useEffect(() => {

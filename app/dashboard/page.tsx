@@ -96,7 +96,23 @@ export default function DashboardPage() {
 
   // Trading Mode (AUTO vs MANUAL)
   const [tradingMode, setTradingMode] = useState<'AUTO' | 'MANUAL'>('AUTO');
-  const [isAutoTrading, setIsAutoTrading] = useState(false);
+  const [isAutoTrading, setIsAutoTrading] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('apex_autotrading_active') === 'true';
+    }
+    return false;
+  });
+
+  const updateAutoTrading = (active: boolean) => {
+    setIsAutoTrading(active);
+    if (typeof window !== 'undefined') {
+      if (active) {
+        sessionStorage.setItem('apex_autotrading_active', 'true');
+      } else {
+        sessionStorage.removeItem('apex_autotrading_active');
+      }
+    }
+  };
 
   // Trade Ticket Form State
   const [tradeType, setTradeType] = useState<'RISE_FALL' | 'EVEN_ODD' | 'MATCH_DIFFER' | 'OVER_UNDER'>('EVEN_ODD');
@@ -185,7 +201,7 @@ export default function DashboardPage() {
 
     if (!hasTriggeredTarget && targetProfit > 0 && sessionPL >= targetProfit) {
       setHasTriggeredTarget(true);
-      setIsAutoTrading(false);
+      updateAutoTrading(false);
       setModalState({
         isOpen: true,
         type: 'TARGET_PROFIT',
@@ -193,7 +209,7 @@ export default function DashboardPage() {
       });
     } else if (!hasTriggeredTarget && stopLoss > 0 && sessionPL <= -stopLoss) {
       setHasTriggeredTarget(true);
-      setIsAutoTrading(false);
+      updateAutoTrading(false);
       setModalState({
         isOpen: true,
         type: 'STOP_LOSS',
@@ -207,7 +223,7 @@ export default function DashboardPage() {
     if (!isAutoTrading) return;
 
     if (accountMode === 'REAL' && stake > (wallet?.availableBalance ?? 0)) {
-      setIsAutoTrading(false);
+      updateAutoTrading(false);
       setIsInsufficientModalOpen(true);
       return;
     }
@@ -215,7 +231,7 @@ export default function DashboardPage() {
     const autoInterval = setInterval(() => {
       if (!tradeExecuting) {
         if (accountMode === 'REAL' && stake > (wallet?.availableBalance ?? 0)) {
-          setIsAutoTrading(false);
+          updateAutoTrading(false);
           setIsInsufficientModalOpen(true);
           return;
         }
@@ -231,7 +247,7 @@ export default function DashboardPage() {
   const handleToggleAutoTrading = () => {
     if (!isAutoTrading) {
       if (accountMode === 'REAL' && stake > (wallet?.availableBalance ?? 0)) {
-        setIsAutoTrading(false);
+        updateAutoTrading(false);
         setIsInsufficientModalOpen(true);
         setTradeFeedback({
           status: 'ERROR',
@@ -240,9 +256,9 @@ export default function DashboardPage() {
         });
         return;
       }
-      setIsAutoTrading(true);
+      updateAutoTrading(true);
     } else {
-      setIsAutoTrading(false);
+      updateAutoTrading(false);
     }
   };
 
@@ -250,7 +266,7 @@ export default function DashboardPage() {
     if (!selectedInstrument) return;
 
     if (accountMode === 'REAL' && stake > (wallet?.availableBalance ?? 0)) {
-      setIsAutoTrading(false);
+      updateAutoTrading(false);
       setTradeExecuting(false);
       setTradeFeedback({
         status: 'ERROR',
@@ -305,7 +321,7 @@ export default function DashboardPage() {
           message: data.message || 'Trade execution failed.',
         });
         if (data.code === 'INSUFFICIENT_BALANCE' || data.message?.toLowerCase().includes('insufficient')) {
-          setIsAutoTrading(false);
+          updateAutoTrading(false);
           setIsInsufficientModalOpen(true);
         }
       }
@@ -573,7 +589,7 @@ export default function DashboardPage() {
               <button
                 onClick={() => {
                   setTradingMode('MANUAL');
-                  setIsAutoTrading(false);
+                  updateAutoTrading(false);
                 }}
                 className={`py-2 rounded-lg transition-all ${
                   tradingMode === 'MANUAL' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'
@@ -900,7 +916,7 @@ export default function DashboardPage() {
           }
           if (accountMode === 'REAL' && stake > (wallet?.availableBalance ?? 0)) {
             setTradingMode('AUTO');
-            setIsAutoTrading(false);
+            updateAutoTrading(false);
             setIsInsufficientModalOpen(true);
             setTradeFeedback({
               status: 'ERROR',
@@ -909,7 +925,7 @@ export default function DashboardPage() {
             });
           } else {
             setTradingMode('AUTO');
-            setIsAutoTrading(true);
+            updateAutoTrading(true);
             setIsAiScannerActive(true);
             setTradeFeedback({
               status: 'OPEN',

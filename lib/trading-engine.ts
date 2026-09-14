@@ -21,11 +21,48 @@ export interface TradeResultCalculation {
   profit: number;
 }
 
+// Synchronized deterministic price generator for identical chart feeds across all devices and refreshes
+export function getDeterministicPrice(symbol: string, basePrice: number, timestampSec: number): number {
+  const roundedSec = Math.floor(timestampSec);
+
+  // Hash string seeded by symbol + second timestamp
+  const seed = `${symbol}_${roundedSec}`;
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash << 5) - hash + seed.charCodeAt(i);
+    hash |= 0;
+  }
+
+  const pseudoRand1 = (Math.sin(hash) + 1) / 2;
+
+  // Natural wave oscillation
+  const wave1 = Math.sin(roundedSec / 15) * 0.0018;
+  const wave2 = Math.cos(roundedSec / 45) * 0.0028;
+
+  // Micro jitter per second
+  const microJitter = (pseudoRand1 - 0.495) * 0.0012;
+
+  // Minute bucket drift (prevents static repeating loops)
+  const minuteBucket = Math.floor(roundedSec / 60);
+  let minuteDrift = 0;
+  for (let m = minuteBucket - 3; m <= minuteBucket; m++) {
+    const mSeed = `${symbol}_min_${m}`;
+    let mHash = 0;
+    for (let j = 0; j < mSeed.length; j++) {
+      mHash = (mHash << 5) - mHash + mSeed.charCodeAt(j);
+      mHash |= 0;
+    }
+    minuteDrift += Math.sin(mHash) * 0.0006;
+  }
+
+  const priceFactor = 1 + wave1 + wave2 + microJitter + minuteDrift;
+  return Number((basePrice * priceFactor).toFixed(2));
+}
+
 // Generate realistic micro-fluctuation price feed based on base instrument price
 export function generateNextTickPrice(currentPrice: number, volatilityFactor: number = 0.0015): number {
   const changePercent = (Math.random() - 0.495) * volatilityFactor;
   const newPrice = currentPrice * (1 + changePercent);
-  // Format to 4 decimal places or integer depending on scale
   return Number(newPrice.toFixed(4));
 }
 
@@ -119,3 +156,4 @@ export function evaluateTradeContract(
     };
   }
 }
+

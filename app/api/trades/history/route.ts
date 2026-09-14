@@ -6,7 +6,7 @@ import Wallet from '@/models/Wallet';
 import Instrument from '@/models/Instrument';
 import LedgerEntry from '@/models/LedgerEntry';
 import Notification from '@/models/Notification';
-import { evaluateTradeContract, generateNextTickPrice, TradeType, TradeDirection } from '@/lib/trading-engine';
+import { evaluateTradeContract, getDeterministicPrice, TradeType, TradeDirection } from '@/lib/trading-engine';
 
 export async function GET(req: NextRequest) {
   const auth = await verifyApiAuth(req);
@@ -26,15 +26,17 @@ export async function GET(req: NextRequest) {
   const openTrades = await Trade.find({ userId: auth.user.userId, status: 'OPEN' });
 
   for (const t of openTrades) {
-    const openTimeDate = t.openTime ? new Date(t.openTime) : new Date();
-    const closeTimeDate = t.closeTime ? new Date(t.closeTime) : new Date();
+    const openTimeDate = t.openTime ? new Date(t.openTime) : (t.createdAt ? new Date(t.createdAt) : new Date());
+    const durationSec = t.durationSeconds || 3;
+    const closeTimeDate = t.closeTime ? new Date(t.closeTime) : new Date(openTimeDate.getTime() + durationSec * 1000);
     const elapsedSeconds = (now.getTime() - openTimeDate.getTime()) / 1000;
 
-    if (elapsedSeconds >= t.durationSeconds || now >= closeTimeDate) {
+    if (elapsedSeconds >= durationSec || now >= closeTimeDate) {
       let instrument = await Instrument.findOne({ symbol: t.symbol });
       const entryPrice = t.entryPrice;
-      const volatility = instrument?.volatility || 0.0015;
-      const exitPrice = generateNextTickPrice(entryPrice, volatility);
+      const basePrice = instrument?.currentPrice || entryPrice;
+      const exitTimeSec = Math.floor(closeTimeDate.getTime() / 1000);
+      const exitPrice = getDeterministicPrice(t.symbol, basePrice, exitTimeSec);
 
       const outcome = evaluateTradeContract(
         t.tradeType as TradeType,
