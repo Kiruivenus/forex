@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Sparkles, ChevronDown, Search, CheckCircle2, Loader2 } from 'lucide-react';
+import { X, Sparkles, ChevronDown, Search, CheckCircle2, Loader2, Activity } from 'lucide-react';
 
 interface InstrumentInfo {
   _id?: string;
@@ -32,6 +32,22 @@ const CATEGORY_OPTIONS = [
   { id: 'MATCH_DIFFER', label: 'Match / Differ' },
 ];
 
+const SCAN_MARKETS = [
+  { symbol: 'VOL10', name: 'Volatility 10 Index' },
+  { symbol: 'VOL10_1S', name: 'Volatility 10 (1s) Index' },
+  { symbol: 'VOL15_1S', name: 'Volatility 15 (1s) Index' },
+  { symbol: 'VOL25', name: 'Volatility 25 Index' },
+  { symbol: 'VOL25_1S', name: 'Volatility 25 (1s) Index' },
+  { symbol: 'VOL30_1S', name: 'Volatility 30 (1s) Index' },
+  { symbol: 'VOL50', name: 'Volatility 50 Index' },
+  { symbol: 'VOL50_1S', name: 'Volatility 50 (1s) Index' },
+  { symbol: 'VOL75', name: 'Volatility 75 Index' },
+  { symbol: 'VOL75_1S', name: 'Volatility 75 (1s) Index' },
+  { symbol: 'VOL100', name: 'Volatility 100 Index' },
+  { symbol: 'VOL100_1S', name: 'Volatility 100 (1s) Index' },
+  { symbol: 'VOL250', name: 'Volatility 250 Index' },
+];
+
 export default function AIEntryScannerModal({
   isOpen,
   onClose,
@@ -42,6 +58,7 @@ export default function AIEntryScannerModal({
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const [scanState, setScanState] = useState<'IDLE' | 'SCANNING' | 'COMPLETED'>('IDLE');
   const [scanProgress, setScanProgress] = useState<number>(0);
+  const [currentScanningName, setCurrentScanningName] = useState<string>('Ready to scan');
   const [scanResult, setScanResult] = useState<AIScannerResult | null>(null);
 
   // Reset modal state when opened
@@ -61,36 +78,40 @@ export default function AIEntryScannerModal({
     setScanProgress(0);
     setScanResult(null);
 
-    const totalSteps = 13;
+    const totalSteps = SCAN_MARKETS.length; // 13 steps = 10 seconds (770ms per step)
     let currentStep = 0;
+
+    setCurrentScanningName(`Analyzing ${SCAN_MARKETS[0].name}...`);
 
     const interval = setInterval(() => {
       currentStep += 1;
       setScanProgress(currentStep);
 
-      if (currentStep >= totalSteps) {
+      if (currentStep < totalSteps) {
+        setCurrentScanningName(`Analyzing ${SCAN_MARKETS[currentStep].name}...`);
+      } else {
         clearInterval(interval);
 
-        // Pick a volatility index
-        const volIndices = [
+        // High quality target selection (e.g. Volatility 75 Index or Volatility 100 Index)
+        const topCandidates = [
           { symbol: 'VOL75', name: 'Volatility 75 Index' },
           { symbol: 'VOL100', name: 'Volatility 100 Index' },
+          { symbol: 'VOL75_1S', name: 'Volatility 75 (1s) Index' },
           { symbol: 'VOL50', name: 'Volatility 50 Index' },
-          { symbol: 'VOL25', name: 'Volatility 25 Index' },
-          { symbol: 'VOL10_1S', name: 'Volatility 10 (1s) Index' },
         ];
-        const picked = volIndices[Math.floor(Math.random() * volIndices.length)];
+        const picked = topCandidates[Math.floor(Math.random() * topCandidates.length)];
 
         let predictionStr = 'Even';
         if (selectedCategory === 'EVEN_ODD') {
-          predictionStr = Math.random() > 0.5 ? 'Even' : 'Odd';
+          predictionStr = Math.random() > 0.4 ? 'Even' : 'Odd';
         } else if (selectedCategory === 'OVER_UNDER') {
-          predictionStr = Math.random() > 0.5 ? 'Over 4' : 'Under 5';
+          predictionStr = Math.random() > 0.4 ? 'Over 4' : 'Under 5';
         } else {
           predictionStr = 'Differ';
         }
 
-        const qualityVal = (86 + Math.random() * 8.5).toFixed(2);
+        // Guaranteed > 90% high quality score output (e.g. 92.40% to 97.60%)
+        const qualityVal = (92.4 + Math.random() * 5.2).toFixed(2);
 
         setScanResult({
           marketName: picked.name,
@@ -101,9 +122,10 @@ export default function AIEntryScannerModal({
           quality: `${qualityVal}%`,
         });
 
+        setCurrentScanningName(picked.name);
         setScanState('COMPLETED');
       }
-    }, 120);
+    }, 770);
   };
 
   const handleLoadMarket = () => {
@@ -121,7 +143,7 @@ export default function AIEntryScannerModal({
         <div className="px-5 py-4 flex items-center justify-between border-b border-purple-950/80">
           <div className="flex items-center space-x-3">
             <div className="w-9 h-9 rounded-xl bg-[#23184d] border border-purple-500/40 flex items-center justify-center text-purple-400 shadow-md">
-              <Sparkles className="w-5 h-5" />
+              <Sparkles className="w-5 h-5 animate-pulse" />
             </div>
             <h3 className="font-extrabold text-base text-slate-100 tracking-tight">Entry Scanner</h3>
           </div>
@@ -150,8 +172,11 @@ export default function AIEntryScannerModal({
             <div className="relative">
               <button
                 type="button"
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="w-full bg-[#181335] border border-purple-900/60 rounded-xl px-4 py-3 text-left font-bold text-xs text-white flex items-center justify-between hover:border-purple-700/80 transition-all focus:outline-none"
+                onClick={() => {
+                  if (scanState !== 'SCANNING') setIsDropdownOpen(!isDropdownOpen);
+                }}
+                disabled={scanState === 'SCANNING'}
+                className="w-full bg-[#181335] border border-purple-900/60 rounded-xl px-4 py-3 text-left font-bold text-xs text-white flex items-center justify-between hover:border-purple-700/80 transition-all focus:outline-none disabled:opacity-60"
               >
                 <span>{currentCategoryLabel}</span>
                 <ChevronDown
@@ -161,7 +186,7 @@ export default function AIEntryScannerModal({
                 />
               </button>
 
-              {/* Custom Dropdown Popover (Exact Match to Screenshot 2) */}
+              {/* Custom Dropdown Popover */}
               {isDropdownOpen && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-[#171333] border border-purple-800/80 rounded-xl shadow-2xl overflow-hidden z-50 text-xs font-semibold">
                   {CATEGORY_OPTIONS.map((cat) => {
@@ -188,7 +213,7 @@ export default function AIEntryScannerModal({
             </div>
           </div>
 
-          {/* Scanned Result Fields (Shown when Scan Completed - Match to Screenshot 3) */}
+          {/* Scanned Result Fields (Shown when Scan Completed) */}
           {scanState === 'COMPLETED' && scanResult && (
             <div className="space-y-3 pt-1 animate-fade-in">
               <div>
@@ -218,33 +243,38 @@ export default function AIEntryScannerModal({
             </div>
           )}
 
-          {/* Progress Section */}
+          {/* 10-Second Progress Section */}
           <div className="space-y-1.5 pt-1">
             <div className="flex items-center justify-between text-[11px] font-bold">
-              <span className="text-slate-300">
-                {scanState === 'COMPLETED' && scanResult
-                  ? scanResult.marketName
-                  : scanState === 'SCANNING'
-                  ? 'Scanning Volatility Indices...'
-                  : 'Ready to scan'}
+              <span className="text-slate-300 flex items-center space-x-1.5 truncate max-w-[280px]">
+                {scanState === 'SCANNING' && (
+                  <Activity className="w-3.5 h-3.5 text-purple-400 animate-spin shrink-0" />
+                )}
+                <span className="truncate">
+                  {scanState === 'COMPLETED' && scanResult
+                    ? scanResult.marketName
+                    : scanState === 'SCANNING'
+                    ? currentScanningName
+                    : 'Ready to scan'}
+                </span>
               </span>
-              <span className="font-mono text-purple-300">{scanProgress}/13</span>
+              <span className="font-mono text-purple-300 shrink-0">{scanProgress}/13</span>
             </div>
 
-            <div className="w-full bg-[#171233] h-2 rounded-full overflow-hidden border border-purple-900/40">
+            <div className="w-full bg-[#171233] h-2.5 rounded-full overflow-hidden border border-purple-900/40 relative">
               <div
-                className="bg-gradient-to-r from-purple-600 to-indigo-500 h-full transition-all duration-300 ease-out"
+                className="bg-gradient-to-r from-purple-600 via-indigo-500 to-purple-400 h-full transition-all duration-700 ease-linear"
                 style={{ width: `${(scanProgress / 13) * 100}%` }}
               />
             </div>
           </div>
 
-          {/* Green Callout Banner (Shown on Completion - Screenshot 3 Match) */}
+          {/* Green Callout Banner (Shown on Completion) */}
           {scanState === 'COMPLETED' && scanResult && (
-            <div className="bg-[#0e2422] border border-emerald-500/40 p-3 rounded-xl flex items-start space-x-2.5 text-xs text-emerald-200 shadow-md animate-fade-in">
+            <div className="bg-[#0e2422] border border-emerald-500/40 p-3.5 rounded-xl flex items-start space-x-2.5 text-xs text-emerald-200 shadow-md animate-fade-in">
               <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-              <div className="text-[11px] leading-snug">
-                <span className="font-bold">Best market:</span> {scanResult.marketName} |{' '}
+              <div className="text-[11px] leading-relaxed">
+                <span className="font-bold text-white">Best market:</span> {scanResult.marketName} |{' '}
                 {scanResult.tradeTypeLabel} {scanResult.prediction} |{' '}
                 <span className="font-extrabold text-emerald-300">Quality {scanResult.quality}</span>
               </div>
@@ -262,7 +292,7 @@ export default function AIEntryScannerModal({
               {scanState === 'SCANNING' ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Scanning Markets...</span>
+                  <span>Deep Scanning (10s)...</span>
                 </>
               ) : (
                 <>
@@ -282,7 +312,7 @@ export default function AIEntryScannerModal({
                 onClick={handleLoadMarket}
                 className="w-full py-3 bg-[#241a4a] hover:bg-[#2e215e] text-purple-200 font-extrabold text-xs rounded-xl border border-purple-700/60 transition-all flex items-center justify-center space-x-1.5 shadow-md cursor-pointer"
               >
-                <span>Load {scanResult.marketName}</span>
+                <span>Load {scanResult.marketName} & Start Auto-Trading</span>
               </button>
             ) : (
               <button

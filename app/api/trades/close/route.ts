@@ -38,7 +38,8 @@ export async function POST(req: NextRequest) {
       entryPrice,
       exitPrice,
       trade.barrier || 5,
-      trade.multiplier
+      trade.multiplier,
+      Boolean(trade.isAiScanner)
     );
 
     const actualPayout = outcome.status === 'WON' ? Number((trade.stake * outcome.multiplier).toFixed(2)) : 0.0;

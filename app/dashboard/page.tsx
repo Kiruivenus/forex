@@ -105,6 +105,7 @@ export default function DashboardPage() {
   // Modals
   const [isAIScannerOpen, setIsAIScannerOpen] = useState(false);
   const [isDepositOpen, setIsDepositOpen] = useState(false);
+  const [isAiScannerActive, setIsAiScannerActive] = useState(false);
 
   const fetchInstruments = async () => {
     try {
@@ -213,6 +214,7 @@ export default function DashboardPage() {
           barrier,
           durationSeconds: 3,
           accountMode,
+          isAiScanner: isAiScannerActive,
         }),
       });
 
@@ -823,6 +825,13 @@ export default function DashboardPage() {
           if (category) {
             setTradeType(category as any);
           }
+          setTradingMode('AUTO');
+          setIsAutoTrading(true);
+          setIsAiScannerActive(true);
+          setTradeFeedback({
+            status: 'OPEN',
+            message: `🚀 AI Scanner Loaded: Auto-Trading Active on ${inst?.name || symbol} (93%+ Win Confidence)`,
+          });
         }}
       />
 

@@ -41,7 +41,8 @@ export async function GET(req: NextRequest) {
         entryPrice,
         exitPrice,
         t.barrier || 5,
-        t.multiplier
+        t.multiplier,
+        Boolean(t.isAiScanner)
       );
 
       const actualPayout = outcome.status === 'WON' ? Number((t.stake * outcome.multiplier).toFixed(2)) : 0.0;

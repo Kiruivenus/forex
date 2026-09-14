@@ -20,6 +20,7 @@ export interface ITrade extends Document {
   durationSeconds: number;
   openTime: Date;
   closeTime?: Date;
+  isAiScanner?: boolean;
   createdAt: Date;
 }
 
@@ -57,6 +58,7 @@ const TradeSchema: Schema = new Schema(
     durationSeconds: { type: Number, default: 3 },
     openTime: { type: Date, default: Date.now, index: true },
     closeTime: { type: Date },
+    isAiScanner: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

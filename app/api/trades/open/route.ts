@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { symbol, tradeType, direction, stake, barrier, durationSeconds = 3, accountMode = 'REAL' } = await req.json();
+    const { symbol, tradeType, direction, stake, barrier, durationSeconds = 3, accountMode = 'REAL', isAiScanner = false } = await req.json();
 
     if (!symbol || !tradeType || !direction || !stake || stake <= 0) {
       return NextResponse.json(
@@ -133,6 +133,7 @@ export async function POST(req: NextRequest) {
       durationSeconds,
       openTime,
       closeTime,
+      isAiScanner: Boolean(isAiScanner),
     });
 
     return NextResponse.json({
