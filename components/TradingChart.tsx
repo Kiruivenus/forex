@@ -257,7 +257,7 @@ export default function TradingChart({
   const digitPercentages = digitCounts.map((c) => ((c / total) * 100).toFixed(1));
 
   return (
-    <div className="relative bg-[#141722] border border-slate-800/80 rounded-2xl overflow-hidden shadow-2xl flex flex-col h-[460px] sm:h-[480px]">
+    <div className="relative bg-[#141722] border border-slate-800/80 rounded-2xl overflow-hidden shadow-2xl flex flex-col h-[540px] sm:h-[600px] lg:h-[calc(100vh-105px)] min-h-[540px] max-h-[750px]">
       {/* 1. TOP-LEFT FLOATING INSTRUMENT SELECTOR CARD (Image 1 Match) */}
       <div className="absolute top-3 left-3 z-30">
         <div
