@@ -4,11 +4,11 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import DepositModal from '@/components/DepositModal';
-import { Smartphone, Bitcoin, ArrowUpRight, ShieldCheck, CheckCircle2, Info, ArrowRight } from 'lucide-react';
-import { getStoredAccountMode, setStoredAccountMode, EVENT_NAME, AccountMode } from '@/lib/accountMode';
+import { Smartphone, Bitcoin, ArrowUpRight, ShieldCheck, Zap, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { getStoredAccountMode, EVENT_NAME, AccountMode } from '@/lib/accountMode';
 
 export default function DepositPage() {
-  const [isDepositOpen, setIsDepositOpen] = useState(true);
+  const [isDepositOpen, setIsDepositOpen] = useState(false);
   const [accountMode, setAccountMode] = useState<AccountMode>('DEMO');
 
   useEffect(() => {
@@ -24,59 +24,109 @@ export default function DepositPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0b0e17] text-slate-100 flex flex-col justify-between">
+    <div className="min-h-screen bg-[#090714] text-slate-100 flex flex-col justify-between font-sans">
       <Navbar />
 
-      <main className="max-w-4xl mx-auto px-4 pt-20 sm:pt-24 pb-10 w-full flex-1 space-y-6">
-        <div className="bg-[#120f26] p-6 rounded-2xl border border-purple-900/60 shadow-xl space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-900/60 flex items-center justify-center text-emerald-400">
-                <ArrowUpRight className="w-6 h-6" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-extrabold text-slate-100">Deposit Funds</h1>
-                <p className="text-xs text-slate-400">Add capital to your real trading wallet instantly</p>
-              </div>
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-20 sm:pt-24 pb-12 w-full flex-1 space-y-6">
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-purple-950/80 pb-5">
+          <div className="space-y-1">
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-950/80 border border-purple-800/40 text-purple-300 text-xs font-semibold mb-1">
+              <Zap className="w-3.5 h-3.5 text-amber-400" />
+              <span>Instant Wallet Funding</span>
             </div>
-
-            <span className="px-3 py-1 bg-emerald-950/80 border border-emerald-600/40 text-emerald-300 rounded-full text-xs font-bold font-mono">
-              ● REAL ACCOUNT ONLY
-            </span>
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">Deposit Capital</h1>
+            <p className="text-xs sm:text-sm text-slate-400">Add funds to your trading wallet via Safaricom M-Pesa or Crypto</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-            <div className="bg-[#181335] p-5 rounded-xl border border-purple-900/50 space-y-3">
-              <div className="flex items-center space-x-2 text-emerald-400 font-bold text-sm">
-                <Smartphone className="w-5 h-5" />
-                <span>Safaricom M-Pesa STK Push</span>
+          <div className="flex items-center space-x-2 shrink-0">
+            <span className="text-xs text-slate-400 font-medium">Target Wallet:</span>
+            <span className="px-3 py-1.5 rounded-xl bg-emerald-950/80 border border-emerald-600/40 text-emerald-300 font-mono font-bold text-xs">
+              REAL ACCOUNT
+            </span>
+          </div>
+        </div>
+
+        {/* Payment Methods Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* M-Pesa STK Push Card */}
+          <div className="bg-[#120f26] border border-purple-900/50 hover:border-emerald-500/50 rounded-3xl p-6 space-y-5 transition-all shadow-xl hover:shadow-2xl relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+
+            <div className="flex items-center justify-between">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-950/80 border border-emerald-600/40 flex items-center justify-center text-emerald-400 shadow-lg shadow-emerald-950/40">
+                <Smartphone className="w-6 h-6" />
               </div>
-              <p className="text-slate-400 text-xs leading-relaxed">
-                Instant mobile deposit via Safaricom Daraja API. Enter your phone number and approve the prompt on your phone.
-              </p>
-              <button
-                onClick={() => setIsDepositOpen(true)}
-                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg shadow-md transition-all"
-              >
-                Deposit via M-Pesa
-              </button>
+              <span className="text-[11px] font-bold text-emerald-400 bg-emerald-950/80 px-2.5 py-1 rounded-full border border-emerald-800/50">
+                STK Push · Instant
+              </span>
             </div>
 
-            <div className="bg-[#181335] p-5 rounded-xl border border-purple-900/50 space-y-3">
-              <div className="flex items-center space-x-2 text-amber-400 font-bold text-sm">
-                <Bitcoin className="w-5 h-5" />
-                <span>Crypto Transfer (USDT / BTC)</span>
-              </div>
-              <p className="text-slate-400 text-xs leading-relaxed">
-                Transfer Tether USDT (TRC20, ERC20) or Bitcoin to our admin-managed wallet address and submit transaction hash.
+            <div className="space-y-2">
+              <h3 className="text-lg font-extrabold text-white">Safaricom M-Pesa</h3>
+              <p className="text-slate-300 text-xs leading-relaxed">
+                Direct mobile money deposit via Safaricom Daraja STK Push API. Enter your phone number and confirm payment prompt on your handset.
               </p>
-              <button
-                onClick={() => setIsDepositOpen(true)}
-                className="w-full py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-lg shadow-md transition-all"
-              >
-                Deposit via Crypto
-              </button>
             </div>
+
+            <div className="space-y-2 pt-2 border-t border-purple-950/60 text-xs text-slate-400">
+              <div className="flex items-center justify-between">
+                <span>Fee:</span>
+                <span className="font-semibold text-emerald-400">0% Zero Fees</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Speed:</span>
+                <span className="font-semibold text-slate-200">Instant (&lt; 10 seconds)</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setIsDepositOpen(true)}
+              className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black text-xs rounded-xl shadow-lg shadow-emerald-950/50 transition-all flex items-center justify-center space-x-2"
+            >
+              <span>Deposit via M-Pesa</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Crypto Transfer Card */}
+          <div className="bg-[#120f26] border border-purple-900/50 hover:border-purple-500/50 rounded-3xl p-6 space-y-5 transition-all shadow-xl hover:shadow-2xl relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl pointer-events-none" />
+
+            <div className="flex items-center justify-between">
+              <div className="w-12 h-12 rounded-2xl bg-purple-950/80 border border-purple-600/40 flex items-center justify-center text-amber-400 shadow-lg shadow-purple-950/40">
+                <Bitcoin className="w-6 h-6" />
+              </div>
+              <span className="text-[11px] font-bold text-amber-400 bg-amber-950/80 px-2.5 py-1 rounded-full border border-amber-800/50">
+                USDT / BTC / ETH
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-lg font-extrabold text-white">Crypto Transfer</h3>
+              <p className="text-slate-300 text-xs leading-relaxed">
+                Transfer Tether USDT (TRC20, ERC20) or Bitcoin to our secure admin deposit address and submit your transaction hash.
+              </p>
+            </div>
+
+            <div className="space-y-2 pt-2 border-t border-purple-950/60 text-xs text-slate-400">
+              <div className="flex items-center justify-between">
+                <span>Networks:</span>
+                <span className="font-semibold text-purple-300">TRC20, ERC20, BTC</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Speed:</span>
+                <span className="font-semibold text-slate-200">1 Blockchain Confirmation</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setIsDepositOpen(true)}
+              className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-purple-950/60 transition-all flex items-center justify-center space-x-2"
+            >
+              <span>Deposit via Crypto</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </main>

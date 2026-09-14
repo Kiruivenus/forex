@@ -3,53 +3,56 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { AlertTriangle, ShieldCheck, HeartHandshake, Lock, HelpCircle } from 'lucide-react';
+import { AlertTriangle, ShieldCheck, HeartHandshake, Lock, HelpCircle, Shield } from 'lucide-react';
 
 export default function ResponsibleTradingPage() {
   return (
-    <div className="min-h-screen bg-[#0b0e17] text-slate-100 flex flex-col justify-between">
+    <div className="min-h-screen bg-[#07090e] text-slate-100 flex flex-col justify-between selection:bg-purple-500 selection:text-white">
       <Navbar />
 
-      <main className="max-w-4xl mx-auto px-4 pt-20 sm:pt-24 pb-10 w-full flex-1 space-y-6">
-        <div className="bg-[#120f26] p-6 sm:p-8 rounded-2xl border border-purple-900/60 shadow-xl space-y-6">
-          <div className="flex items-center space-x-3 border-b border-purple-950 pb-4">
-            <div className="w-10 h-10 rounded-xl bg-amber-950/60 border border-amber-600/40 flex items-center justify-center text-amber-400">
-              <AlertTriangle className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-extrabold text-slate-100">Responsible Trading Policy</h1>
-              <p className="text-xs text-slate-400">Essential risk disclosure and account control guidelines</p>
-            </div>
+      <main className="max-w-4xl mx-auto px-4 pt-20 sm:pt-24 pb-12 w-full flex-1 space-y-6">
+        {/* Header */}
+        <div className="flex flex-col items-center text-center space-y-2 mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-medium">
+            <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+            <span>Risk Protection Policy</span>
           </div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">Responsible Trading Policy</h1>
+          <p className="text-xs sm:text-sm text-slate-400 max-w-md">
+            Essential risk disclosures, analytical disclaimers, and voluntary self-exclusion options.
+          </p>
+        </div>
 
+        {/* Main Card */}
+        <div className="bg-slate-900/60 backdrop-blur-xl border border-purple-500/20 rounded-3xl p-5 sm:p-8 shadow-2xl shadow-purple-950/20 space-y-5">
           <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
-            <div className="bg-[#181335] p-5 rounded-xl border border-purple-950 space-y-2">
-              <h3 className="font-bold text-sm text-purple-200 flex items-center space-x-2">
+            <div className="bg-slate-950/60 p-5 rounded-2xl border border-slate-800 space-y-2">
+              <h3 className="font-bold text-sm text-white flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>1. Understanding Financial & Market Risk</span>
+                <span>1. Financial & Market Risk Awareness</span>
               </h3>
-              <p>
-                Trading synthetic indices, foreign exchange, and cryptocurrency contracts carries a high level of risk and may result in the loss of all invested capital. Before trading, ensure you fully understand the mechanics of contracts, leverage, and volatility factors.
+              <p className="text-slate-400">
+                Trading synthetic indices, foreign exchange, and derivative contracts carries a high level of risk and may result in the loss of capital. Ensure you fully understand market leverage, price volatility, and risk management strategies before opening active trades.
               </p>
             </div>
 
-            <div className="bg-[#181335] p-5 rounded-xl border border-purple-950 space-y-2">
-              <h3 className="font-bold text-sm text-purple-200 flex items-center space-x-2">
+            <div className="bg-slate-950/60 p-5 rounded-2xl border border-slate-800 space-y-2">
+              <h3 className="font-bold text-sm text-white flex items-center gap-2">
                 <HeartHandshake className="w-4 h-4 text-purple-400" />
-                <span>2. AI Scanner Analytical Disclaimer</span>
+                <span>2. AI Scanner & Automated Strategy Disclaimer</span>
               </h3>
-              <p>
-                The AI Entry Scanner provides technical indicator approximations (RSI, trend momentum, volatility) for analytical purposes only. Signals are not financial advice and do not guarantee profitable trading outcomes.
+              <p className="text-slate-400">
+                The ApexTrader AI Scanner provides technical indicator approximations (RSI, trend momentum, volatility signals) for informational purposes. Signals and autotrading configurations do not constitute guaranteed returns or formal financial advice.
               </p>
             </div>
 
-            <div className="bg-[#181335] p-5 rounded-xl border border-purple-950 space-y-2">
-              <h3 className="font-bold text-sm text-purple-200 flex items-center space-x-2">
+            <div className="bg-slate-950/60 p-5 rounded-2xl border border-slate-800 space-y-2">
+              <h3 className="font-bold text-sm text-white flex items-center gap-2">
                 <Lock className="w-4 h-4 text-amber-400" />
-                <span>3. Self-Exclusion & Deposit Limits</span>
+                <span>3. Self-Exclusion & Deposit Caps</span>
               </h3>
-              <p>
-                Traders can request voluntary self-exclusion or custom daily deposit caps at any time by contacting compliance at support@apextrader.com.
+              <p className="text-slate-400">
+                Traders can request voluntary self-exclusion or custom daily/monthly deposit limits at any time by contacting our compliance desk at <span className="text-purple-300 font-mono">support@apextrader.com</span>.
               </p>
             </div>
           </div>
@@ -60,3 +63,4 @@ export default function ResponsibleTradingPage() {
     </div>
   );
 }
+
