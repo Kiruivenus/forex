@@ -444,41 +444,20 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* CENTER PANEL: Instrument Selector & Live Canvas Trading Chart (Desktop Col 6) */}
+        {/* CENTER PANEL: Sleek Integrated Trading Terminal Chart (Desktop Col 6) */}
         <div
-          className={`lg:col-span-6 space-y-3 ${
+          className={`lg:col-span-6 ${
             mobileTab === 'TRADE' ? 'block' : 'hidden lg:block'
           }`}
         >
-          {/* Instrument Selector Toolbar */}
-          <div className="bg-[#120f26] border border-purple-950/80 rounded-xl p-3 flex items-center justify-between text-xs overflow-x-auto">
-            <div className="flex items-center space-x-2">
-              <span className="text-slate-400 font-medium shrink-0">Market:</span>
-              <div className="flex items-center space-x-1.5 overflow-x-auto py-1">
-                {instruments.map((inst) => (
-                  <button
-                    key={inst.symbol}
-                    onClick={() => {
-                      setSelectedInstrument(inst);
-                      setLivePrice(inst.currentPrice);
-                    }}
-                    className={`px-3 py-1.5 rounded-lg border font-semibold shrink-0 transition-all ${
-                      selectedInstrument?.symbol === inst.symbol
-                        ? 'bg-purple-600 border-purple-400 text-white shadow-md'
-                        : 'bg-[#181335] border-purple-950 text-slate-300 hover:text-white'
-                    }`}
-                  >
-                    {inst.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Canvas Interactive Tick Chart */}
           {selectedInstrument && (
             <TradingChart
               instrument={selectedInstrument}
+              allInstruments={instruments}
+              onSelectInstrument={(inst) => {
+                setSelectedInstrument(inst as Instrument);
+                setLivePrice(inst.currentPrice);
+              }}
               onPriceUpdate={(p) => setLivePrice(p)}
             />
           )}

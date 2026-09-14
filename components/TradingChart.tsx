@@ -1,17 +1,36 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Maximize2, Minimize2, ZoomIn, ZoomOut, RefreshCw, Activity } from 'lucide-react';
+import {
+  BarChart2,
+  TrendingUp,
+  Pencil,
+  Download,
+  Plus,
+  Minus,
+  Crosshair,
+  ChevronDown,
+  Activity,
+  Maximize2,
+  Minimize2,
+} from 'lucide-react';
 
 interface InstrumentInfo {
+  _id?: string;
   symbol: string;
   name: string;
+  category?: string;
   currentPrice: number;
   change24h: number;
+  volatility?: number;
+  minStake?: number;
+  maxStake?: number;
 }
 
 interface TradingChartProps {
   instrument: InstrumentInfo;
+  allInstruments?: InstrumentInfo[];
+  onSelectInstrument?: (inst: InstrumentInfo) => void;
   onPriceUpdate?: (price: number) => void;
 }
 
@@ -20,26 +39,37 @@ interface TickPoint {
   price: number;
 }
 
-export default function TradingChart({ instrument, onPriceUpdate }: TradingChartProps) {
+export default function TradingChart({
+  instrument,
+  allInstruments = [],
+  onSelectInstrument,
+  onPriceUpdate,
+}: TradingChartProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [ticks, setTicks] = useState<TickPoint[]>([]);
   const [currentPrice, setCurrentPrice] = useState<number>(instrument.currentPrice);
-  const [timeframe, setTimeframe] = useState<'1s' | '5s' | '1m'>('1s');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState<'100%' | '50%'>('50%');
+  const [activeChartTool, setActiveChartTool] = useState<'line' | 'bars' | 'trend'>('line');
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // Initialize tick series based on instrument price
+  // Initialize tick series
   useEffect(() => {
     setCurrentPrice(instrument.currentPrice);
     const initialTicks: TickPoint[] = [];
     const basePrice = instrument.currentPrice;
     const now = Date.now();
 
-    for (let i = 30; i >= 0; i--) {
-      const timeStr = new Date(now - i * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    for (let i = 40; i >= 0; i--) {
+      const timeStr = new Date(now - i * 1000).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
       const variance = (Math.random() - 0.5) * (basePrice * 0.0008);
       initialTicks.push({
         time: timeStr,
-        price: Number((basePrice + variance).toFixed(4)),
+        price: Number((basePrice + variance).toFixed(2)),
       });
     }
     setTicks(initialTicks);
@@ -51,16 +81,20 @@ export default function TradingChart({ instrument, onPriceUpdate }: TradingChart
       setTicks((prev) => {
         const lastPrice = prev.length > 0 ? prev[prev.length - 1].price : instrument.currentPrice;
         const changePercent = (Math.random() - 0.495) * 0.0012;
-        const nextPrice = Number((lastPrice * (1 + changePercent)).toFixed(4));
-        const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        return [...prev.slice(-45), { time: timeStr, price: nextPrice }];
+        const nextPrice = Number((lastPrice * (1 + changePercent)).toFixed(2));
+        const timeStr = new Date().toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        });
+        return [...prev.slice(-55), { time: timeStr, price: nextPrice }];
       });
     }, 1000);
 
     return () => clearInterval(interval);
   }, [instrument.symbol]);
 
-  // Safely sync current price & notify parent without trigger set-state during render
+  // Notify parent of latest price
   useEffect(() => {
     if (ticks.length > 0) {
       const latestPrice = ticks[ticks.length - 1].price;
@@ -71,7 +105,7 @@ export default function TradingChart({ instrument, onPriceUpdate }: TradingChart
     }
   }, [ticks, onPriceUpdate]);
 
-  // Render HTML5 Canvas Trading Graph
+  // Render HTML5 Canvas Trading Graph (Matching Reference Screenshot 1)
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -84,213 +118,305 @@ export default function TradingChart({ instrument, onPriceUpdate }: TradingChart
     canvas.height = height * window.devicePixelRatio;
     ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 
-    // Clear Canvas
-    ctx.clearRect(0, 0, width, height);
+    // Clear Canvas with sleek dark terminal background (#151722)
+    ctx.fillStyle = '#141722';
+    ctx.fillRect(0, 0, width, height);
 
     if (ticks.length < 2) return;
 
     const prices = ticks.map((t) => t.price);
-    const minPrice = Math.min(...prices) * 0.9995;
-    const maxPrice = Math.max(...prices) * 1.0005;
+    const minPrice = Math.min(...prices) * 0.9992;
+    const maxPrice = Math.max(...prices) * 1.0008;
     const priceRange = maxPrice - minPrice || 1;
 
-    // Draw Grid Lines
-    ctx.strokeStyle = '#1d1936';
+    // Grid lines styling
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
     ctx.lineWidth = 1;
 
-    // Horizontal grid lines
-    const gridRows = 5;
+    // Horizontal grid lines & Y-Axis Prices
+    const gridRows = 6;
+    const rightMargin = 75;
+
     for (let i = 0; i <= gridRows; i++) {
       const y = (height / gridRows) * i;
       ctx.beginPath();
       ctx.moveTo(0, y);
-      ctx.lineTo(width, y);
+      ctx.lineTo(width - rightMargin, y);
       ctx.stroke();
 
-      // Price labels on right
-      const priceAtY = (maxPrice - (i / gridRows) * priceRange).toFixed(4);
+      // Right axis price text
+      const priceAtY = (maxPrice - (i / gridRows) * priceRange).toFixed(2);
       ctx.fillStyle = '#64748b';
       ctx.font = '10px monospace';
-      ctx.fillText(priceAtY, width - 65, y - 4);
+      ctx.fillText(priceAtY, width - 62, y + 3);
     }
 
-    // Vertical grid lines
-    const gridCols = 6;
-    for (let i = 0; i <= gridCols; i++) {
-      const x = (width / gridCols) * i;
+    // Vertical grid lines & Bottom X-Axis Time Labels
+    const visibleTimeCount = 6;
+    const step = Math.floor(ticks.length / visibleTimeCount) || 1;
+
+    for (let i = 0; i < ticks.length; i += step) {
+      const x = (i / (ticks.length - 1)) * (width - rightMargin);
       ctx.beginPath();
       ctx.moveTo(x, 0);
-      ctx.lineTo(x, height);
+      ctx.lineTo(x, height - 25);
       ctx.stroke();
+
+      // Time labels at bottom axis
+      if (ticks[i]) {
+        ctx.fillStyle = '#475569';
+        ctx.font = '9px monospace';
+        ctx.fillText(ticks[i].time, Math.max(5, x - 20), height - 8);
+      }
     }
 
-    // Plot Tick Line Chart with Gradient Fill
+    // Plot Tick Line Chart (Smooth White Curve like Image 1)
     ctx.beginPath();
     const points: { x: number; y: number }[] = [];
 
     ticks.forEach((tick, idx) => {
-      const x = (idx / (ticks.length - 1)) * (width - 70);
-      const y = height - ((tick.price - minPrice) / priceRange) * (height - 20) - 10;
+      const x = (idx / (ticks.length - 1)) * (width - rightMargin);
+      const y = (height - 35) - ((tick.price - minPrice) / priceRange) * (height - 60);
       points.push({ x, y });
 
       if (idx === 0) {
         ctx.moveTo(x, y);
       } else {
-        ctx.lineTo(x, y);
+        const prev = points[idx - 1];
+        const xc = (prev.x + x) / 2;
+        const yc = (prev.y + y) / 2;
+        ctx.quadraticCurveTo(prev.x, prev.y, xc, yc);
       }
     });
 
-    // Stroke line
-    ctx.strokeStyle = '#8b5cf6';
-    ctx.lineWidth = 2.5;
+    // Solid bright line stroke
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2.2;
     ctx.stroke();
 
-    // Area Gradient Fill
+    // Subtle ambient glow gradient fill underneath
     if (points.length > 0) {
       const gradient = ctx.createLinearGradient(0, 0, 0, height);
-      gradient.addColorStop(0, 'rgba(124, 58, 237, 0.35)');
-      gradient.addColorStop(1, 'rgba(124, 58, 237, 0.0)');
+      gradient.addColorStop(0, 'rgba(255, 255, 255, 0.08)');
+      gradient.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
 
-      ctx.lineTo(points[points.length - 1].x, height);
-      ctx.lineTo(points[0].x, height);
+      ctx.lineTo(points[points.length - 1].x, height - 25);
+      ctx.lineTo(points[0].x, height - 25);
       ctx.closePath();
       ctx.fillStyle = gradient;
       ctx.fill();
     }
 
-    // Draw Last Price Pulse Dot & Line
+    // Draw Active Price Dot & Y-Axis Pill Badge (Image 1 Match)
     const lastPoint = points[points.length - 1];
     if (lastPoint) {
+      // Dotted horizontal line across chart
       ctx.beginPath();
       ctx.setLineDash([3, 3]);
-      ctx.strokeStyle = '#10b981';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
       ctx.lineWidth = 1;
       ctx.moveTo(0, lastPoint.y);
-      ctx.lineTo(width, lastPoint.y);
+      ctx.lineTo(width - rightMargin, lastPoint.y);
       ctx.stroke();
-      ctx.setLineDash([]); // Reset line dash
+      ctx.setLineDash([]);
 
-      // Glowing pulse circle
+      // Solid white pulsing dot on tick line
       ctx.beginPath();
-      ctx.arc(lastPoint.x, lastPoint.y, 6, 0, 2 * Math.PI);
-      ctx.fillStyle = '#10b981';
+      ctx.arc(lastPoint.x, lastPoint.y, 4, 0, 2 * Math.PI);
+      ctx.fillStyle = '#ffffff';
       ctx.fill();
       ctx.lineWidth = 2;
-      ctx.strokeStyle = '#ffffff';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
       ctx.stroke();
+
+      // Right Axis Price Badge Pill (Image 1 Match: Dark rounded box with white price text)
+      const badgeY = lastPoint.y - 10;
+      const badgeX = width - rightMargin + 2;
+      const badgeW = 68;
+      const badgeH = 20;
+
+      ctx.fillStyle = '#1e2334';
+      ctx.beginPath();
+      ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 6);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 10px monospace';
+      ctx.fillText(currentPrice.toFixed(2), badgeX + 8, badgeY + 14);
     }
-  }, [ticks]);
+  }, [ticks, currentPrice]);
+
+  // Calculate Last Digit Statistics
+  const lastDigit = Math.abs(Math.floor(currentPrice * 100)) % 10;
+  const digitCounts = Array(10).fill(0);
+  ticks.forEach((t) => {
+    const d = Math.abs(Math.floor(t.price * 100)) % 10;
+    digitCounts[d]++;
+  });
+  const total = ticks.length || 1;
+  const digitPercentages = digitCounts.map((c) => ((c / total) * 100).toFixed(1));
 
   return (
-    <div className={`relative bg-[#0e0b1f] border border-purple-950/70 rounded-xl overflow-hidden flex flex-col ${isFullscreen ? 'fixed inset-0 z-50 rounded-none' : 'h-[360px] sm:h-[420px]'}`}>
-      {/* Chart Top Control Header */}
-      <div className="bg-[#15112a] border-b border-purple-950/80 px-4 py-2.5 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="flex items-center space-x-2">
-            <span className="font-bold text-sm text-slate-100">{instrument.name}</span>
-            <span className="text-[10px] bg-purple-900/60 text-purple-300 font-mono px-2 py-0.5 rounded border border-purple-800/40">
-              {instrument.symbol}
-            </span>
+    <div
+      className={`relative bg-[#141722] border border-slate-800/80 rounded-2xl overflow-hidden shadow-2xl flex flex-col ${
+        isFullscreen ? 'fixed inset-0 z-50 rounded-none h-screen' : 'h-[500px] sm:h-[550px]'
+      }`}
+    >
+      {/* 1. TOP-LEFT FLOATING INSTRUMENT SELECTOR CARD (Image 1 Match) */}
+      <div className="absolute top-3 left-3 z-30">
+        <div
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          className="bg-[#1e2334]/95 border border-slate-700/80 rounded-xl p-2.5 shadow-2xl backdrop-blur-md cursor-pointer hover:border-slate-500 transition-all flex flex-col space-y-1 min-w-[210px]"
+        >
+          <div className="flex items-center justify-between space-x-2">
+            <div className="flex items-center space-x-2">
+              <BarChart2 className="w-4 h-4 text-slate-400" />
+              <span className="font-extrabold text-xs text-white tracking-tight">{instrument.name}</span>
+            </div>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
           </div>
 
-          <div className="flex items-center space-x-1.5 text-xs font-mono">
-            <span className="text-slate-400">Price:</span>
-            <span className="font-bold text-emerald-400 text-sm tracking-wide">
-              {currentPrice.toFixed(4)}
+          <div className="flex items-center space-x-2 font-mono text-[11px] pt-0.5">
+            <span className="font-bold text-white text-xs tracking-tight">{currentPrice.toFixed(2)}</span>
+            <span
+              className={`font-semibold ${
+                instrument.change24h >= 0 ? 'text-emerald-400' : 'text-rose-400'
+              }`}
+            >
+              {instrument.change24h >= 0 ? `+${instrument.change24h}%` : `${instrument.change24h}%`}
             </span>
           </div>
         </div>
 
-        {/* Timeframe & Action Buttons */}
-        <div className="flex items-center space-x-2">
-          <div className="flex bg-[#0b0818] p-0.5 rounded-lg border border-purple-900/40 text-[11px] font-semibold">
-            {(['1s', '5s', '1m'] as const).map((tf) => (
+        {/* Dropdown Popover for selecting any instrument */}
+        {isDropdownOpen && allInstruments.length > 0 && (
+          <div className="absolute top-full left-0 mt-2 w-64 bg-[#1a1e2d] border border-slate-700/80 rounded-xl shadow-2xl py-1.5 z-40 text-xs max-h-64 overflow-y-auto">
+            <div className="px-3 py-1 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-800">
+              Select Market Symbol
+            </div>
+            {allInstruments.map((inst) => (
               <button
-                key={tf}
-                onClick={() => setTimeframe(tf)}
-                className={`px-2 py-0.5 rounded ${timeframe === tf ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                key={inst.symbol}
+                onClick={() => {
+                  if (onSelectInstrument) onSelectInstrument(inst);
+                  setIsDropdownOpen(false);
+                }}
+                className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-purple-900/40 transition-colors ${
+                  instrument.symbol === inst.symbol ? 'bg-purple-900/50 font-bold text-white' : 'text-slate-300'
+                }`}
               >
-                {tf}
+                <span>{inst.name}</span>
+                <span className="font-mono text-[10px] text-slate-400">{inst.currentPrice.toFixed(2)}</span>
               </button>
             ))}
           </div>
-
-          <div className="flex items-center space-x-1 border-l border-purple-900/60 pl-2 text-slate-400">
-            <button
-              onClick={() => setIsFullscreen(!isFullscreen)}
-              className="p-1 hover:text-white hover:bg-slate-800 rounded transition-colors"
-              title="Toggle Fullscreen"
-            >
-              {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-            </button>
-          </div>
-        </div>
+        )}
       </div>
 
-      {/* HTML5 Canvas Chart Body */}
-      <div className="relative flex-1 bg-[#0b0818] p-2">
+      {/* 2. LEFT VERTICAL FLOATING TOOLBAR (Image 1 Match) */}
+      <div className="absolute top-20 left-3 z-30 flex flex-col space-y-1 bg-[#1e2334]/90 border border-slate-700/80 rounded-xl p-1 shadow-xl backdrop-blur-md text-slate-300">
+        <button className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 font-extrabold text-[11px] flex items-center justify-center border border-emerald-500/40">
+          1T
+        </button>
+        <button
+          onClick={() => setActiveChartTool('trend')}
+          className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+            activeChartTool === 'trend' ? 'bg-slate-700 text-white' : 'hover:bg-slate-800 text-slate-400'
+          }`}
+        >
+          <TrendingUp className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => setActiveChartTool('bars')}
+          className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+            activeChartTool === 'bars' ? 'bg-slate-700 text-white' : 'hover:bg-slate-800 text-slate-400'
+          }`}
+        >
+          <BarChart2 className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => setActiveChartTool('line')}
+          className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+            activeChartTool === 'line' ? 'bg-slate-700 text-white' : 'hover:bg-slate-800 text-slate-400'
+          }`}
+        >
+          <Pencil className="w-4 h-4" />
+        </button>
+        <button className="w-8 h-8 rounded-lg hover:bg-slate-800 text-slate-400 flex items-center justify-center">
+          <Download className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* 3. TOP-RIGHT FLOATING ZOOM BADGE (Image 1 Match) */}
+      <div className="absolute top-3 right-3 z-30 flex items-center space-x-2">
+        <button
+          onClick={() => setZoomLevel(zoomLevel === '100%' ? '50%' : '100%')}
+          className="bg-[#1e2334]/90 border border-slate-700/80 px-3 py-1 rounded-xl text-slate-200 font-mono text-xs font-bold hover:bg-slate-800 transition-colors shadow-lg backdrop-blur-md"
+        >
+          {zoomLevel}
+        </button>
+
+        <button
+          onClick={() => setIsFullscreen(!isFullscreen)}
+          className="bg-[#1e2334]/90 border border-slate-700/80 p-1.5 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors shadow-lg backdrop-blur-md"
+        >
+          {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+        </button>
+      </div>
+
+      {/* 4. BOTTOM-LEFT FLOATING ZOOM CONTROLS (Image 1 Match) */}
+      <div className="absolute bottom-14 left-3 z-30 flex flex-col space-y-1 bg-[#1e2334]/90 border border-slate-700/80 p-1 rounded-xl text-slate-300 shadow-xl backdrop-blur-md">
+        <button className="w-7 h-7 rounded-lg hover:bg-slate-800 flex items-center justify-center">
+          <Plus className="w-4 h-4" />
+        </button>
+        <button className="w-7 h-7 rounded-lg hover:bg-slate-800 flex items-center justify-center">
+          <Crosshair className="w-3.5 h-3.5" />
+        </button>
+        <button className="w-7 h-7 rounded-lg hover:bg-slate-800 flex items-center justify-center">
+          <Minus className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* 5. CANVAS CHART AREA */}
+      <div className="relative flex-1 w-full h-full">
         <canvas ref={canvasRef} className="w-full h-full block" />
-
-        {/* Live Indicator Badge */}
-        <div className="absolute top-4 left-4 flex items-center space-x-1.5 bg-[#16112d]/90 backdrop-blur border border-purple-900/60 px-2.5 py-1 rounded-full text-[10px] font-medium text-emerald-400">
-          <Activity className="w-3 h-3 text-emerald-400 animate-pulse" />
-          <span>LIVE TICK STREAM</span>
-        </div>
       </div>
 
-      {/* Last Digit Statistics Bar (Reference UI Match) */}
-      {(() => {
-        const lastDigit = Math.abs(Math.floor(currentPrice * 100)) % 10;
-        // Calculate distribution percentages from recent ticks
-        const digitCounts = Array(10).fill(0);
-        ticks.forEach((t) => {
-          const d = Math.abs(Math.floor(t.price * 100)) % 10;
-          digitCounts[d]++;
-        });
-        const total = ticks.length || 1;
-        const digitPercentages = digitCounts.map((c) => ((c / total) * 100).toFixed(1));
-
-        return (
-          <div className="bg-[#120e29] border-t border-purple-950 px-3 py-2 space-y-1.5">
-            {/* Active Tick Digit Badge Bubble */}
-            <div className="flex justify-center">
-              <div className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-3 py-0.5 rounded-full font-mono text-xs font-bold flex items-center space-x-1.5 shadow-sm shadow-emerald-950">
-                <span>{currentPrice.toFixed(2)}</span>
-                <span className="w-5 h-5 rounded-full bg-emerald-500 text-slate-950 font-black text-xs flex items-center justify-center animate-bounce">
-                  {lastDigit}
+      {/* 6. BOTTOM FLOATING CIRCULAR DIGIT STATISTICS OVERLAY (Image 1 Match) */}
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-30 flex items-center space-x-1.5 sm:space-x-2">
+        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((digit) => {
+          const isActive = lastDigit === digit;
+          const pct = digitPercentages[digit];
+          return (
+            <div key={digit} className="flex flex-col items-center relative">
+              <div
+                className={`w-9 h-9 sm:w-11 sm:h-11 rounded-full flex flex-col items-center justify-center font-mono transition-all shadow-xl backdrop-blur-md ${
+                  isActive
+                    ? 'bg-[#1b253b] border-2 border-teal-400 text-white shadow-teal-950/80 scale-110'
+                    : 'bg-[#1c2235]/95 border border-slate-700/80 text-slate-300 hover:border-slate-500'
+                }`}
+              >
+                <span className="font-extrabold text-xs sm:text-sm leading-none">{digit}</span>
+                <span
+                  className={`text-[9px] mt-0.5 font-semibold ${
+                    isActive ? 'text-teal-400' : 'text-slate-400'
+                  }`}
+                >
+                  {pct}%
                 </span>
               </div>
-            </div>
 
-            {/* 0..9 Digit Percentages Bar */}
-            <div className="grid grid-cols-10 gap-1 text-center font-mono">
-              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((digit) => {
-                const isActive = lastDigit === digit;
-                const pct = digitPercentages[digit];
-                return (
-                  <div
-                    key={digit}
-                    className={`p-1 rounded-lg border transition-all flex flex-col items-center justify-center ${
-                      isActive
-                        ? 'bg-emerald-500/30 border-emerald-400 text-emerald-300 font-extrabold shadow-md shadow-emerald-950 scale-105'
-                        : 'bg-[#181335] border-purple-950/80 text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    <span
-                      className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs ${
-                        isActive ? 'bg-emerald-400 text-slate-950' : 'bg-purple-950/80 text-slate-300'
-                      }`}
-                    >
-                      {digit}
-                    </span>
-                    <span className="text-[9px] mt-0.5 font-medium">{pct}%</span>
-                  </div>
-                );
-              })}
+              {/* Active Digit Pointer Arrow (Image 1 Match) */}
+              {isActive && (
+                <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] border-t-amber-500 mt-1 animate-bounce" />
+              )}
             </div>
-          </div>
-        );
-      })()}
+          );
+        })}
+      </div>
     </div>
   );
 }
