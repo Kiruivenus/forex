@@ -56,13 +56,18 @@ export default function Navbar({ onOpenAIScanner, accountMode = 'DEMO', onAccoun
       const res = await fetch('/api/auth/me');
       if (res.ok) {
         const data = await res.json();
-        if (data.success) {
+        if (data.success && data.user) {
           setUser(data.user);
           setWallet(data.wallet);
+          return;
         }
       }
+      setUser(null);
+      setWallet(null);
     } catch (err) {
       console.error('Navbar session fetch error:', err);
+      setUser(null);
+      setWallet(null);
     }
   };
 
@@ -75,6 +80,7 @@ export default function Navbar({ onOpenAIScanner, accountMode = 'DEMO', onAccoun
     setUser(null);
     setWallet(null);
     router.push('/login');
+    router.refresh();
   };
 
   return (

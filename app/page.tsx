@@ -19,10 +19,24 @@ import {
   CheckCircle2,
   HelpCircle,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function LandingPage() {
+  const router = useRouter();
   const [isAIScannerOpen, setIsAIScannerOpen] = useState(false);
   const [faqs, setFaqs] = useState<{ question: string; answer: string }[]>([]);
+
+  useEffect(() => {
+    fetch('/api/auth/me').then((res) => {
+      if (res.ok) {
+        res.json().then((data) => {
+          if (data.success && data.user) {
+            router.push('/dashboard');
+          }
+        });
+      }
+    });
+  }, [router]);
 
   useEffect(() => {
     // Seed or fetch basic FAQs for public landing page
