@@ -9,7 +9,7 @@ import { getStoredAccountMode, EVENT_NAME, AccountMode } from '@/lib/accountMode
 
 export default function DepositPage() {
   const [isDepositOpen, setIsDepositOpen] = useState(false);
-  const [accountMode, setAccountMode] = useState<AccountMode>('DEMO');
+  const [accountMode, setAccountMode] = useState<AccountMode>('REAL');
 
   useEffect(() => {
     setAccountMode(getStoredAccountMode());

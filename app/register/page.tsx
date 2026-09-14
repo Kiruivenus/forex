@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Lock, Mail, User, Phone, Globe, AlertCircle, ArrowRight, Loader2, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+import { setStoredAccountMode } from '@/lib/accountMode';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -56,6 +57,7 @@ export default function RegisterPage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
+        setStoredAccountMode('REAL');
         router.push('/dashboard');
       } else {
         setErrorMsg(data.message || 'Registration failed. Please check inputs.');

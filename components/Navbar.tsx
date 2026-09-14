@@ -51,7 +51,7 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
-  const [activeMode, setActiveMode] = useState<AccountMode>('DEMO');
+  const [activeMode, setActiveMode] = useState<AccountMode>('REAL');
 
   useEffect(() => {
     setActiveMode(accountMode || getStoredAccountMode());

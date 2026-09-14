@@ -10,7 +10,7 @@ export default function HistoryPage() {
   const [activeTab, setActiveTab] = useState<'TRADES' | 'LEDGER'>('TRADES');
   const [trades, setTrades] = useState<unknown[]>([]);
   const [ledger, setLedger] = useState<unknown[]>([]);
-  const [accountMode, setAccountMode] = useState<AccountMode>('DEMO');
+  const [accountMode, setAccountMode] = useState<AccountMode>('REAL');
 
   const fetchHistory = (mode: AccountMode) => {
     fetch(`/api/trades/history?accountMode=${mode}&limit=100`)

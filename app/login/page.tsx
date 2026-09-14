@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Lock, Mail, AlertCircle, ArrowRight, Loader2, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+import { setStoredAccountMode } from '@/lib/accountMode';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -42,6 +43,7 @@ export default function LoginPage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
+        setStoredAccountMode('REAL');
         if (data.requires2FA) {
           router.push(`/2fa?userId=${data.userId}`);
         } else {

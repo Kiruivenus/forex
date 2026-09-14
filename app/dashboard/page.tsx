@@ -80,7 +80,7 @@ export default function DashboardPage() {
   const [trades, setTrades] = useState<TradeRecord[]>([]);
   const [leftTab, setLeftTab] = useState<'OPEN' | 'CLOSED' | 'TRANSACTIONS'>('OPEN');
   const [mobileTab, setMobileTab] = useState<'TRADE' | 'POSITIONS'>('TRADE');
-  const [accountMode, setAccountMode] = useState<AccountMode>('DEMO');
+  const [accountMode, setAccountMode] = useState<AccountMode>('REAL');
 
   useEffect(() => {
     setAccountMode(getStoredAccountMode());

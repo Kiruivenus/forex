@@ -4,9 +4,10 @@ const STORAGE_KEY = 'apex_account_mode';
 export const EVENT_NAME = 'apexAccountModeChanged';
 
 export function getStoredAccountMode(): AccountMode {
-  if (typeof window === 'undefined') return 'DEMO';
+  if (typeof window === 'undefined') return 'REAL';
   const saved = localStorage.getItem(STORAGE_KEY);
-  return saved === 'REAL' ? 'REAL' : 'DEMO';
+  if (!saved) return 'REAL';
+  return saved === 'DEMO' ? 'DEMO' : 'REAL';
 }
 
 export function setStoredAccountMode(mode: AccountMode) {
@@ -14,3 +15,4 @@ export function setStoredAccountMode(mode: AccountMode) {
   localStorage.setItem(STORAGE_KEY, mode);
   window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: mode }));
 }
+

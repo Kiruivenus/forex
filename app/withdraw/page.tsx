@@ -21,7 +21,7 @@ export default function WithdrawPage() {
   const [availableBalance, setAvailableBalance] = useState(0);
   const [withdrawals, setWithdrawals] = useState<WithdrawalItem[]>([]);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
-  const [accountMode, setAccountMode] = useState<AccountMode>('DEMO');
+  const [accountMode, setAccountMode] = useState<AccountMode>('REAL');
 
   const fetchData = async () => {
     try {
