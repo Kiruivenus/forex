@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { TrendingUp, Cpu, ListOrdered } from 'lucide-react';
+import { TrendingUp, ListOrdered } from 'lucide-react';
 
 interface MobileBottomNavProps {
   activeTab: 'TRADE' | 'POSITIONS';
@@ -28,12 +28,10 @@ export default function MobileBottomNav({
 
       <button
         onClick={onOpenAIScanner}
-        className="flex-1 flex flex-col items-center justify-center py-1 text-purple-300 hover:text-white transition-colors"
+        className="flex-1 flex flex-col items-center justify-center py-1 text-pink-300 hover:text-white transition-colors"
       >
-        <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-600 to-indigo-500 flex items-center justify-center text-white mb-0.5 shadow-md shadow-purple-900/40">
-          <Cpu className="w-3.5 h-3.5 animate-pulse" />
-        </div>
-        <span>AI Scanner</span>
+        <img src="/ai-scanner-icon.png" alt="AI Scanner" className="w-6 h-6 object-contain mb-0.5 rounded-lg shadow-md shadow-pink-950/60" />
+        <span className="font-bold text-[10px] bg-gradient-to-r from-orange-300 via-pink-300 to-purple-300 bg-clip-text text-transparent">AI Scanner</span>
       </button>
 
       <button
