@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
         {
           success: false,
           code: 'INSUFFICIENT_BALANCE',
-          message: `Insufficient available balance ($${wallet?.availableBalance || 0}) for $${stake} trade.`,
+          message: `Insufficient available balance ($${wallet?.availableBalance.toFixed(2) || '0.00'}) for $${stake} trade.`,
         },
         { status: 400 }
       );
@@ -89,22 +89,17 @@ export async function POST(req: NextRequest) {
       description: `Trade Stake on ${symbol} (${tradeType} - ${direction})`,
     });
 
-    // Simulate tick exit price deterministically
-    const exitPrice = generateNextTickPrice(entryPrice, instrument.volatility);
+    // Calculate potential payout based on contract type
+    let multiplier = 1.95;
+    if (tradeType === 'MATCH_DIFFER') multiplier = direction === 'MATCH' ? 8.5 : 1.1;
+    else if (tradeType === 'OVER_UNDER') multiplier = 1.9;
 
-    // Evaluate contract rules
-    const outcome = evaluateTradeContract(
-      tradeType as TradeType,
-      direction as TradeDirection,
-      entryPrice,
-      exitPrice,
-      barrier || 5
-    );
+    const potentialPayout = Number((stake * multiplier).toFixed(2));
 
-    const actualPayout = outcome.status === 'WON' ? Number((stake * outcome.multiplier).toFixed(2)) : 0.0;
-    const netProfit = outcome.status === 'WON' ? Number((actualPayout - stake).toFixed(2)) : -stake;
+    // Create Trade Record in OPEN status
+    const openTime = new Date();
+    const closeTime = new Date(Date.now() + durationSeconds * 1000);
 
-    // Create Trade Record
     const trade = await Trade.create({
       tradeId,
       userId: auth.user.userId,
@@ -114,53 +109,16 @@ export async function POST(req: NextRequest) {
       direction,
       stake,
       entryPrice,
-      exitPrice,
       barrier: barrier || 5,
-      multiplier: outcome.multiplier,
-      potentialPayout: Number((stake * outcome.multiplier).toFixed(2)),
-      payout: actualPayout,
-      profit: netProfit,
-      status: outcome.status,
+      multiplier,
+      potentialPayout,
+      payout: 0,
+      profit: 0,
+      status: 'OPEN',
       durationSeconds,
-      openTime: new Date(),
-      closeTime: new Date(Date.now() + durationSeconds * 1000),
+      openTime,
+      closeTime,
     });
-
-    // If trade won, credit payout to wallet
-    if (outcome.status === 'WON' && actualPayout > 0) {
-      const balanceBeforePayout = wallet.availableBalance;
-      const balanceAfterPayout = Number((balanceBeforePayout + actualPayout).toFixed(2));
-      wallet.availableBalance = balanceAfterPayout;
-      wallet.totalProfit = Number((wallet.totalProfit + netProfit).toFixed(2));
-      await wallet.save();
-
-      await LedgerEntry.create({
-        userId: auth.user.userId,
-        type: 'TRADE_PAYOUT',
-        amount: actualPayout,
-        balanceBefore: balanceBeforePayout,
-        balanceAfter: balanceAfterPayout,
-        referenceId: tradeId,
-        description: `Trade Win Payout for ${tradeId} (${symbol})`,
-      });
-
-      await Notification.create({
-        userId: auth.user.userId,
-        type: 'TRADE',
-        title: 'Trade Won! 🎉',
-        message: `Your $${stake} trade on ${symbol} won! Payout credited: +$${actualPayout} USD (Net profit: +$${netProfit}).`,
-      });
-    } else {
-      wallet.totalLoss = Number((wallet.totalLoss + stake).toFixed(2));
-      await wallet.save();
-
-      await Notification.create({
-        userId: auth.user.userId,
-        type: 'TRADE',
-        title: 'Trade Expired',
-        message: `Your $${stake} trade on ${symbol} closed (${outcome.status}).`,
-      });
-    }
 
     return NextResponse.json({
       success: true,
@@ -171,10 +129,9 @@ export async function POST(req: NextRequest) {
         direction: trade.direction,
         stake: trade.stake,
         entryPrice: trade.entryPrice,
-        exitPrice: trade.exitPrice,
         status: trade.status,
-        payout: trade.payout,
-        profit: trade.profit,
+        durationSeconds: trade.durationSeconds,
+        closeTime: trade.closeTime,
       },
       updatedBalance: wallet.availableBalance,
     });

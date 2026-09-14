@@ -113,6 +113,14 @@ export default function DashboardPage() {
     fetchTrades();
   }, []);
 
+  // Poll for open positions auto-settlement
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchTrades();
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
   const handleExecuteTrade = async (direction: string) => {
     if (!selectedInstrument) return;
     setTradeExecuting(true);
@@ -135,18 +143,20 @@ export default function DashboardPage() {
       const data = await res.json();
       if (res.ok && data.success) {
         const t = data.trade;
-        if (t.status === 'WON') {
-          setTradeFeedback({
-            status: 'WON',
-            message: `WIN! +$${t.profit.toFixed(2)} USD (Payout $${t.payout.toFixed(2)})`,
-          });
-        } else {
-          setTradeFeedback({
-            status: 'LOST',
-            message: `Trade Closed (${t.status}). -$${stake.toFixed(2)} USD`,
-          });
-        }
+
+        // Switch left tab to OPEN so trader sees contract
+        setLeftTab('OPEN');
+        setTradeFeedback({
+          status: 'OPEN',
+          message: `Trade Placed: $${stake} USD on ${selectedInstrument.symbol} (${direction}). Contract active...`,
+        });
+
         fetchTrades();
+
+        // Auto-settle after 3.5 seconds
+        setTimeout(() => {
+          fetchTrades();
+        }, 3500);
       } else {
         setTradeFeedback({
           status: 'ERROR',
@@ -195,19 +205,19 @@ export default function DashboardPage() {
             <div className="flex bg-[#0b0818] p-0.5 rounded-lg border border-purple-900/40 text-[11px] font-semibold w-full">
               <button
                 onClick={() => setLeftTab('OPEN')}
-                className={`flex-1 py-1 rounded transition-colors ${leftTab === 'OPEN' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                className={`flex-1 py-1 rounded transition-colors ${leftTab === 'OPEN' ? 'bg-purple-600 text-white font-bold' : 'text-slate-400 hover:text-white'}`}
               >
                 Open ({openPositions.length})
               </button>
               <button
                 onClick={() => setLeftTab('CLOSED')}
-                className={`flex-1 py-1 rounded transition-colors ${leftTab === 'CLOSED' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                className={`flex-1 py-1 rounded transition-colors ${leftTab === 'CLOSED' ? 'bg-purple-600 text-white font-bold' : 'text-slate-400 hover:text-white'}`}
               >
                 Closed
               </button>
               <button
                 onClick={() => setLeftTab('TRANSACTIONS')}
-                className={`flex-1 py-1 rounded transition-colors ${leftTab === 'TRANSACTIONS' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                className={`flex-1 py-1 rounded transition-colors ${leftTab === 'TRANSACTIONS' ? 'bg-purple-600 text-white font-bold' : 'text-slate-400 hover:text-white'}`}
               >
                 History
               </button>
@@ -218,12 +228,15 @@ export default function DashboardPage() {
             {leftTab === 'OPEN' ? (
               openPositions.length > 0 ? (
                 openPositions.map((t) => (
-                  <div key={t.tradeId} className="bg-[#181335] p-3 rounded-lg border border-purple-900/50 space-y-1.5">
+                  <div key={t.tradeId} className="bg-[#181335] p-3 rounded-lg border border-purple-900/50 space-y-1.5 animate-pulse">
                     <div className="flex items-center justify-between font-semibold">
-                      <span className="text-purple-300">{t.symbol}</span>
-                      <span className="text-amber-400 font-mono text-[10px] bg-amber-950/50 px-2 py-0.5 rounded">OPEN</span>
+                      <span className="text-purple-300 font-bold">{t.symbol} ({t.direction})</span>
+                      <span className="text-amber-400 font-mono text-[10px] bg-amber-950/50 px-2 py-0.5 rounded border border-amber-500/30 flex items-center space-x-1">
+                        <Clock className="w-3 h-3 animate-spin" />
+                        <span>OPEN</span>
+                      </span>
                     </div>
-                    <div className="flex justify-between text-slate-400 text-[11px]">
+                    <div className="flex justify-between text-slate-300 text-[11px]">
                       <span>Stake: ${t.stake}</span>
                       <span>Entry: {t.entryPrice}</span>
                     </div>
@@ -457,7 +470,9 @@ export default function DashboardPage() {
           {tradeFeedback && (
             <div
               className={`p-3 rounded-xl border text-xs font-semibold space-y-1.5 ${
-                tradeFeedback.status === 'WON'
+                tradeFeedback.status === 'OPEN'
+                  ? 'bg-purple-950/60 border-purple-500/40 text-purple-200'
+                  : tradeFeedback.status === 'WON'
                   ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-300'
                   : tradeFeedback.status === 'LOST'
                   ? 'bg-rose-950/60 border-rose-500/40 text-rose-300'
@@ -465,7 +480,9 @@ export default function DashboardPage() {
               }`}
             >
               <div className="flex items-center space-x-2">
-                {tradeFeedback.status === 'WON' ? (
+                {tradeFeedback.status === 'OPEN' ? (
+                  <Clock className="w-4 h-4 text-purple-400 animate-spin shrink-0" />
+                ) : tradeFeedback.status === 'WON' ? (
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                 ) : (
                   <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
