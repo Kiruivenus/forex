@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import DepositModal from '@/components/DepositModal';
-import { Smartphone, Bitcoin, ArrowUpRight, ShieldCheck, Zap, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Smartphone, Bitcoin, ArrowRight } from 'lucide-react';
 import { getStoredAccountMode, EVENT_NAME, AccountMode } from '@/lib/accountMode';
 
 export default function DepositPage() {
@@ -28,25 +28,6 @@ export default function DepositPage() {
       <Navbar />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-20 sm:pt-24 pb-12 w-full flex-1 space-y-6">
-        {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-purple-950/80 pb-5">
-          <div className="space-y-1">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-950/80 border border-purple-800/40 text-purple-300 text-xs font-semibold mb-1">
-              <Zap className="w-3.5 h-3.5 text-amber-400" />
-              <span>Instant Wallet Funding</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">Deposit Capital</h1>
-            <p className="text-xs sm:text-sm text-slate-400">Add funds to your trading wallet via Safaricom M-Pesa or Crypto</p>
-          </div>
-
-          <div className="flex items-center space-x-2 shrink-0">
-            <span className="text-xs text-slate-400 font-medium">Target Wallet:</span>
-            <span className="px-3 py-1.5 rounded-xl bg-emerald-950/80 border border-emerald-600/40 text-emerald-300 font-mono font-bold text-xs">
-              REAL ACCOUNT
-            </span>
-          </div>
-        </div>
-
         {/* Payment Methods Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* M-Pesa STK Push Card */}
