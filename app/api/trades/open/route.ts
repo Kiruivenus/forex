@@ -150,6 +150,10 @@ export async function POST(req: NextRequest) {
         durationSeconds: trade.durationSeconds,
         closeTime: trade.closeTime,
       },
+      wallet: {
+        availableBalance: wallet.availableBalance,
+        demoBalance: wallet.demoBalance || 10000.0,
+      },
       updatedBalance: isDemo ? wallet.demoBalance : wallet.availableBalance,
     });
   } catch (error) {

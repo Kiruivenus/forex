@@ -38,9 +38,10 @@ interface NavbarProps {
   onOpenAIScanner?: () => void;
   accountMode?: 'DEMO' | 'REAL';
   onAccountModeChange?: (mode: 'DEMO' | 'REAL') => void;
+  liveWallet?: { availableBalance: number; demoBalance?: number } | null;
 }
 
-export default function Navbar({ onOpenAIScanner, accountMode = 'DEMO', onAccountModeChange }: NavbarProps) {
+export default function Navbar({ onOpenAIScanner, accountMode = 'DEMO', onAccountModeChange, liveWallet }: NavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<UserSession | null>(null);
@@ -179,8 +180,8 @@ export default function Navbar({ onOpenAIScanner, accountMode = 'DEMO', onAccoun
                   </span>
                   <span className="text-slate-100 text-xs tracking-tight">
                     ${accountMode === 'DEMO'
-                      ? (wallet?.demoBalance ?? 10000.0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                      : (wallet?.availableBalance ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      ? (liveWallet?.demoBalance ?? wallet?.demoBalance ?? 10000.0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                      : (liveWallet?.availableBalance ?? wallet?.availableBalance ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </button>
 
@@ -205,7 +206,7 @@ export default function Navbar({ onOpenAIScanner, accountMode = 'DEMO', onAccoun
                         <div>
                           <p className="font-semibold leading-tight">Demo Account</p>
                           <p className="text-[10px] text-slate-400 font-mono">
-                            ${(wallet?.demoBalance ?? 10000.0).toFixed(2)} USD
+                            ${(liveWallet?.demoBalance ?? wallet?.demoBalance ?? 10000.0).toFixed(2)} USD
                           </p>
                         </div>
                       </div>
@@ -228,7 +229,7 @@ export default function Navbar({ onOpenAIScanner, accountMode = 'DEMO', onAccoun
                         <div>
                           <p className="font-semibold leading-tight">Real Account</p>
                           <p className="text-[10px] text-slate-400 font-mono">
-                            ${(wallet?.availableBalance ?? 0).toFixed(2)} USD
+                            ${(liveWallet?.availableBalance ?? wallet?.availableBalance ?? 0).toFixed(2)} USD
                           </p>
                         </div>
                       </div>

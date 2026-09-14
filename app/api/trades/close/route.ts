@@ -84,6 +84,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       trade,
+      wallet: wallet
+        ? {
+            availableBalance: wallet.availableBalance,
+            demoBalance: wallet.demoBalance || 10000.0,
+          }
+        : null,
       message: outcome.status === 'WON' ? `Position closed! Won +$${actualPayout.toFixed(2)} USD` : `Position closed! Lost -$${trade.stake.toFixed(2)} USD`,
     });
   } catch (error) {

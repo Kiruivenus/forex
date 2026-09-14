@@ -16,6 +16,7 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const status = searchParams.get('status');
+  const accountModeParam = searchParams.get('accountMode');
   const limit = parseInt(searchParams.get('limit') || '50', 10);
 
   await connectToDatabase();
@@ -105,10 +106,24 @@ export async function GET(req: NextRequest) {
   if (status) {
     filter.status = status;
   }
+  if (accountModeParam) {
+    filter.accountMode = accountModeParam;
+  }
 
   const trades = await Trade.find(filter)
     .sort({ createdAt: -1 })
     .limit(limit);
 
-  return NextResponse.json({ success: true, trades });
+  const currentWallet = await Wallet.findOne({ userId: auth.user.userId });
+
+  return NextResponse.json({
+    success: true,
+    trades,
+    wallet: currentWallet
+      ? {
+          availableBalance: currentWallet.availableBalance,
+          demoBalance: currentWallet.demoBalance || 10000.0,
+        }
+      : null,
+  });
 }

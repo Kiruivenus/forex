@@ -101,6 +101,7 @@ export default function DashboardPage() {
     amountGain: number;
   } | null>(null);
   const [hasTriggeredTarget, setHasTriggeredTarget] = useState(false);
+  const [wallet, setWallet] = useState<{ availableBalance: number; demoBalance: number } | null>(null);
 
   // Modals
   const [isAIScannerOpen, setIsAIScannerOpen] = useState(false);
@@ -126,13 +127,16 @@ export default function DashboardPage() {
     }
   };
 
-  const fetchTrades = async () => {
+  const fetchTrades = async (mode = accountMode) => {
     try {
-      const res = await fetch('/api/trades/history');
+      const res = await fetch(`/api/trades/history?accountMode=${mode}`);
       if (res.ok) {
         const data = await res.json();
         if (data.success) {
           setTrades(data.trades);
+          if (data.wallet) {
+            setWallet(data.wallet);
+          }
         }
       }
     } catch (err) {
@@ -142,16 +146,16 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchInstruments();
-    fetchTrades();
-  }, []);
+    fetchTrades(accountMode);
+  }, [accountMode]);
 
   // Poll for open positions auto-settlement
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchTrades();
+      fetchTrades(accountMode);
     }, 3000);
     return () => clearInterval(interval);
-  }, []);
+  }, [accountMode]);
 
   // Compute Session Metrics
   const closedPositions = trades.filter((t) => t.status === 'WON' || t.status === 'LOST');
@@ -220,6 +224,9 @@ export default function DashboardPage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
+        if (data.wallet) {
+          setWallet(data.wallet);
+        }
         // Switch left tab to OPEN so trader sees active contract card
         setLeftTab('OPEN');
         setTradeFeedback({
@@ -227,11 +234,11 @@ export default function DashboardPage() {
           message: `Trade Placed: $${stake} USD on ${selectedInstrument.symbol} (${direction}). Contract active...`,
         });
 
-        fetchTrades();
+        fetchTrades(accountMode);
 
         // Auto-settle refresh after 3.5 seconds
         setTimeout(() => {
-          fetchTrades();
+          fetchTrades(accountMode);
         }, 3500);
       } else {
         setTradeFeedback({
@@ -260,11 +267,14 @@ export default function DashboardPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
+        if (data.wallet) {
+          setWallet(data.wallet);
+        }
         setTradeFeedback({
           status: data.trade.status,
           message: data.message,
         });
-        fetchTrades();
+        fetchTrades(accountMode);
       }
     } catch (err) {
       console.error('Error closing trade:', err);
@@ -293,6 +303,7 @@ export default function DashboardPage() {
         accountMode={accountMode}
         onAccountModeChange={(mode) => setAccountMode(mode)}
         onOpenAIScanner={() => setIsAIScannerOpen(true)}
+        liveWallet={wallet}
       />
 
       {/* Main Terminal Workspace 3-Panel Layout */}
