@@ -142,8 +142,8 @@ export default function AIEntryScannerModal({
         {/* Header */}
         <div className="px-5 py-4 flex items-center justify-between border-b border-purple-950/80">
           <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-xl bg-[#23184d] border border-purple-500/40 flex items-center justify-center text-purple-400 shadow-md">
-              <Sparkles className="w-5 h-5 animate-pulse" />
+            <div className="w-9 h-9 rounded-xl bg-[#23184d] border border-purple-500/40 flex items-center justify-center shadow-md overflow-hidden p-1">
+              <img src="/ai-scanner-icon.png" alt="AI Scanner Icon" className="w-full h-full object-contain" />
             </div>
             <h3 className="font-extrabold text-base text-slate-100 tracking-tight">Entry Scanner</h3>
           </div>
