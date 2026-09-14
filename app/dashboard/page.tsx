@@ -298,7 +298,7 @@ export default function DashboardPage() {
   const openPositions = trades.filter((t) => t.status === 'OPEN' || t.status === 'PENDING');
 
   return (
-    <div className="min-h-screen bg-[#0b0e17] text-slate-100 flex flex-col font-sans pb-16 md:pb-0">
+    <div className="min-h-screen bg-[#0b0e17] text-slate-100 flex flex-col font-sans pt-14 pb-16 md:pb-0">
       <Navbar
         accountMode={accountMode}
         onAccountModeChange={(mode) => setAccountMode(mode)}

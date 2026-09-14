@@ -78,7 +78,7 @@ export default function Navbar({ onOpenAIScanner, accountMode = 'DEMO', onAccoun
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-[#120f24] border-b border-purple-950/60 text-slate-100">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-[#120f24]/95 backdrop-blur-md border-b border-purple-950/60 text-slate-100 h-14">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 h-14 flex items-center justify-between">
         {/* Brand / Logo */}
         <div className="flex items-center space-x-3">

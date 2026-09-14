@@ -15,7 +15,7 @@ export default function MobileBottomNav({
   onOpenAIScanner,
 }: MobileBottomNavProps) {
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#120f26]/95 backdrop-blur-md border-t border-purple-900/60 flex items-center justify-around h-14 px-2 text-slate-400 font-medium text-[11px]">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#120f26]/95 backdrop-blur-md border-t border-purple-900/60 flex items-center justify-around h-14 px-2 text-slate-400 font-medium text-[11px]">
       <button
         onClick={() => onTabChange('TRADE')}
         className={`flex-1 flex flex-col items-center justify-center py-1 transition-colors ${
