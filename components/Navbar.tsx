@@ -20,6 +20,7 @@ import {
   Lock,
 } from 'lucide-react';
 import { getStoredAccountMode, setStoredAccountMode, EVENT_NAME, AccountMode } from '@/lib/accountMode';
+import AIScannerIcon from './AIScannerIcon';
 
 interface UserSession {
   id: string;
@@ -183,7 +184,7 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
                 }}
                 className="hidden md:flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-gradient-to-r from-orange-500/20 via-pink-500/20 to-purple-500/20 border border-pink-500/40 hover:border-pink-400 text-pink-200 hover:text-white transition-all shadow-md group font-bold text-xs cursor-pointer ml-1"
               >
-                <img src="/ai-scanner-icon.png" alt="AI Scanner Icon" className="w-5 h-5 object-contain rounded-md shrink-0" />
+                <AIScannerIcon className="w-5 h-5 shrink-0 drop-shadow" />
                 <span className="bg-gradient-to-r from-orange-300 via-pink-300 to-purple-300 bg-clip-text text-transparent group-hover:from-white group-hover:to-white">
                   AI Scanner
                 </span>

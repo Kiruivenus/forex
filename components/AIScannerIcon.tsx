@@ -1,0 +1,23 @@
+import React from 'react';
+
+interface AIScannerIconProps {
+  className?: string;
+}
+
+export default function AIScannerIcon({ className = 'w-6 h-6' }: AIScannerIconProps) {
+  return (
+    <svg className={className} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="aiGlowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#ff7e47" />
+          <stop offset="50%" stopColor="#ff2e93" />
+          <stop offset="100%" stopColor="#a832e8" />
+        </linearGradient>
+      </defs>
+      <rect x="6" y="6" width="52" height="52" rx="16" fill="url(#aiGlowGrad)" />
+      <path d="M32 17 C32 24.5 39.5 32 47 32 C39.5 32 32 39.5 32 47 C32 39.5 24.5 32 17 32 C24.5 32 32 24.5 32 17 Z" fill="white" />
+      <path d="M44 19 C44 21 46 23 48 23 C46 23 44 25 44 27 C44 25 42 23 40 23 C42 23 44 21 44 19 Z" fill="white" opacity="0.9" />
+      <path d="M20 41 C20 42.5 21.5 44 23 44 C21.5 44 20 45.5 20 47 C20 45.5 18.5 44 17 44 C18.5 44 20 42.5 20 41 Z" fill="white" opacity="0.9" />
+    </svg>
+  );
+}

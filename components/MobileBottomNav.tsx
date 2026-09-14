@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { TrendingUp, ListOrdered } from 'lucide-react';
+import AIScannerIcon from './AIScannerIcon';
 
 interface MobileBottomNavProps {
   activeTab: 'TRADE' | 'POSITIONS';
@@ -30,7 +31,7 @@ export default function MobileBottomNav({
         onClick={onOpenAIScanner}
         className="flex-1 flex flex-col items-center justify-center py-1 text-pink-300 hover:text-white transition-colors"
       >
-        <img src="/ai-scanner-icon.png" alt="AI Scanner" className="w-6 h-6 object-contain mb-0.5 rounded-lg shadow-md shadow-pink-950/60" />
+        <AIScannerIcon className="w-6 h-6 mb-0.5 drop-shadow-md" />
         <span className="font-bold text-[10px] bg-gradient-to-r from-orange-300 via-pink-300 to-purple-300 bg-clip-text text-transparent">AI Scanner</span>
       </button>
 

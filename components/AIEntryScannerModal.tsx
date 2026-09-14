@@ -1,7 +1,6 @@
-'use client';
-
 import React, { useState, useEffect } from 'react';
-import { X, Sparkles, ChevronDown, Search, CheckCircle2, Loader2, Activity } from 'lucide-react';
+import { X, ChevronDown, Search, CheckCircle2, Loader2, Activity } from 'lucide-react';
+import AIScannerIcon from '@/components/AIScannerIcon';
 
 interface InstrumentInfo {
   _id?: string;
@@ -142,9 +141,7 @@ export default function AIEntryScannerModal({
         {/* Header */}
         <div className="px-5 py-4 flex items-center justify-between border-b border-purple-950/80">
           <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-xl bg-[#23184d] border border-purple-500/40 flex items-center justify-center shadow-md overflow-hidden p-1">
-              <img src="/ai-scanner-icon.png" alt="AI Scanner Icon" className="w-full h-full object-contain" />
-            </div>
+            <AIScannerIcon className="w-8 h-8 shrink-0 drop-shadow-md" />
             <h3 className="font-extrabold text-base text-slate-100 tracking-tight">Entry Scanner</h3>
           </div>
 
