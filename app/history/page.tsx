@@ -28,7 +28,7 @@ export default function HistoryPage() {
     <div className="min-h-screen bg-[#0b0e17] text-slate-100 flex flex-col justify-between">
       <Navbar />
 
-      <main className="max-w-6xl mx-auto px-4 py-10 w-full flex-1 space-y-6">
+      <main className="max-w-6xl mx-auto px-4 pt-20 sm:pt-24 pb-10 w-full flex-1 space-y-6">
         <div className="bg-[#120f26] p-6 rounded-2xl border border-purple-900/60 shadow-xl space-y-4">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-xl bg-purple-900/60 flex items-center justify-center text-purple-400">

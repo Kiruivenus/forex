@@ -83,7 +83,7 @@ export default function ChatPage() {
     <div className="min-h-screen bg-[#0b0e17] text-slate-100 flex flex-col justify-between">
       <Navbar />
 
-      <main className="max-w-5xl mx-auto px-4 py-8 w-full flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <main className="max-w-5xl mx-auto px-4 pt-20 sm:pt-24 pb-8 w-full flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Conversation List Sidebar */}
         <div className="bg-[#120f26] border border-purple-900/60 rounded-2xl p-4 space-y-4 flex flex-col h-[550px]">
           <div className="flex items-center justify-between border-b border-purple-950 pb-3">

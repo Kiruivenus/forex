@@ -61,7 +61,7 @@ export default function LandingPage() {
       <Navbar onOpenAIScanner={() => setIsAIScannerOpen(true)} />
 
       {/* Hero Section */}
-      <section className="relative pt-12 pb-20 px-4 sm:px-6 max-w-7xl mx-auto w-full text-center overflow-hidden">
+      <section className="relative pt-20 sm:pt-24 pb-20 px-4 sm:px-6 max-w-7xl mx-auto w-full text-center overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-purple-600/15 blur-[120px] rounded-full pointer-events-none" />
 
         <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-950/60 border border-purple-800/40 text-purple-300 text-xs font-semibold mb-6">

@@ -10,7 +10,7 @@ export default function ResponsibleTradingPage() {
     <div className="min-h-screen bg-[#0b0e17] text-slate-100 flex flex-col justify-between">
       <Navbar />
 
-      <main className="max-w-4xl mx-auto px-4 py-10 w-full flex-1 space-y-6">
+      <main className="max-w-4xl mx-auto px-4 pt-20 sm:pt-24 pb-10 w-full flex-1 space-y-6">
         <div className="bg-[#120f26] p-6 sm:p-8 rounded-2xl border border-purple-900/60 shadow-xl space-y-6">
           <div className="flex items-center space-x-3 border-b border-purple-950 pb-4">
             <div className="w-10 h-10 rounded-xl bg-amber-950/60 border border-amber-600/40 flex items-center justify-center text-amber-400">

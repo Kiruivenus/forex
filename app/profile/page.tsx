@@ -22,7 +22,7 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-[#0b0e17] text-slate-100 flex flex-col justify-between">
       <Navbar />
 
-      <main className="max-w-3xl mx-auto px-4 py-10 w-full flex-1 space-y-6">
+      <main className="max-w-3xl mx-auto px-4 pt-20 sm:pt-24 pb-10 w-full flex-1 space-y-6">
         <div className="bg-[#120f26] p-6 rounded-2xl border border-purple-900/60 shadow-xl space-y-6">
           <div className="flex items-center space-x-4 border-b border-purple-950 pb-6">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center font-extrabold text-2xl text-white shadow-xl shadow-purple-900/50">
