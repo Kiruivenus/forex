@@ -5,10 +5,70 @@ import CryptoAsset from '@/models/CryptoAsset';
 import Deposit from '@/models/Deposit';
 import SystemSetting from '@/models/SystemSetting';
 
+const DEFAULT_ASSETS = [
+  {
+    symbol: 'USDT',
+    name: 'Tether USD (TRC20)',
+    network: 'TRC20',
+    settingKey: 'USDT_TRC20_ADDRESS',
+    defaultAddress: 'TYu8aX9kL3pQmRn2vW7zH1bC4dE5fG6hJk',
+    minDeposit: 5,
+  },
+  {
+    symbol: 'USDT',
+    name: 'Tether USD (ERC20)',
+    network: 'ERC20',
+    settingKey: 'USDT_ERC20_ADDRESS',
+    defaultAddress: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
+    minDeposit: 5,
+  },
+  {
+    symbol: 'BTC',
+    name: 'Bitcoin',
+    network: 'BTC',
+    settingKey: 'BTC_ADDRESS',
+    defaultAddress: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+    minDeposit: 10,
+  },
+  {
+    symbol: 'ETH',
+    name: 'Ethereum',
+    network: 'ETH',
+    settingKey: 'ETH_ADDRESS',
+    defaultAddress: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
+    minDeposit: 10,
+  },
+];
+
 export async function GET() {
-  await connectToDatabase();
-  const assets = await CryptoAsset.find({ isActive: true });
-  return NextResponse.json({ success: true, assets });
+  try {
+    await connectToDatabase();
+    const settingsList = await SystemSetting.find({});
+    const dbAssets = await CryptoAsset.find({ isActive: true });
+
+    const settingsMap: Record<string, string> = {};
+    settingsList.forEach((s) => {
+      settingsMap[s.key] = String(s.value || '');
+    });
+
+    // Combine default assets with Admin System Settings addresses
+    const combinedAssets = DEFAULT_ASSETS.map((def) => {
+      const dbMatch = dbAssets.find((a) => a.symbol === def.symbol && a.network === def.network);
+      const address = settingsMap[def.settingKey] || dbMatch?.depositAddress || def.defaultAddress;
+      return {
+        symbol: def.symbol,
+        name: def.name,
+        network: def.network,
+        depositAddress: address,
+        minDeposit: dbMatch?.minDeposit || def.minDeposit,
+      };
+    });
+
+    return NextResponse.json({ success: true, assets: combinedAssets });
+  } catch (error) {
+    console.error('Crypto Assets GET Error:', error);
+    return NextResponse.json({ success: true, assets: DEFAULT_ASSETS.map(a => ({ ...a, depositAddress: a.defaultAddress })) });
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -18,7 +78,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { symbol, network, amountUSD, txHash } = await req.json();
+    const { symbol, network, amountUSD, txHash, depositAddress } = await req.json();
 
     if (!symbol || !network || !amountUSD || !txHash) {
       return NextResponse.json(
@@ -29,13 +89,8 @@ export async function POST(req: NextRequest) {
 
     await connectToDatabase();
 
-    const asset = await CryptoAsset.findOne({ symbol, network, isActive: true });
-    if (!asset) {
-      return NextResponse.json({ success: false, message: 'Selected crypto payment method is unavailable.' }, { status: 404 });
-    }
-
     const minDepositSetting = await SystemSetting.findOne({ key: 'MIN_DEPOSIT' });
-    const minDepositLimit = Math.max(Number(minDepositSetting?.value) || 5.0, asset.minDeposit || 5.0);
+    const minDepositLimit = Number(minDepositSetting?.value) || 5.0;
 
     if (amountUSD < minDepositLimit) {
       return NextResponse.json(
@@ -53,6 +108,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    let finalAddress = depositAddress;
+    if (!finalAddress) {
+      const keyMap: Record<string, string> = {
+        'USDT-TRC20': 'USDT_TRC20_ADDRESS',
+        'USDT-ERC20': 'USDT_ERC20_ADDRESS',
+        'BTC-BTC': 'BTC_ADDRESS',
+        'ETH-ETH': 'ETH_ADDRESS',
+      };
+      const settingKey = keyMap[`${symbol}-${network}`];
+      if (settingKey) {
+        const addressSetting = await SystemSetting.findOne({ key: settingKey });
+        if (addressSetting?.value) finalAddress = addressSetting.value;
+      }
+    }
+
     const deposit = await Deposit.create({
       userId: auth.user.userId,
       method: 'CRYPTO',
@@ -61,9 +131,9 @@ export async function POST(req: NextRequest) {
       usdEquivalent: amountUSD,
       cryptoAsset: symbol,
       cryptoNetwork: network,
-      cryptoAddress: asset.depositAddress,
+      cryptoAddress: finalAddress || 'Admin Wallet',
       txHash,
-      status: 'PENDING', // Crypto deposits require manual or backend blockchain confirmation
+      status: 'PENDING',
     });
 
     return NextResponse.json({

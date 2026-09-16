@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Smartphone, Bitcoin, Copy, Check, AlertCircle, Loader2, ArrowRight } from 'lucide-react';
+import { X, Smartphone, Bitcoin, Copy, Check, AlertCircle, Loader2, ArrowRight, ArrowLeft, Clock, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
 interface CryptoAssetOption {
   symbol: string;
@@ -29,6 +29,7 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
   const [mpesaError, setMpesaError] = useState('');
 
   // Crypto state
+  const [cryptoStep, setCryptoStep] = useState<'FORM' | 'GENERATING' | 'PAYMENT_PAGE'>('FORM');
   const [cryptoAssets, setCryptoAssets] = useState<CryptoAssetOption[]>([]);
   const [selectedAsset, setSelectedAsset] = useState<CryptoAssetOption | null>(null);
   const [cryptoAmountUSD, setCryptoAmountUSD] = useState('50');
@@ -64,7 +65,7 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
         .then((data) => {
           if (data.success && data.assets.length > 0) {
             setCryptoAssets(data.assets);
-            setSelectedAsset(data.assets[0]);
+            if (!selectedAsset) setSelectedAsset(data.assets[0]);
           }
         })
         .catch((err) => console.error(err));
@@ -132,9 +133,32 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
     }
   };
 
+  const handleGenerateAddress = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedAsset) return;
+    setCryptoError('');
+
+    const amt = Number(cryptoAmountUSD);
+    const minRequired = Math.max(minDepositUSD, selectedAsset.minDeposit || 5.0);
+    if (amt < minRequired) {
+      setCryptoError(`Minimum deposit amount for ${selectedAsset.symbol} is $${minRequired.toFixed(2)} USD.`);
+      return;
+    }
+
+    setCryptoStep('GENERATING');
+    setTimeout(() => {
+      setCryptoStep('PAYMENT_PAGE');
+    }, 1400);
+  };
+
   const handleCryptoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedAsset) return;
+
+    if (!txHash || txHash.trim().length < 5) {
+      setCryptoError('Please enter a valid transaction hash (TxID).');
+      return;
+    }
 
     setCryptoStatus('SUBMITTING');
     setCryptoError('');
@@ -147,7 +171,8 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
           symbol: selectedAsset.symbol,
           network: selectedAsset.network,
           amountUSD: Number(cryptoAmountUSD),
-          txHash,
+          depositAddress: selectedAsset.depositAddress,
+          txHash: txHash.trim(),
         }),
       });
 
@@ -174,7 +199,7 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
       <div className="bg-[#120f26] border border-purple-800/60 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl text-slate-100 flex flex-col">
         {/* Modal Header */}
         <div className="bg-[#181335] px-5 py-4 border-b border-purple-950/80 flex items-center justify-between">
@@ -187,10 +212,13 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
         {/* Payment Tabs */}
         <div className="flex border-b border-purple-950/80 bg-[#0e0b1f] text-xs font-semibold">
           <button
-            onClick={() => setActiveTab('MPESA')}
+            onClick={() => {
+              setActiveTab('MPESA');
+              setCryptoStep('FORM');
+            }}
             className={`flex-1 py-3 flex items-center justify-center space-x-2 border-b-2 transition-colors ${
               activeTab === 'MPESA'
-                ? 'border-purple-500 text-purple-300 bg-purple-950/30'
+                ? 'border-purple-500 text-purple-300 bg-purple-950/30 font-bold'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -202,7 +230,7 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
             onClick={() => setActiveTab('CRYPTO')}
             className={`flex-1 py-3 flex items-center justify-center space-x-2 border-b-2 transition-colors ${
               activeTab === 'CRYPTO'
-                ? 'border-purple-500 text-purple-300 bg-purple-950/30'
+                ? 'border-purple-500 text-purple-300 bg-purple-950/30 font-bold'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -284,94 +312,209 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
               </button>
             </form>
           ) : (
-            <form onSubmit={handleCryptoSubmit} className="space-y-4 text-xs">
-              {/* Asset / Network Selector */}
-              <div>
-                <label className="block text-slate-400 font-medium mb-1.5">Select Asset & Network</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {cryptoAssets.map((asset) => (
-                    <button
-                      key={`${asset.symbol}-${asset.network}`}
-                      type="button"
-                      onClick={() => setSelectedAsset(asset)}
-                      className={`p-2.5 rounded-lg border text-left flex flex-col justify-between ${
-                        selectedAsset?.symbol === asset.symbol && selectedAsset?.network === asset.network
-                          ? 'bg-purple-900/50 border-purple-500 text-slate-100'
-                          : 'bg-[#0b0818] border-purple-900/40 text-slate-400 hover:text-slate-200'
-                      }`}
-                    >
-                      <span className="font-bold text-slate-100">{asset.symbol}</span>
-                      <span className="text-[10px] text-purple-400 font-mono">{asset.network}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+            /* CRYPTO TRANSFER MULTI-STEP FLOW */
+            <div>
+              {cryptoStep === 'FORM' && (
+                <form onSubmit={handleGenerateAddress} className="space-y-4 text-xs">
+                  {/* Asset / Network Selector */}
+                  <div>
+                    <label className="block text-slate-400 font-medium mb-1.5">Select Asset & Network</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {cryptoAssets.map((asset) => (
+                        <button
+                          key={`${asset.symbol}-${asset.network}`}
+                          type="button"
+                          onClick={() => {
+                            setSelectedAsset(asset);
+                            setCryptoError('');
+                          }}
+                          className={`p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all ${
+                            selectedAsset?.symbol === asset.symbol && selectedAsset?.network === asset.network
+                              ? 'bg-purple-900/60 border-purple-500 text-slate-100 ring-2 ring-purple-500/40'
+                              : 'bg-[#0b0818] border-purple-900/40 text-slate-400 hover:text-slate-200 hover:border-purple-800'
+                          }`}
+                        >
+                          <span className="font-bold text-slate-100">{asset.name || asset.symbol}</span>
+                          <span className="text-[10px] text-purple-400 font-mono font-bold mt-1">{asset.network}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-              {selectedAsset && (
-                <>
-                  <div className="bg-[#0b0818] p-3 rounded-lg border border-purple-900/40 space-y-2">
-                    <span className="text-[11px] text-slate-400 block">Deposit Address ({selectedAsset.network})</span>
-                    <div className="flex items-center justify-between font-mono text-[11px] text-purple-300 bg-[#16112d] p-2 rounded border border-purple-950">
-                      <span className="truncate mr-2">{selectedAsset.depositAddress}</span>
-                      <button type="button" onClick={copyAddress} className="p-1 hover:text-white shrink-0">
-                        {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  {/* Deposit Amount USD Input */}
+                  <div>
+                    <label className="block text-slate-400 font-medium mb-1.5">
+                      Deposit Amount ($ USD) <span className="text-purple-400 font-normal text-[11px]">(Min: ${Math.max(minDepositUSD, selectedAsset?.minDeposit || 5.0).toFixed(2)})</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={cryptoAmountUSD}
+                      onChange={(e) => {
+                        setCryptoAmountUSD(e.target.value);
+                        setCryptoError('');
+                      }}
+                      min={Math.max(minDepositUSD, selectedAsset?.minDeposit || 5.0)}
+                      className="w-full bg-[#0b0818] border border-purple-900/60 rounded-xl px-3.5 py-2.5 text-slate-100 font-mono text-sm focus:outline-none focus:border-purple-500"
+                      required
+                    />
+                  </div>
+
+                  {cryptoError && (
+                    <div className="bg-rose-950/50 border border-rose-600/40 p-3 rounded-xl flex items-start space-x-2 text-rose-300">
+                      <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                      <p>{cryptoError}</p>
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={!selectedAsset}
+                    className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-purple-950/60 transition-all flex items-center justify-center space-x-2 disabled:opacity-50 cursor-pointer"
+                  >
+                    <span>Generate Payment Address</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </form>
+              )}
+
+              {/* GENERATING LOADING STATE */}
+              {cryptoStep === 'GENERATING' && (
+                <div className="py-12 flex flex-col items-center justify-center space-y-3 text-center animate-fade-in">
+                  <div className="relative">
+                    <Loader2 className="w-10 h-10 text-purple-400 animate-spin" />
+                    <Bitcoin className="w-5 h-5 text-amber-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                  </div>
+                  <p className="font-extrabold text-sm text-slate-100">Generating Payment Address...</p>
+                  <p className="text-xs text-slate-400">Fetching active {selectedAsset?.symbol} ({selectedAsset?.network}) wallet from admin settings</p>
+                </div>
+              )}
+
+              {/* PAYMENT PAGE (DEDICATED SUB-VIEW WITH WAITING STATUS) */}
+              {cryptoStep === 'PAYMENT_PAGE' && selectedAsset && (
+                <div className="space-y-4 text-xs animate-fade-in">
+                  {/* Status Banner */}
+                  <div className="bg-amber-950/60 border border-amber-500/50 p-3 rounded-xl flex items-center justify-between text-amber-200 shadow-md">
+                    <div className="flex items-center space-x-2 font-bold">
+                      <Clock className="w-4 h-4 text-amber-400 animate-spin shrink-0" />
+                      <span>Status: Waiting for Payment</span>
+                    </div>
+                    <span className="text-[10px] bg-amber-500/20 text-amber-300 font-mono font-bold px-2 py-0.5 rounded">
+                      PENDING
+                    </span>
+                  </div>
+
+                  {/* Summary Details Card */}
+                  <div className="bg-[#181335] p-3 rounded-xl border border-purple-900/40 flex items-center justify-between text-xs">
+                    <div>
+                      <span className="text-slate-400 text-[10px] block font-semibold uppercase">Selected Asset</span>
+                      <span className="font-extrabold text-slate-100">{selectedAsset.name || selectedAsset.symbol} ({selectedAsset.network})</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-slate-400 text-[10px] block font-semibold uppercase">Expected Deposit</span>
+                      <span className="font-extrabold text-emerald-400 text-sm font-mono">${Number(cryptoAmountUSD).toFixed(2)} USD</span>
+                    </div>
+                  </div>
+
+                  {/* Matched Deposit Address Card */}
+                  <div className="bg-[#0b0818] p-3.5 rounded-xl border border-purple-900/60 space-y-2">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-slate-300 font-bold">Deposit Address ({selectedAsset.network})</span>
+                      <span className="text-purple-400 text-[10px] font-mono">Send {selectedAsset.symbol} ONLY</span>
+                    </div>
+
+                    <div className="flex items-center justify-between font-mono text-xs text-purple-200 bg-[#16112d] p-3 rounded-xl border border-purple-950">
+                      <span className="truncate mr-2 font-extrabold tracking-tight">{selectedAsset.depositAddress}</span>
+                      <button
+                        type="button"
+                        onClick={copyAddress}
+                        className="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded-lg flex items-center space-x-1 font-sans font-bold text-[11px] transition-colors shrink-0"
+                      >
+                        {copied ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-300" />
+                            <span>Copied!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5" />
+                            <span>Copy</span>
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-slate-400 font-medium mb-1.5">Deposit Amount ($ USD)</label>
-                    <input
-                      type="number"
-                      value={cryptoAmountUSD}
-                      onChange={(e) => setCryptoAmountUSD(e.target.value)}
-                      min={selectedAsset.minDeposit}
-                      className="w-full bg-[#0b0818] border border-purple-900/60 rounded-lg px-3 py-2 text-slate-100 font-mono text-sm focus:outline-none focus:border-purple-500"
-                      required
-                    />
-                  </div>
+                  {/* TxID Proof Form */}
+                  <form onSubmit={handleCryptoSubmit} className="space-y-3 pt-1">
+                    <div>
+                      <label className="block text-slate-300 font-semibold mb-1">
+                        Transaction Hash (TxID)
+                      </label>
+                      <input
+                        type="text"
+                        value={txHash}
+                        onChange={(e) => {
+                          setTxHash(e.target.value);
+                          setCryptoError('');
+                        }}
+                        placeholder="Paste blockchain transaction hash after sending funds"
+                        className="w-full bg-[#0b0818] border border-purple-900/60 rounded-xl px-3.5 py-2.5 text-slate-100 font-mono text-xs focus:outline-none focus:border-purple-500"
+                        required
+                      />
+                    </div>
 
-                  <div>
-                    <label className="block text-slate-400 font-medium mb-1.5">Transaction Hash (TxID)</label>
-                    <input
-                      type="text"
-                      value={txHash}
-                      onChange={(e) => setTxHash(e.target.value)}
-                      placeholder="Paste blockchain transaction hash"
-                      className="w-full bg-[#0b0818] border border-purple-900/60 rounded-lg px-3 py-2 text-slate-100 font-mono text-xs focus:outline-none focus:border-purple-500"
-                      required
-                    />
-                  </div>
-                </>
-              )}
+                    {cryptoStatus === 'SUCCESS' && (
+                      <div className="bg-emerald-950/60 border border-emerald-600/50 p-3 rounded-xl text-emerald-300 flex items-center space-x-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span className="font-semibold">Deposit proof submitted! Pending admin verification.</span>
+                      </div>
+                    )}
 
-              {cryptoStatus === 'SUCCESS' && (
-                <div className="bg-emerald-950/50 border border-emerald-600/40 p-3 rounded-lg text-emerald-300">
-                  <p className="font-semibold">Deposit proof submitted! Your transaction is pending admin verification.</p>
+                    {cryptoStatus === 'FAILED' && (
+                      <div className="bg-rose-950/60 border border-rose-600/50 p-3 rounded-xl flex items-center space-x-2 text-rose-300">
+                        <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                        <span>{cryptoError}</span>
+                      </div>
+                    )}
+
+                    {cryptoError && cryptoStatus !== 'FAILED' && (
+                      <div className="bg-rose-950/60 border border-rose-600/50 p-3 rounded-xl flex items-center space-x-2 text-rose-300">
+                        <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                        <span>{cryptoError}</span>
+                      </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={cryptoStatus === 'SUBMITTING' || cryptoStatus === 'SUCCESS'}
+                      className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-purple-950/60 transition-all flex items-center justify-center space-x-2 disabled:opacity-50 cursor-pointer"
+                    >
+                      {cryptoStatus === 'SUBMITTING' ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Submitting Proof...</span>
+                        </>
+                      ) : (
+                        <span>Submit Deposit Proof</span>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCryptoStep('FORM');
+                        setCryptoStatus('IDLE');
+                        setCryptoError('');
+                      }}
+                      className="w-full text-center text-slate-400 hover:text-slate-200 text-[11px] font-semibold pt-1 flex items-center justify-center space-x-1"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <span>Back / Modify Amount</span>
+                    </button>
+                  </form>
                 </div>
               )}
-
-              {cryptoStatus === 'FAILED' && (
-                <div className="bg-rose-950/50 border border-rose-600/40 p-3 rounded-lg text-rose-300">
-                  <p>{cryptoError}</p>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={cryptoStatus === 'SUBMITTING' || !selectedAsset}
-                className="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
-              >
-                {cryptoStatus === 'SUBMITTING' ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Submitting Proof...</span>
-                  </>
-                ) : (
-                  <span>Submit Deposit Proof</span>
-                )}
-              </button>
-            </form>
+            </div>
           )}
         </div>
       </div>
