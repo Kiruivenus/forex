@@ -34,9 +34,11 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
   const [selectedAsset, setSelectedAsset] = useState<CryptoAssetOption | null>(null);
   const [cryptoAmountUSD, setCryptoAmountUSD] = useState('50');
   const [txHash, setTxHash] = useState('');
-  const [cryptoStatus, setCryptoStatus] = useState<'IDLE' | 'SUBMITTING' | 'SUCCESS' | 'FAILED'>('IDLE');
+  const [cryptoStatus, setCryptoStatus] = useState<'IDLE' | 'SUBMITTING' | 'SUCCESS' | 'COMPLETED' | 'FAILED'>('IDLE');
   const [cryptoError, setCryptoError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [cryptoDepositId, setCryptoDepositId] = useState<string | null>(null);
+  const [timeLeft, setTimeLeft] = useState<number>(900); // 15 minutes timer
 
   // System settings state
   const [minDepositUSD, setMinDepositUSD] = useState<number>(5.0);
@@ -100,6 +102,59 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
     return () => clearInterval(timer);
   }, [mpesaStatus, checkoutRequestId, onSuccess]);
 
+  // 15-Minute Countdown Timer for Crypto Payment
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isOpen && activeTab === 'CRYPTO' && cryptoStep === 'PAYMENT_PAGE' && cryptoStatus !== 'COMPLETED' && cryptoStatus !== 'FAILED') {
+      timer = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            setCryptoStatus('FAILED');
+            setCryptoError('Payment window expired (15 minutes time limit exceeded). Deposit status updated to FAILED.');
+            if (cryptoDepositId) {
+              fetch('/api/deposits/crypto/status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ depositId: cryptoDepositId, action: 'EXPIRE' }),
+              }).catch((err) => console.error(err));
+            }
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [isOpen, activeTab, cryptoStep, cryptoStatus, cryptoDepositId]);
+
+  // Crypto Deposit Status Polling Loop
+  useEffect(() => {
+    let pollTimer: NodeJS.Timeout;
+    if (cryptoDepositId && (cryptoStatus === 'SUCCESS' || cryptoStatus === 'SUBMITTING')) {
+      pollTimer = setInterval(async () => {
+        try {
+          const res = await fetch(`/api/deposits/crypto/status?depositId=${cryptoDepositId}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success) {
+              if (data.status === 'COMPLETED') {
+                setCryptoStatus('COMPLETED');
+                if (onSuccess) onSuccess();
+              } else if (data.status === 'FAILED') {
+                setCryptoStatus('FAILED');
+                setCryptoError(data.failureReason || 'Deposit failed.');
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Crypto status poll error:', err);
+        }
+      }, 3000);
+    }
+    return () => clearInterval(pollTimer);
+  }, [cryptoDepositId, cryptoStatus, onSuccess]);
+
   if (!isOpen) return null;
 
   const handleMpesaSubmit = async (e: React.FormEvent) => {
@@ -146,6 +201,9 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
     }
 
     setCryptoStep('GENERATING');
+    setTimeLeft(900); // 15 minutes timer
+    setCryptoDepositId(null);
+    setCryptoStatus('IDLE');
     setTimeout(() => {
       setCryptoStep('PAYMENT_PAGE');
     }, 1400);
@@ -173,8 +231,8 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
 
       const data = await res.json();
       if (res.ok && data.success) {
+        if (data.depositId) setCryptoDepositId(data.depositId);
         setCryptoStatus('SUCCESS');
-        if (onSuccess) onSuccess();
       } else {
         setCryptoStatus('FAILED');
         setCryptoError(data.message || 'Failed to submit crypto deposit.');
@@ -191,6 +249,12 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -380,22 +444,48 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
                     <Bitcoin className="w-5 h-5 text-amber-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
                   </div>
                   <p className="font-extrabold text-sm text-slate-100">Generating Payment Address...</p>
-                  <p className="text-xs text-slate-400">Fetching active {selectedAsset?.symbol} ({selectedAsset?.network}) wallet from admin settings</p>
+                  <p className="text-xs text-slate-400">Fetching active {selectedAsset?.symbol} ({selectedAsset?.network}) deposit wallet</p>
                 </div>
               )}
 
-              {/* PAYMENT PAGE (DEDICATED SUB-VIEW WITH WAITING STATUS) */}
+              {/* PAYMENT PAGE (DEDICATED SUB-VIEW WITH WAITING STATUS & 15-MIN TIMER) */}
               {cryptoStep === 'PAYMENT_PAGE' && selectedAsset && (
                 <div className="space-y-4 text-xs animate-fade-in">
-                  {/* Status Banner */}
-                  <div className="bg-amber-950/60 border border-amber-500/50 p-3 rounded-xl flex items-center justify-between text-amber-200 shadow-md">
+                  {/* Status Banner with 15-Min Timer */}
+                  <div className={`p-3 rounded-xl flex items-center justify-between shadow-md border ${
+                    cryptoStatus === 'COMPLETED'
+                      ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-200'
+                      : cryptoStatus === 'FAILED'
+                      ? 'bg-rose-950/60 border-rose-500/50 text-rose-200'
+                      : 'bg-amber-950/60 border-amber-500/50 text-amber-200'
+                  }`}>
                     <div className="flex items-center space-x-2 font-bold">
-                      <Clock className="w-4 h-4 text-amber-400 animate-spin shrink-0" />
-                      <span>Status: Waiting for Payment</span>
+                      {cryptoStatus === 'COMPLETED' ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                      ) : cryptoStatus === 'FAILED' ? (
+                        <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                      ) : (
+                        <Clock className="w-4 h-4 text-amber-400 animate-spin shrink-0" />
+                      )}
+                      <span>
+                        Status: {cryptoStatus === 'COMPLETED'
+                          ? 'Completed'
+                          : cryptoStatus === 'FAILED'
+                          ? 'Failed'
+                          : cryptoStatus === 'SUCCESS'
+                          ? 'Waiting for Network Confirmation'
+                          : 'Waiting for Payment'}
+                      </span>
                     </div>
-                    <span className="text-[10px] bg-amber-500/20 text-amber-300 font-mono font-bold px-2 py-0.5 rounded">
-                      PENDING
-                    </span>
+
+                    {cryptoStatus !== 'COMPLETED' && cryptoStatus !== 'FAILED' && (
+                      <div className="flex items-center space-x-1.5 bg-amber-950/80 px-2.5 py-1 rounded-lg border border-amber-500/40">
+                        <Clock className="w-3.5 h-3.5 text-amber-400" />
+                        <span className="font-mono text-xs font-extrabold text-amber-300">
+                          {formatTime(timeLeft)}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Summary Details Card */}
@@ -444,7 +534,14 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
                     {cryptoStatus === 'SUCCESS' && (
                       <div className="bg-emerald-950/60 border border-emerald-600/50 p-3 rounded-xl text-emerald-300 flex items-center space-x-2">
                         <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                        <span className="font-semibold">Deposit request recorded! Pending admin verification.</span>
+                        <span className="font-semibold">Deposit submitted! Your account will be credited once confirmed on the network.</span>
+                      </div>
+                    )}
+
+                    {cryptoStatus === 'COMPLETED' && (
+                      <div className="bg-emerald-950/60 border border-emerald-600/50 p-3 rounded-xl text-emerald-300 flex items-center space-x-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span className="font-semibold">Deposit confirmed! Funds credited to your trading wallet.</span>
                       </div>
                     )}
 
@@ -464,14 +561,18 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
 
                     <button
                       type="submit"
-                      disabled={cryptoStatus === 'SUBMITTING' || cryptoStatus === 'SUCCESS'}
+                      disabled={cryptoStatus === 'SUBMITTING' || cryptoStatus === 'SUCCESS' || cryptoStatus === 'COMPLETED' || cryptoStatus === 'FAILED'}
                       className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-purple-950/60 transition-all flex items-center justify-center space-x-2 disabled:opacity-50 cursor-pointer"
                     >
                       {cryptoStatus === 'SUBMITTING' ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Notifying Admin...</span>
+                          <span>Confirming Transfer...</span>
                         </>
+                      ) : cryptoStatus === 'SUCCESS' ? (
+                        <span>Transfer Submitted (Waiting Network)</span>
+                      ) : cryptoStatus === 'COMPLETED' ? (
+                        <span>Transfer Completed</span>
                       ) : (
                         <span>Confirm I Have Made The Transfer</span>
                       )}
@@ -483,6 +584,7 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
                         setCryptoStep('FORM');
                         setCryptoStatus('IDLE');
                         setCryptoError('');
+                        setCryptoDepositId(null);
                       }}
                       className="w-full text-center text-slate-400 hover:text-slate-200 text-[11px] font-semibold pt-1 flex items-center justify-center space-x-1"
                     >
@@ -499,3 +601,4 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
     </div>
   );
 }
+
