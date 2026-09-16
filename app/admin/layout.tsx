@@ -50,9 +50,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   return (
-    <div className="min-h-screen bg-[#080a12] text-slate-100 flex flex-col md:flex-row font-sans overflow-x-hidden">
-      {/* Mobile Top Header */}
-      <div className="md:hidden h-14 bg-[#0e0c1f] border-b border-purple-950/80 px-4 flex items-center justify-between z-40 sticky top-0">
+    <div className="h-screen bg-[#080a12] text-slate-100 flex flex-col md:flex-row font-sans overflow-hidden">
+      {/* Mobile Sticky Top Bar */}
+      <div className="md:hidden h-14 bg-[#0e0c1f] border-b border-purple-950/80 px-4 flex items-center justify-between z-40 shrink-0 sticky top-0">
         <div className="flex items-center space-x-2 font-bold text-sm">
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -82,7 +82,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           />
 
           {/* Drawer Content */}
-          <aside className="relative w-72 bg-[#0e0c1f] border-r border-purple-950 flex flex-col justify-between p-4 space-y-4 z-50 shadow-2xl animate-fade-in">
+          <aside className="relative w-72 bg-[#0e0c1f] border-r border-purple-950 flex flex-col justify-between p-4 space-y-4 z-50 shadow-2xl animate-fade-in h-full overflow-y-auto">
             <div>
               <div className="h-12 border-b border-purple-950 flex items-center justify-between pb-2 mb-3">
                 <div className="flex items-center space-x-2 font-bold text-sm">
@@ -132,10 +132,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       )}
 
-      {/* Desktop Sidebar (Hidden on Mobile) */}
-      <aside className="hidden md:flex w-64 bg-[#0e0c1f] border-r border-purple-950/80 flex-col justify-between shrink-0 min-h-screen">
+      {/* Desktop Fixed Left Sidebar (Isolated Scroll Container) */}
+      <aside className="hidden md:flex w-64 bg-[#0e0c1f] border-r border-purple-950/80 flex-col justify-between shrink-0 h-screen overflow-y-auto z-20">
         <div>
-          <div className="h-14 px-6 border-b border-purple-950/80 flex items-center space-x-2 font-bold text-sm">
+          <div className="h-14 px-6 border-b border-purple-950/80 flex items-center space-x-2 font-bold text-sm sticky top-0 bg-[#0e0c1f] z-10">
             <img src="/logo.png" alt="ApexTrader Logo" className="w-7 h-7 object-contain mix-blend-screen shrink-0" />
             <span className="text-slate-100">ApexTrader <span className="text-amber-400">Admin</span></span>
           </div>
@@ -160,7 +160,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </nav>
         </div>
 
-        <div className="p-4 border-t border-purple-950/80 text-xs">
+        <div className="p-4 border-t border-purple-950/80 text-xs bg-[#0e0c1f]">
           <Link
             href="/dashboard"
             className="flex items-center space-x-2 text-slate-400 hover:text-slate-200 transition-colors"
@@ -171,14 +171,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      {/* Main Admin Content Body */}
-      <div className="flex-1 overflow-y-auto w-full">
-        <header className="hidden md:flex h-14 bg-[#0e0c1f] border-b border-purple-950/80 px-6 items-center justify-between text-xs font-semibold">
-          <span className="text-amber-400">ADMIN OPERATIONAL CONSOLE</span>
-          <span className="text-slate-400">Environment: Production Mode</span>
+      {/* Main Content Area with Fixed Top Header & Independent Scroll */}
+      <div className="flex-1 flex flex-col h-full md:h-screen overflow-hidden w-full relative">
+        {/* Fixed Top Header Bar */}
+        <header className="hidden md:flex h-14 bg-[#0e0c1f]/95 backdrop-blur-md border-b border-purple-950/80 px-6 items-center justify-between text-xs font-semibold shrink-0 z-30 sticky top-0">
+          <span className="text-amber-400 font-extrabold tracking-wide">ADMIN OPERATIONAL CONSOLE</span>
+          <span className="text-slate-400 font-mono">Environment: Production Mode</span>
         </header>
 
-        <main className="p-3 sm:p-6 w-full max-w-full overflow-x-hidden">{children}</main>
+        {/* Independent Scrollable Page Content Area */}
+        <main className="flex-1 overflow-y-auto p-3 sm:p-6 w-full max-w-full">
+          {children}
+        </main>
       </div>
     </div>
   );
