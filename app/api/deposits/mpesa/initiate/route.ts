@@ -4,6 +4,7 @@ import { connectToDatabase } from '@/lib/db';
 import Deposit from '@/models/Deposit';
 import SystemSetting from '@/models/SystemSetting';
 import { initiateSTKPush } from '@/lib/mpesa';
+import { initiateGravityPaySTKPush } from '@/lib/gravitypay';
 
 export async function POST(req: NextRequest) {
   const auth = await verifyApiAuth(req);
@@ -28,12 +29,24 @@ export async function POST(req: NextRequest) {
     const kesToUsdRate = Number(rateSetting?.value) || 130.0;
     const usdEquivalent = Number((amountKES / kesToUsdRate).toFixed(2));
 
-    const stkResult = await initiateSTKPush({
-      phoneNumber,
-      amount: amountKES,
-      accountReference: 'ApexTrader',
-      transactionDesc: `Deposit KES ${amountKES} ($${usdEquivalent} USD)`,
-    });
+    const provider = process.env.MPESA_PROVIDER || (process.env.GRAVITYPAY_API_KEY ? 'GRAVITYPAY' : 'DARAJA');
+
+    let stkResult;
+    if (provider === 'GRAVITYPAY') {
+      stkResult = await initiateGravityPaySTKPush({
+        phoneNumber,
+        amount: amountKES,
+        accountReference: 'ApexTrader',
+        transactionDesc: `Deposit KES ${amountKES} ($${usdEquivalent} USD)`,
+      });
+    } else {
+      stkResult = await initiateSTKPush({
+        phoneNumber,
+        amount: amountKES,
+        accountReference: 'ApexTrader',
+        transactionDesc: `Deposit KES ${amountKES} ($${usdEquivalent} USD)`,
+      });
+    }
 
     if (!stkResult.success) {
       return NextResponse.json(
