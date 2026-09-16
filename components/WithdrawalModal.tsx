@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Smartphone, Bitcoin, AlertCircle, Loader2 } from 'lucide-react';
 
 interface WithdrawalModalProps {
@@ -23,6 +23,20 @@ export default function WithdrawalModal({
   const [cryptoNetwork, setCryptoNetwork] = useState('TRC20');
   const [status, setStatus] = useState<'IDLE' | 'SUBMITTING' | 'SUCCESS' | 'FAILED'>('IDLE');
   const [errorMsg, setErrorMsg] = useState('');
+  const [minWithdrawalUSD, setMinWithdrawalUSD] = useState<number>(10.0);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetch('/api/system/settings')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.settings?.MIN_WITHDRAWAL) {
+            setMinWithdrawalUSD(Number(data.settings.MIN_WITHDRAWAL));
+          }
+        })
+        .catch((err) => console.error('Fetch withdrawal settings error:', err));
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -102,12 +116,14 @@ export default function WithdrawalModal({
         {/* Body Form */}
         <form onSubmit={handleSubmit} className="p-5 space-y-4 text-xs">
           <div>
-            <label className="block text-slate-400 font-medium mb-1.5">Withdrawal Amount ($ USD)</label>
+            <label className="block text-slate-400 font-medium mb-1.5">
+              Withdrawal Amount ($ USD) <span className="text-purple-400 font-normal text-[11px]">(Min: ${minWithdrawalUSD.toFixed(2)})</span>
+            </label>
             <input
               type="number"
               value={amountUSD}
               onChange={(e) => setAmountUSD(e.target.value)}
-              min="5"
+              min={minWithdrawalUSD}
               max={availableBalance}
               className="w-full bg-[#0b0818] border border-purple-900/60 rounded-lg px-3 py-2.5 text-slate-100 font-mono text-sm focus:outline-none focus:border-purple-500"
               required

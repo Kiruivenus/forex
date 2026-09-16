@@ -7,6 +7,7 @@ import Instrument from '@/models/Instrument';
 import Trade from '@/models/Trade';
 import LedgerEntry from '@/models/LedgerEntry';
 import Notification from '@/models/Notification';
+import SystemSetting from '@/models/SystemSetting';
 import { evaluateTradeContract, generateNextTickPrice, TradeType, TradeDirection } from '@/lib/trading-engine';
 
 export async function POST(req: NextRequest) {
@@ -46,12 +47,18 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    if (stake < instrument.minStake || stake > instrument.maxStake) {
+    const minStakeSetting = await SystemSetting.findOne({ key: 'MIN_STAKE' });
+    const maxStakeSetting = await SystemSetting.findOne({ key: 'MAX_STAKE' });
+
+    const minStake = Number(minStakeSetting?.value) || instrument.minStake || 1.0;
+    const maxStake = Number(maxStakeSetting?.value) || instrument.maxStake || 5000.0;
+
+    if (stake < minStake || stake > maxStake) {
       return NextResponse.json(
         {
           success: false,
           code: 'STAKE_OUT_OF_BOUNDS',
-          message: `Stake must be between $${instrument.minStake} and $${instrument.maxStake}.`,
+          message: `Stake must be between $${minStake} and $${maxStake}.`,
         },
         { status: 400 }
       );

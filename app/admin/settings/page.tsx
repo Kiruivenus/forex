@@ -120,9 +120,9 @@ export default function AdminSettingsPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* SECTION 1: TRADING LIMITS */}
-        <div className="bg-[#120f26] border border-purple-900/60 rounded-2xl p-6 space-y-4 shadow-xl">
+        <div className="bg-[#120f26] border border-purple-900/60 rounded-2xl p-4 sm:p-6 space-y-4 shadow-xl">
           <div className="flex items-center space-x-2.5 border-b border-purple-950 pb-3">
             <DollarSign className="w-5 h-5 text-emerald-400" />
             <h2 className="font-extrabold text-sm text-slate-100">Trading Limits</h2>

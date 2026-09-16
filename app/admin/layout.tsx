@@ -13,13 +13,15 @@ import {
   LayoutDashboard,
   LogOut,
   TrendingUp,
-  Lock,
+  Menu,
+  X,
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [authorized, setAuthorized] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -48,9 +50,90 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   return (
-    <div className="min-h-screen bg-[#080a12] text-slate-100 flex font-sans">
-      {/* Admin Compact Sidebar */}
-      <aside className="w-64 bg-[#0e0c1f] border-r border-purple-950/80 flex flex-col justify-between shrink-0">
+    <div className="min-h-screen bg-[#080a12] text-slate-100 flex flex-col md:flex-row font-sans overflow-x-hidden">
+      {/* Mobile Top Header */}
+      <div className="md:hidden h-14 bg-[#0e0c1f] border-b border-purple-950/80 px-4 flex items-center justify-between z-40 sticky top-0">
+        <div className="flex items-center space-x-2 font-bold text-sm">
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle admin navigation menu"
+            className="p-1 text-slate-300 hover:text-white rounded-lg hover:bg-purple-900/40 transition-colors focus:outline-none mr-1"
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6 text-amber-400" /> : <Menu className="w-6 h-6 text-slate-200" />}
+          </button>
+          <img src="/logo.png" alt="ApexTrader Logo" className="w-6 h-6 object-contain mix-blend-screen shrink-0" />
+          <span className="text-slate-100 text-xs">
+            ApexTrader <span className="text-amber-400 font-extrabold">Admin</span>
+          </span>
+        </div>
+
+        <span className="text-[10px] font-bold text-amber-400 px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/30">
+          PROD MODE
+        </span>
+      </div>
+
+      {/* Mobile Slide-out Drawer Overlay */}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-50 flex">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+
+          {/* Drawer Content */}
+          <aside className="relative w-72 bg-[#0e0c1f] border-r border-purple-950 flex flex-col justify-between p-4 space-y-4 z-50 shadow-2xl animate-fade-in">
+            <div>
+              <div className="h-12 border-b border-purple-950 flex items-center justify-between pb-2 mb-3">
+                <div className="flex items-center space-x-2 font-bold text-sm">
+                  <img src="/logo.png" alt="ApexTrader Logo" className="w-7 h-7 object-contain mix-blend-screen shrink-0" />
+                  <span className="text-slate-100">ApexTrader <span className="text-amber-400">Admin</span></span>
+                </div>
+                <button
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-1 text-slate-400 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <nav className="space-y-1 text-xs font-semibold">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  const active = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`flex items-center space-x-2.5 px-3.5 py-2.5 rounded-xl transition-colors ${
+                        active ? 'bg-purple-600 text-white shadow-md font-bold' : 'text-slate-300 hover:text-white hover:bg-slate-800/40'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4 shrink-0" />
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+
+            <div className="pt-3 border-t border-purple-950 text-xs">
+              <Link
+                href="/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center space-x-2 text-slate-300 hover:text-white transition-colors"
+              >
+                <LogOut className="w-4 h-4 text-purple-400" />
+                <span>Return to Trader Hub</span>
+              </Link>
+            </div>
+          </aside>
+        </div>
+      )}
+
+      {/* Desktop Sidebar (Hidden on Mobile) */}
+      <aside className="hidden md:flex w-64 bg-[#0e0c1f] border-r border-purple-950/80 flex-col justify-between shrink-0 min-h-screen">
         <div>
           <div className="h-14 px-6 border-b border-purple-950/80 flex items-center space-x-2 font-bold text-sm">
             <img src="/logo.png" alt="ApexTrader Logo" className="w-7 h-7 object-contain mix-blend-screen shrink-0" />
@@ -89,13 +172,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* Main Admin Content Body */}
-      <div className="flex-1 overflow-y-auto">
-        <header className="h-14 bg-[#0e0c1f] border-b border-purple-950/80 px-6 flex items-center justify-between text-xs font-semibold">
+      <div className="flex-1 overflow-y-auto w-full">
+        <header className="hidden md:flex h-14 bg-[#0e0c1f] border-b border-purple-950/80 px-6 items-center justify-between text-xs font-semibold">
           <span className="text-amber-400">ADMIN OPERATIONAL CONSOLE</span>
           <span className="text-slate-400">Environment: Production Mode</span>
         </header>
 
-        <div className="p-6">{children}</div>
+        <main className="p-3 sm:p-6 w-full max-w-full overflow-x-hidden">{children}</main>
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import Wallet from '@/models/Wallet';
 import Withdrawal from '@/models/Withdrawal';
 import LedgerEntry from '@/models/LedgerEntry';
 import Notification from '@/models/Notification';
+import SystemSetting from '@/models/SystemSetting';
 
 export async function POST(req: NextRequest) {
   const auth = await verifyApiAuth(req);
@@ -15,14 +16,17 @@ export async function POST(req: NextRequest) {
   try {
     const { method, amountUSD, destination, cryptoAsset, cryptoNetwork } = await req.json();
 
-    if (!method || !amountUSD || !destination || amountUSD < 5) {
+    await connectToDatabase();
+
+    const minWithdrawalSetting = await SystemSetting.findOne({ key: 'MIN_WITHDRAWAL' });
+    const minWithdrawalLimit = Number(minWithdrawalSetting?.value) || 10.0;
+
+    if (!method || !amountUSD || !destination || amountUSD < minWithdrawalLimit) {
       return NextResponse.json(
-        { success: false, code: 'INVALID_INPUT', message: 'Minimum withdrawal amount is $5.00.' },
+        { success: false, code: 'INVALID_INPUT', message: `Minimum withdrawal amount is $${minWithdrawalLimit.toFixed(2)} USD.` },
         { status: 400 }
       );
     }
-
-    await connectToDatabase();
 
     const wallet = await Wallet.findOne({ userId: auth.user.userId });
     if (!wallet || wallet.availableBalance < amountUSD) {

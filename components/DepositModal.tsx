@@ -37,6 +37,26 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
   const [cryptoError, setCryptoError] = useState('');
   const [copied, setCopied] = useState(false);
 
+  // System settings state
+  const [minDepositUSD, setMinDepositUSD] = useState<number>(5.0);
+  const [mpesaRate, setMpesaRate] = useState<number>(130.0);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetch('/api/system/settings')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.settings) {
+            if (data.settings.MIN_DEPOSIT) setMinDepositUSD(Number(data.settings.MIN_DEPOSIT));
+            if (data.settings.MPESA_USD_RATE) setMpesaRate(Number(data.settings.MPESA_USD_RATE));
+          }
+        })
+        .catch((err) => console.error('Fetch system settings error:', err));
+    }
+  }, [isOpen]);
+
+  const minKesRequired = Math.ceil(minDepositUSD * mpesaRate);
+
   useEffect(() => {
     if (isOpen && activeTab === 'CRYPTO') {
       fetch('/api/deposits/crypto')
@@ -208,17 +228,19 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
               </div>
 
               <div>
-                <label className="block text-slate-400 font-medium mb-1.5">Deposit Amount (KES)</label>
+                <label className="block text-slate-400 font-medium mb-1.5">
+                  Deposit Amount (KES) <span className="text-purple-400 font-normal text-[11px]">(Min: KES {minKesRequired})</span>
+                </label>
                 <input
                   type="number"
                   value={amountKES}
                   onChange={(e) => setAmountKES(e.target.value)}
-                  min="10"
+                  min={minKesRequired}
                   className="w-full bg-[#0b0818] border border-purple-900/60 rounded-lg px-3 py-2.5 text-slate-100 font-mono text-sm focus:outline-none focus:border-purple-500"
                   required
                 />
                 <p className="text-[11px] text-slate-400 mt-1">
-                  Estimated Wallet Credit: <span className="font-bold text-emerald-400">${(Number(amountKES) / 130).toFixed(2)} USD</span> (1 USD ≈ 130 KES)
+                  Estimated Wallet Credit: <span className="font-bold text-emerald-400">${(Number(amountKES) / mpesaRate).toFixed(2)} USD</span> (1 USD ≈ {mpesaRate} KES)
                 </p>
               </div>
 

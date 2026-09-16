@@ -15,18 +15,27 @@ export async function POST(req: NextRequest) {
   try {
     const { phoneNumber, amountKES } = await req.json();
 
-    if (!phoneNumber || !amountKES || amountKES < 10) {
+    await connectToDatabase();
+
+    // Get KES to USD rate and MIN_DEPOSIT limit from SystemSettings
+    const rateSetting = await SystemSetting.findOne({ key: 'MPESA_USD_RATE' });
+    const minDepositSetting = await SystemSetting.findOne({ key: 'MIN_DEPOSIT' });
+
+    const kesToUsdRate = Number(rateSetting?.value) || 130.0;
+    const minDepositUsd = Number(minDepositSetting?.value) || 5.0;
+    const minKesAmount = Math.ceil(minDepositUsd * kesToUsdRate);
+
+    if (!phoneNumber || !amountKES || amountKES < minKesAmount) {
       return NextResponse.json(
-        { success: false, code: 'INVALID_AMOUNT', message: 'Minimum deposit amount via M-Pesa is KES 10.' },
+        {
+          success: false,
+          code: 'INVALID_AMOUNT',
+          message: `Minimum deposit via M-Pesa is KES ${minKesAmount} (~$${minDepositUsd} USD).`,
+        },
         { status: 400 }
       );
     }
 
-    await connectToDatabase();
-
-    // Get KES to USD rate from SystemSettings or default 130
-    const rateSetting = await SystemSetting.findOne({ key: 'MPESA_USD_RATE' });
-    const kesToUsdRate = Number(rateSetting?.value) || 130.0;
     const usdEquivalent = Number((amountKES / kesToUsdRate).toFixed(2));
 
     const provider = process.env.MPESA_PROVIDER || (process.env.GRAVITYPAY_API_KEY ? 'GRAVITYPAY' : 'DARAJA');

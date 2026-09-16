@@ -3,6 +3,7 @@ import { verifyApiAuth } from '@/lib/auth';
 import { connectToDatabase } from '@/lib/db';
 import CryptoAsset from '@/models/CryptoAsset';
 import Deposit from '@/models/Deposit';
+import SystemSetting from '@/models/SystemSetting';
 
 export async function GET() {
   await connectToDatabase();
@@ -33,9 +34,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'Selected crypto payment method is unavailable.' }, { status: 404 });
     }
 
-    if (amountUSD < asset.minDeposit) {
+    const minDepositSetting = await SystemSetting.findOne({ key: 'MIN_DEPOSIT' });
+    const minDepositLimit = Math.max(Number(minDepositSetting?.value) || 5.0, asset.minDeposit || 5.0);
+
+    if (amountUSD < minDepositLimit) {
       return NextResponse.json(
-        { success: false, message: `Minimum deposit for ${symbol} (${network}) is $${asset.minDeposit}.` },
+        { success: false, message: `Minimum deposit for ${symbol} (${network}) is $${minDepositLimit}.` },
         { status: 400 }
       );
     }
