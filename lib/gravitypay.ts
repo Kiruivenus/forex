@@ -1,19 +1,30 @@
+import crypto from 'crypto';
+
 export interface GravityPaySTKPushParams {
   phoneNumber: string;
   amount: number;
   accountReference?: string;
   transactionDesc?: string;
-  callbackUrl?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface GravityPaySTKPushResponse {
   success: boolean;
+  transactionId?: string;
   merchantRequestId?: string;
   checkoutRequestId?: string;
   customerMessage?: string;
   errorMessage?: string;
   code?: string;
   rawResponse?: Record<string, unknown>;
+}
+
+export interface GravityPayStatusResponse {
+  success: boolean;
+  status?: string;
+  checkoutRequestId?: string;
+  mpesaReceipt?: string;
+  errorMessage?: string;
 }
 
 export function formatGravityPayPhone(phone: string): string {
@@ -31,19 +42,42 @@ export function formatGravityPayPhone(phone: string): string {
 }
 
 /**
- * Initiates an M-Pesa STK Push prompt via GravityPayApp API gateway
+ * Verifies GravityPay Webhook HMAC SHA-256 signature header
+ */
+export function verifyGravityPayWebhookSignature(
+  rawBody: string,
+  signatureHeader: string | null
+): boolean {
+  const secret = process.env.GRAVITYPAY_WEBHOOK_SECRET;
+  if (!secret) return true; // Skip verification if webhook secret is not configured in dev environment
+  if (!signatureHeader) return false;
+
+  try {
+    const computedSignature = crypto
+      .createHmac('sha256', secret)
+      .update(rawBody)
+      .digest('hex');
+
+    return crypto.timingSafeEqual(
+      Buffer.from(signatureHeader.toLowerCase()),
+      Buffer.from(computedSignature.toLowerCase())
+    );
+  } catch (err) {
+    console.error('GravityPay signature verification error:', err);
+    return false;
+  }
+}
+
+/**
+ * Initiates an M-Pesa STK Push prompt via official GravityPayApp API (https://api.gravitypayapp.com/api/v1/stk/push)
  */
 export async function initiateGravityPaySTKPush(
   params: GravityPaySTKPushParams
 ): Promise<GravityPaySTKPushResponse> {
-  const apiKey = process.env.GRAVITYPAY_API_KEY;
-  const gravityPayUrl =
-    process.env.GRAVITYPAY_STK_URL || 'https://gravitypayapp.com/api/v1/stkpush';
-  const callbackUrl =
-    params.callbackUrl ||
-    process.env.GRAVITYPAY_CALLBACK_URL ||
-    process.env.MPESA_CALLBACK_URL ||
-    'https://apextrader.com/api/deposits/mpesa/gravitypay/callback';
+  const secretKey = process.env.GRAVITYPAY_SECRET_KEY || process.env.GRAVITYPAY_API_KEY;
+  const publicKey = process.env.GRAVITYPAY_PUBLIC_KEY || process.env.GRAVITYPAY_API_KEY;
+  const baseUrl = process.env.GRAVITYPAY_BASE_URL || 'https://api.gravitypayapp.com';
+  const stkEndpoint = `${baseUrl}/api/v1/stk/push`;
 
   const formattedPhone = formatGravityPayPhone(params.phoneNumber);
 
@@ -63,92 +97,83 @@ export async function initiateGravityPaySTKPush(
     };
   }
 
-  // If GravityPay API Key is not set, simulate STK Push for development/sandbox mode
-  if (!apiKey) {
+  // Generate safe 12-char reference for strict GravityPay validation
+  const rawRef = params.accountReference || 'ApexTrader';
+  const sanitizedReference = rawRef.replace(/[^a-zA-Z0-9]/g, '').slice(0, 12) || 'ApexTrader';
+  const truncatedDesc = (params.transactionDesc || 'ApexTrader Deposit').slice(0, 20);
+
+  // Development sandbox simulation mode if API key is not set
+  if (!secretKey) {
     const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
-    const mockCheckoutId = `gp_CO_${timestamp}_${Math.floor(100000 + Math.random() * 900000)}`;
-    const mockMerchantId = `GRAVITYPAY_${Math.floor(1000 + Math.random() * 9000)}`;
+    const mockCheckoutId = `ws_CO_${timestamp}_${Math.floor(100000 + Math.random() * 900000)}`;
+    const mockMerchantId = `45091-${Math.floor(100000 + Math.random() * 900000)}-1`;
+    const mockTxId = `tx_${Date.now()}`;
 
     return {
       success: true,
+      transactionId: mockTxId,
       merchantRequestId: mockMerchantId,
       checkoutRequestId: mockCheckoutId,
-      customerMessage: `STK Push prompt sent to ${formattedPhone} for KES ${params.amount} via GravityPayApp. Check your phone to complete payment.`,
+      customerMessage: `STK Push prompt sent to ${formattedPhone} for KES ${params.amount} via GravityPay. Check your phone to complete payment.`,
     };
   }
 
   const requestBody = {
-    api_key: apiKey,
-    apiKey,
-    phone: formattedPhone,
     phoneNumber: formattedPhone,
     amount: Math.round(params.amount),
-    reference: params.accountReference || 'ApexTrader',
-    account_reference: params.accountReference || 'ApexTrader',
-    description: params.transactionDesc || 'Deposit to ApexTrader Wallet',
-    callback_url: callbackUrl,
-    callbackUrl,
+    reference: sanitizedReference,
+    description: truncatedDesc,
+    metadata: params.metadata || {},
   };
 
   try {
-    const res = await fetch(gravityPayUrl, {
+    const res = await fetch(stkEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-        'X-API-KEY': apiKey,
+        Authorization: `Bearer ${secretKey}`,
+        'x-api-key': publicKey || secretKey,
       },
       body: JSON.stringify(requestBody),
     });
 
     const data = await res.json().catch(() => ({}));
 
-    // Support flexible status responses from GravityPayApp API
-    const isSuccess =
-      data.status === 'success' ||
-      data.status === 'SUCCESS' ||
-      data.status === true ||
-      data.success === true ||
-      data.code === '200' ||
-      data.ResponseCode === '0' ||
-      res.ok;
+    if (data.success || res.ok) {
+      const responseData = data.data || {};
+      const checkoutRequestId =
+        responseData.checkoutRequestId ||
+        responseData.checkout_request_id ||
+        data.checkoutRequestId ||
+        `ws_CO_${Date.now()}`;
 
-    const checkoutRequestId =
-      data.checkout_request_id ||
-      data.checkoutRequestId ||
-      data.CheckoutRequestID ||
-      data.id ||
-      `gp_CO_${Date.now()}`;
+      const merchantRequestId =
+        responseData.merchantRequestId ||
+        responseData.merchant_request_id ||
+        data.merchantRequestId ||
+        `MR_${Date.now()}`;
 
-    const merchantRequestId =
-      data.merchant_request_id ||
-      data.merchantRequestId ||
-      data.MerchantRequestID ||
-      data.reference ||
-      `gp_MR_${Date.now()}`;
+      const transactionId =
+        responseData.transactionId ||
+        responseData.transaction_id ||
+        data.transactionId;
 
-    const customerMessage =
-      data.message ||
-      data.customer_message ||
-      data.CustomerMessage ||
-      `STK Push sent to ${formattedPhone} for KES ${params.amount}. Enter M-Pesa PIN on your phone.`;
-
-    if (isSuccess) {
       return {
         success: true,
+        transactionId,
         merchantRequestId,
         checkoutRequestId,
-        customerMessage,
+        customerMessage: data.message || `STK Push sent to ${formattedPhone} for KES ${params.amount}. Please enter your M-Pesa PIN.`,
         rawResponse: data,
       };
     } else {
       return {
         success: false,
-        code: data.code || data.status || 'GRAVITYPAY_ERROR',
+        code: String(res.status || data.errorCode || 'GRAVITYPAY_ERROR'),
         errorMessage:
           data.message ||
-          data.error ||
           data.errorMessage ||
+          data.error ||
           'Failed to initiate GravityPay STK push prompt.',
         rawResponse: data,
       };
@@ -158,7 +183,56 @@ export async function initiateGravityPaySTKPush(
     return {
       success: false,
       code: 'NETWORK_ERROR',
-      errorMessage: 'Failed to connect to GravityPayApp gateway. Please try again.',
+      errorMessage: 'Failed to connect to GravityPay gateway. Please check server network connection.',
     };
+  }
+}
+
+/**
+ * Checks status of an STK push transaction using official GravityPay status API
+ */
+export async function checkGravityPayStatus(
+  checkoutRequestId: string
+): Promise<GravityPayStatusResponse> {
+  const secretKey = process.env.GRAVITYPAY_SECRET_KEY || process.env.GRAVITYPAY_API_KEY;
+  const publicKey = process.env.GRAVITYPAY_PUBLIC_KEY || process.env.GRAVITYPAY_API_KEY;
+  const baseUrl = process.env.GRAVITYPAY_BASE_URL || 'https://api.gravitypayapp.com';
+
+  if (!secretKey) {
+    return { success: false, errorMessage: 'API key not configured' };
+  }
+
+  const statusUrl = `${baseUrl}/api/v1/stk/status/${encodeURIComponent(checkoutRequestId)}`;
+
+  try {
+    const res = await fetch(statusUrl, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${secretKey}`,
+        'x-api-key': publicKey || secretKey,
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (data.success || res.ok) {
+      const statusData = data.data || data;
+      return {
+        success: true,
+        status: statusData.status,
+        checkoutRequestId: statusData.checkoutRequestId || checkoutRequestId,
+        mpesaReceipt: statusData.mpesaReceipt,
+      };
+    } else {
+      return {
+        success: false,
+        errorMessage: data.message || 'Status query failed',
+      };
+    }
+  } catch (err) {
+    console.error('GravityPay status query error:', err);
+    return { success: false, errorMessage: 'Network error querying status' };
   }
 }

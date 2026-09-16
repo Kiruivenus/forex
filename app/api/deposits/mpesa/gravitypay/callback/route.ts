@@ -4,46 +4,43 @@ import Deposit from '@/models/Deposit';
 import Wallet from '@/models/Wallet';
 import LedgerEntry from '@/models/LedgerEntry';
 import Notification from '@/models/Notification';
+import { verifyGravityPayWebhookSignature } from '@/lib/gravitypay';
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json().catch(() => ({}));
+    const rawBody = await req.text();
+    const signatureHeader = req.headers.get('x-webhook-signature') || req.headers.get('X-Webhook-Signature');
 
-    // Handle GravityPay direct payload or forwarded Daraja callback structure
-    const stkCallback = body?.Body?.stkCallback;
+    // Verify Webhook HMAC signature if WEBHOOK_SECRET is configured
+    const isValidSignature = verifyGravityPayWebhookSignature(rawBody, signatureHeader);
+    if (!isValidSignature) {
+      console.warn('GravityPay Callback: Invalid webhook signature header');
+      return NextResponse.json({ success: false, message: 'Invalid webhook signature' }, { status: 401 });
+    }
 
+    const body = JSON.parse(rawBody || '{}');
+
+    // Official GravityPay callback payload parameters
     const checkoutRequestId =
-      stkCallback?.CheckoutRequestID ||
-      body?.checkout_request_id ||
       body?.checkoutRequestId ||
-      body?.CheckoutRequestID ||
-      body?.id;
+      body?.checkout_request_id ||
+      body?.CheckoutRequestID;
 
     const merchantRequestId =
-      stkCallback?.MerchantRequestID ||
-      body?.merchant_request_id ||
       body?.merchantRequestId ||
+      body?.merchant_request_id ||
       body?.MerchantRequestID;
 
-    const status =
-      body?.status ||
-      body?.state ||
-      (stkCallback?.ResultCode === 0 ? 'COMPLETED' : 'FAILED');
-
-    const isSuccess =
-      status === 'COMPLETED' ||
-      status === 'SUCCESS' ||
-      status === 'success' ||
-      status === 'COMPLETED_SUCCESS' ||
-      stkCallback?.ResultCode === 0;
+    const status = (body?.status || body?.state || '').toLowerCase();
+    const isSuccess = status === 'success' || status === 'completed' || body?.errorCode === 0 || body?.ResultCode === 0;
 
     if (!checkoutRequestId && !merchantRequestId) {
-      return NextResponse.json({ success: false, message: 'Invalid callback payload' }, { status: 400 });
+      return NextResponse.json({ success: false, message: 'Missing transaction identifier' }, { status: 400 });
     }
 
     await connectToDatabase();
 
-    // Query deposit by checkoutRequestId or merchantRequestId
+    // Query deposit record
     let deposit = null;
     if (checkoutRequestId) {
       deposit = await Deposit.findOne({ checkoutRequestId });
@@ -53,41 +50,27 @@ export async function POST(req: NextRequest) {
     }
 
     if (!deposit) {
-      console.warn(`GravityPay Callback: Deposit not found for ${checkoutRequestId || merchantRequestId}`);
+      console.warn(`GravityPay Callback: Deposit record not found for ${checkoutRequestId || merchantRequestId}`);
       return NextResponse.json({ success: true, message: 'Deposit record not found, acknowledged' });
     }
 
-    // Idempotency check: ignore if already processed
+    // Idempotency: skip processing if already finalized
     if (deposit.status === 'COMPLETED' || deposit.status === 'FAILED') {
-      return NextResponse.json({ success: true, message: 'Already processed' });
+      return NextResponse.json({ success: true, message: 'Transaction already processed' });
     }
 
     if (isSuccess) {
-      // Extract receipt number from GravityPay body or Daraja CallbackMetadata
-      let mpesaReceipt =
-        body?.mpesa_receipt ||
-        body?.mpesaReceiptNumber ||
+      const mpesaReceipt =
         body?.mpesaReceipt ||
+        body?.mpesa_receipt ||
         body?.receipt ||
-        body?.receipt_number;
-
-      if (!mpesaReceipt && stkCallback?.CallbackMetadata?.Item) {
-        for (const item of stkCallback.CallbackMetadata.Item) {
-          if (item.Name === 'MpesaReceiptNumber') {
-            mpesaReceipt = String(item.Value);
-          }
-        }
-      }
-
-      if (!mpesaReceipt) {
-        mpesaReceipt = `GP${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
-      }
+        `GP${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
 
       deposit.status = 'COMPLETED';
       deposit.mpesaReceipt = mpesaReceipt;
       await deposit.save();
 
-      // Atomically update user wallet balance
+      // Credit USD wallet balance atomically
       const wallet = await Wallet.findOne({ userId: deposit.userId });
       if (wallet) {
         const balanceBefore = wallet.availableBalance;
@@ -98,7 +81,7 @@ export async function POST(req: NextRequest) {
         wallet.totalDeposited = Number((wallet.totalDeposited + creditAmount).toFixed(2));
         await wallet.save();
 
-        // Record Ledger Entry
+        // Add ledger record
         await LedgerEntry.create({
           userId: deposit.userId,
           type: 'DEPOSIT',
@@ -106,10 +89,10 @@ export async function POST(req: NextRequest) {
           balanceBefore,
           balanceAfter,
           referenceId: deposit._id.toString(),
-          description: `GravityPay STK Deposit KES ${deposit.amount} ($${creditAmount} USD) - Receipt ${mpesaReceipt}`,
+          description: `GravityPay M-Pesa Deposit KES ${deposit.amount} ($${creditAmount} USD) - Receipt ${mpesaReceipt}`,
         });
 
-        // Notify User
+        // Add notification
         await Notification.create({
           userId: deposit.userId,
           type: 'FINANCIAL',
@@ -119,11 +102,10 @@ export async function POST(req: NextRequest) {
       }
     } else {
       const failureReason =
-        body?.failure_reason ||
+        body?.errorMessage ||
         body?.error ||
         body?.message ||
-        stkCallback?.ResultDesc ||
-        'Payment cancelled or failed.';
+        `Payment failed with status code ${body?.errorCode || 'FAILED'}`;
 
       deposit.status = 'FAILED';
       deposit.failureReason = failureReason;
@@ -137,9 +119,9 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    return NextResponse.json({ success: true, message: 'Callback processed successfully' });
+    return NextResponse.json({ success: true, message: 'Webhook callback processed successfully' });
   } catch (error) {
-    console.error('GravityPay Callback Error:', error);
+    console.error('GravityPay Callback Route Error:', error);
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
   }
 }
