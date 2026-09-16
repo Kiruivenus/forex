@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ success: false, message: 'Deposit transaction not found' }, { status: 404 });
   }
 
-  // If pending, check status via GravityPay API if configured
+  // If pending, check status via official GravityPay API (if configured)
   if (deposit.status === 'PENDING' && (process.env.GRAVITYPAY_SECRET_KEY || process.env.GRAVITYPAY_API_KEY)) {
     const gpStatus = await checkGravityPayStatus(checkoutRequestId);
     if (gpStatus.success && gpStatus.status) {
@@ -70,44 +70,6 @@ export async function GET(req: NextRequest) {
         deposit.status = 'FAILED';
         deposit.failureReason = gpStatus.errorMessage || 'Transaction cancelled or failed.';
         await deposit.save();
-      }
-    }
-  }
-
-  // Sandbox simulation fallback for testing environments without live API keys
-  if (deposit.status === 'PENDING' && checkoutRequestId.startsWith('ws_CO_')) {
-    const elapsedMs = Date.now() - new Date(deposit.createdAt).getTime();
-    if (elapsedMs > 6000) {
-      deposit.status = 'COMPLETED';
-      deposit.mpesaReceipt = `Q${Math.random().toString(36).substring(2, 9).toUpperCase()}89`;
-      await deposit.save();
-
-      const wallet = await Wallet.findOne({ userId: deposit.userId });
-      if (wallet) {
-        const balanceBefore = wallet.availableBalance;
-        const creditAmount = deposit.usdEquivalent;
-        const balanceAfter = Number((balanceBefore + creditAmount).toFixed(2));
-
-        wallet.availableBalance = balanceAfter;
-        wallet.totalDeposited = Number((wallet.totalDeposited + creditAmount).toFixed(2));
-        await wallet.save();
-
-        await LedgerEntry.create({
-          userId: deposit.userId,
-          type: 'DEPOSIT',
-          amount: creditAmount,
-          balanceBefore,
-          balanceAfter,
-          referenceId: deposit._id.toString(),
-          description: `M-Pesa STK Deposit KES ${deposit.amount} ($${creditAmount} USD) - Receipt ${deposit.mpesaReceipt}`,
-        });
-
-        await Notification.create({
-          userId: deposit.userId,
-          type: 'FINANCIAL',
-          title: 'Deposit Successful',
-          message: `Your deposit of KES ${deposit.amount} ($${creditAmount} USD) via M-Pesa was credited to your wallet.`,
-        });
       }
     }
   }
