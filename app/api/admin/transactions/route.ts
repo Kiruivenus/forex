@@ -3,6 +3,7 @@ import { verifyApiAuth } from '@/lib/auth';
 import { connectToDatabase } from '@/lib/db';
 import Deposit from '@/models/Deposit';
 import Withdrawal from '@/models/Withdrawal';
+import User from '@/models/User';
 import Wallet from '@/models/Wallet';
 import LedgerEntry from '@/models/LedgerEntry';
 import Notification from '@/models/Notification';
@@ -16,8 +17,8 @@ export async function GET(req: NextRequest) {
 
   await connectToDatabase();
 
-  const deposits = await Deposit.find({}).sort({ createdAt: -1 }).limit(100);
-  const withdrawals = await Withdrawal.find({}).sort({ createdAt: -1 }).limit(100);
+  const deposits = await Deposit.find({}).populate('userId', 'name email').sort({ createdAt: -1 }).limit(100);
+  const withdrawals = await Withdrawal.find({}).populate('userId', 'name email').sort({ createdAt: -1 }).limit(100);
 
   return NextResponse.json({ success: true, deposits, withdrawals });
 }
