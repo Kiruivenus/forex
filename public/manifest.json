@@ -1,0 +1,22 @@
+{
+  "name": "ApexTrader High-Frequency Trading Terminal",
+  "short_name": "ApexTrader",
+  "description": "Next-Generation HFT Trading Terminal for Volatility Indices, Safaricom M-Pesa STK Push Deposits, and AI Signal Scanning",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0e17",
+  "theme_color": "#120f26",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
