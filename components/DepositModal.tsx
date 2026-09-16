@@ -155,11 +155,6 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
     e.preventDefault();
     if (!selectedAsset) return;
 
-    if (!txHash || txHash.trim().length < 5) {
-      setCryptoError('Please enter a valid transaction hash (TxID).');
-      return;
-    }
-
     setCryptoStatus('SUBMITTING');
     setCryptoError('');
 
@@ -444,29 +439,12 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
                     </div>
                   </div>
 
-                  {/* TxID Proof Form */}
+                  {/* Deposit Proof Submission Form */}
                   <form onSubmit={handleCryptoSubmit} className="space-y-3 pt-1">
-                    <div>
-                      <label className="block text-slate-300 font-semibold mb-1">
-                        Transaction Hash (TxID)
-                      </label>
-                      <input
-                        type="text"
-                        value={txHash}
-                        onChange={(e) => {
-                          setTxHash(e.target.value);
-                          setCryptoError('');
-                        }}
-                        placeholder="Paste blockchain transaction hash after sending funds"
-                        className="w-full bg-[#0b0818] border border-purple-900/60 rounded-xl px-3.5 py-2.5 text-slate-100 font-mono text-xs focus:outline-none focus:border-purple-500"
-                        required
-                      />
-                    </div>
-
                     {cryptoStatus === 'SUCCESS' && (
                       <div className="bg-emerald-950/60 border border-emerald-600/50 p-3 rounded-xl text-emerald-300 flex items-center space-x-2">
                         <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                        <span className="font-semibold">Deposit proof submitted! Pending admin verification.</span>
+                        <span className="font-semibold">Deposit request recorded! Pending admin verification.</span>
                       </div>
                     )}
 
@@ -492,10 +470,10 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
                       {cryptoStatus === 'SUBMITTING' ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Submitting Proof...</span>
+                          <span>Notifying Admin...</span>
                         </>
                       ) : (
-                        <span>Submit Deposit Proof</span>
+                        <span>Confirm I Have Made The Transfer</span>
                       )}
                     </button>
 

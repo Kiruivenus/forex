@@ -80,9 +80,9 @@ export async function POST(req: NextRequest) {
   try {
     const { symbol, network, amountUSD, txHash, depositAddress } = await req.json();
 
-    if (!symbol || !network || !amountUSD || !txHash) {
+    if (!symbol || !network || !amountUSD) {
       return NextResponse.json(
-        { success: false, message: 'Crypto asset, network, USD amount, and transaction hash are required.' },
+        { success: false, message: 'Crypto asset, network, and USD amount are required.' },
         { status: 400 }
       );
     }
@@ -99,13 +99,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check duplicate Tx Hash
-    const existingTx = await Deposit.findOne({ txHash });
-    if (existingTx) {
-      return NextResponse.json(
-        { success: false, message: 'This transaction hash has already been submitted.' },
-        { status: 409 }
-      );
+    const finalTxHash = (txHash && txHash.trim().length > 0)
+      ? txHash.trim()
+      : `CRYPTO_REF_${Date.now()}_${Math.floor(1000 + Math.random() * 9000)}`;
+
+    // Check duplicate Tx Hash if explicitly provided
+    if (txHash && txHash.trim().length > 0) {
+      const existingTx = await Deposit.findOne({ txHash: finalTxHash });
+      if (existingTx) {
+        return NextResponse.json(
+          { success: false, message: 'This transaction hash has already been submitted.' },
+          { status: 409 }
+        );
+      }
     }
 
     let finalAddress = depositAddress;
@@ -132,13 +138,13 @@ export async function POST(req: NextRequest) {
       cryptoAsset: symbol,
       cryptoNetwork: network,
       cryptoAddress: finalAddress || 'Admin Wallet',
-      txHash,
+      txHash: finalTxHash,
       status: 'PENDING',
     });
 
     return NextResponse.json({
       success: true,
-      message: 'Crypto deposit proof submitted successfully. Your transaction is pending verification.',
+      message: 'Crypto deposit notification submitted successfully. Your transaction is pending verification.',
       depositId: deposit._id.toString(),
     });
   } catch (error) {
