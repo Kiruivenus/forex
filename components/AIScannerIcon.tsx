@@ -4,20 +4,32 @@ interface AIScannerIconProps {
   className?: string;
 }
 
-export default function AIScannerIcon({ className = 'w-6 h-6' }: AIScannerIconProps) {
+export default function AIScannerIcon({ className = 'w-11 h-11' }: AIScannerIconProps) {
   return (
-    <svg className={className} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="aiGlowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#ff7e47" />
-          <stop offset="50%" stopColor="#ff2e93" />
-          <stop offset="100%" stopColor="#a832e8" />
-        </linearGradient>
-      </defs>
-      <rect x="6" y="6" width="52" height="52" rx="16" fill="url(#aiGlowGrad)" />
-      <path d="M32 17 C32 24.5 39.5 32 47 32 C39.5 32 32 39.5 32 47 C32 39.5 24.5 32 17 32 C24.5 32 32 24.5 32 17 Z" fill="white" />
-      <path d="M44 19 C44 21 46 23 48 23 C46 23 44 25 44 27 C44 25 42 23 40 23 C42 23 44 21 44 19 Z" fill="white" opacity="0.9" />
-      <path d="M20 41 C20 42.5 21.5 44 23 44 C21.5 44 20 45.5 20 47 C20 45.5 18.5 44 17 44 C18.5 44 20 42.5 20 41 Z" fill="white" opacity="0.9" />
-    </svg>
+    <div className={`relative flex items-center justify-center shrink-0 ${className}`}>
+      {/* Outer Soft Glow Aura */}
+      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#ff7e36] via-[#e91e63] to-[#9c27b0] blur-[8px] opacity-75 animate-pulse" />
+
+      {/* Main Rounded Square App Icon Box */}
+      <div className="relative w-full h-full rounded-2xl bg-gradient-to-br from-[#ff7e36] via-[#e91e63] to-[#9c27b0] shadow-lg shadow-pink-500/50 flex items-center justify-center overflow-hidden border border-white/20">
+        {/* Subtle Inner Glass Reflection */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-transparent to-black/20 pointer-events-none" />
+
+        {/* 4-Pointed Magic Sparkle Star */}
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-[65%] h-[65%] text-white drop-shadow-md">
+          {/* Main Big 4-pointed Star */}
+          <path
+            d="M24 7 C24 15.5 15.5 24 7 24 C15.5 24 24 32.5 24 41 C24 32.5 32.5 24 41 24 C32.5 24 24 15.5 24 7 Z"
+            fill="white"
+          />
+          {/* Top-Right Secondary Small Sparkle */}
+          <path
+            d="M35 7 C35 9.5 32.5 12 30 12 C32.5 12 35 14.5 35 17 C35 14.5 37.5 12 40 12 C37.5 12 35 9.5 35 7 Z"
+            fill="white"
+            opacity="0.95"
+          />
+        </svg>
+      </div>
+    </div>
   );
 }
