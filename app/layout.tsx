@@ -12,19 +12,20 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://apextrader.app';
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://paloption.app';
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
-    default: 'ApexTrader | Next-Gen HFT Trading Platform & AI Entry Scanner',
-    template: '%s | ApexTrader',
+    default: 'PalOption | Next-Gen HFT Trading Platform & AI Entry Scanner',
+    template: '%s | PalOption',
   },
   description:
-    'Trade Synthetic Volatility Indices (Vol 10, Vol 25, Vol 50, Vol 75, Vol 100 1s), Forex Pairs, and Crypto with microsecond tick execution, instant Safaricom M-Pesa STK Push deposits, and real-time AI Entry Scanning signals.',
+    'Trade Synthetic Volatility Indices (Vol 10, Vol 25, Vol 50, Vol 75, Vol 100 1s), Forex Pairs, and Crypto with microsecond tick execution, instant Safaricom M-Pesa STK Push deposits, and real-time AI Entry Scanning signals on PalOption.',
   keywords: [
-    'ApexTrader',
-    'Apex Trader',
+    'PalOption',
+    'Pal Option',
+    'PalOption Trading',
     'Synthetic Volatility Indices',
     'Vol 10 1s index',
     'Vol 25 1s index',
@@ -44,11 +45,11 @@ export const metadata: Metadata = {
     'High Frequency Trading Terminal',
     'Binary Options Kenya M-Pesa',
   ],
-  authors: [{ name: 'ApexTrader Technologies', url: baseUrl }],
-  creator: 'ApexTrader Technologies',
-  publisher: 'ApexTrader Technologies',
+  authors: [{ name: 'PalOption Technologies', url: baseUrl }],
+  creator: 'PalOption Technologies',
+  publisher: 'PalOption Technologies',
   category: 'Finance / Financial Trading Platform',
-  applicationName: 'ApexTrader Terminal',
+  applicationName: 'PalOption Terminal',
   referrer: 'origin-when-cross-origin',
   icons: {
     icon: [
@@ -60,17 +61,17 @@ export const metadata: Metadata = {
   },
   manifest: '/manifest.json',
   openGraph: {
-    title: 'ApexTrader | Next-Gen HFT Trading Platform & AI Entry Scanner',
+    title: 'PalOption | Next-Gen HFT Trading Platform & AI Entry Scanner',
     description:
       'Institutional-grade high-frequency trading terminal for Volatility Indices & Forex. Instant Safaricom M-Pesa STK Push deposits, crypto support, and automated AI signal scanning.',
     url: baseUrl,
-    siteName: 'ApexTrader',
+    siteName: 'PalOption',
     images: [
       {
         url: `${baseUrl}/logo.png`,
         width: 1200,
         height: 630,
-        alt: 'ApexTrader High-Frequency Trading Terminal',
+        alt: 'PalOption High-Frequency Trading Terminal',
       },
     ],
     locale: 'en_US',
@@ -78,11 +79,11 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ApexTrader | HFT Trading Platform & AI Scanner',
+    title: 'PalOption | HFT Trading Platform & AI Scanner',
     description:
       'Trade Volatility Indices with microsecond speed, automated Safaricom M-Pesa STK Push deposits & AI Scanner signals.',
     images: [`${baseUrl}/logo.png`],
-    creator: '@apextrader',
+    creator: '@paloption',
   },
   robots: {
     index: true,
@@ -105,13 +106,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const jsonLdSchema = {
     '@context': 'https://schema.org',
     '@type': 'FinancialProduct',
-    name: 'ApexTrader High-Frequency Trading Platform',
+    name: 'PalOption High-Frequency Trading Platform',
     url: baseUrl,
     description:
       'Institutional-grade trading terminal for Synthetic Volatility Indices, Forex, and Crypto with instant Safaricom M-Pesa STK Push deposits and AI Entry Scanning.',
     brand: {
       '@type': 'Brand',
-      name: 'ApexTrader',
+      name: 'PalOption',
       logo: `${baseUrl}/logo.png`,
     },
     offers: {

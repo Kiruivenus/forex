@@ -98,9 +98,9 @@ export async function initiateGravityPaySTKPush(
   }
 
   // Generate safe 12-char reference for strict GravityPay validation
-  const rawRef = params.accountReference || 'ApexTrader';
-  const sanitizedReference = rawRef.replace(/[^a-zA-Z0-9]/g, '').slice(0, 12) || 'ApexTrader';
-  const truncatedDesc = (params.transactionDesc || 'ApexTrader Deposit').slice(0, 20);
+  const rawRef = params.accountReference || 'PalOption';
+  const sanitizedReference = rawRef.replace(/[^a-zA-Z0-9]/g, '').slice(0, 12) || 'PalOption';
+  const truncatedDesc = (params.transactionDesc || 'PalOption Deposit').slice(0, 20);
 
   // Development sandbox simulation mode if API key is not set
   if (!secretKey) {

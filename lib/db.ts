@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const DEFAULT_LOCAL_URI = 'mongodb://127.0.0.1:27017/apextrader';
+const DEFAULT_LOCAL_URI = 'mongodb://127.0.0.1:27017/paloption';
 const MONGODB_URI = process.env.MONGODB_URI || DEFAULT_LOCAL_URI;
 
 interface MongooseCache {

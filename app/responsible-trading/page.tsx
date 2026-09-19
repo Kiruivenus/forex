@@ -42,7 +42,7 @@ export default function ResponsibleTradingPage() {
                 <span>2. AI Scanner & Automated Strategy Disclaimer</span>
               </h3>
               <p className="text-slate-400">
-                The ApexTrader AI Scanner provides technical indicator approximations (RSI, trend momentum, volatility signals) for informational purposes. Signals and autotrading configurations do not constitute guaranteed returns or formal financial advice.
+                The PalOption AI Scanner provides technical indicator approximations (RSI, trend momentum, volatility signals) for informational purposes. Signals and autotrading configurations do not constitute guaranteed returns or formal financial advice.
               </p>
             </div>
 
@@ -52,7 +52,7 @@ export default function ResponsibleTradingPage() {
                 <span>3. Self-Exclusion & Deposit Caps</span>
               </h3>
               <p className="text-slate-400">
-                Traders can request voluntary self-exclusion or custom daily/monthly deposit limits at any time by contacting our compliance desk at <span className="text-purple-300 font-mono">support@apextrader.com</span>.
+                Traders can request voluntary self-exclusion or custom daily/monthly deposit limits at any time by contacting our compliance desk at <span className="text-purple-300 font-mono">support@paloption.com</span>.
               </p>
             </div>
           </div>

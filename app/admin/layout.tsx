@@ -61,9 +61,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           >
             {mobileMenuOpen ? <X className="w-6 h-6 text-amber-400" /> : <Menu className="w-6 h-6 text-slate-200" />}
           </button>
-          <img src="/logo.png" alt="ApexTrader Logo" className="w-6 h-6 object-contain mix-blend-screen shrink-0" />
+          <img src="/logo.png" alt="PalOption Logo" className="w-6 h-6 object-contain mix-blend-screen shrink-0" />
           <span className="text-slate-100 text-xs">
-            ApexTrader <span className="text-amber-400 font-extrabold">Admin</span>
+            PalOption <span className="text-amber-400 font-extrabold">Admin</span>
           </span>
         </div>
 
@@ -86,8 +86,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div>
               <div className="h-12 border-b border-purple-950 flex items-center justify-between pb-2 mb-3">
                 <div className="flex items-center space-x-2 font-bold text-sm">
-                  <img src="/logo.png" alt="ApexTrader Logo" className="w-7 h-7 object-contain mix-blend-screen shrink-0" />
-                  <span className="text-slate-100">ApexTrader <span className="text-amber-400">Admin</span></span>
+                  <img src="/logo.png" alt="PalOption Logo" className="w-7 h-7 object-contain mix-blend-screen shrink-0" />
+                  <span className="text-slate-100">PalOption <span className="text-amber-400">Admin</span></span>
                 </div>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
@@ -136,8 +136,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <aside className="hidden md:flex w-64 bg-[#0e0c1f] border-r border-purple-950/80 flex-col justify-between shrink-0 h-screen overflow-y-auto z-20">
         <div>
           <div className="h-14 px-6 border-b border-purple-950/80 flex items-center space-x-2 font-bold text-sm sticky top-0 bg-[#0e0c1f] z-10">
-            <img src="/logo.png" alt="ApexTrader Logo" className="w-7 h-7 object-contain mix-blend-screen shrink-0" />
-            <span className="text-slate-100">ApexTrader <span className="text-amber-400">Admin</span></span>
+            <img src="/logo.png" alt="PalOption Logo" className="w-7 h-7 object-contain mix-blend-screen shrink-0" />
+            <span className="text-slate-100">PalOption <span className="text-amber-400">Admin</span></span>
           </div>
 
           <nav className="p-3 space-y-1 text-xs font-semibold">

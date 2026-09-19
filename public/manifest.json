@@ -1,6 +1,6 @@
 {
-  "name": "ApexTrader High-Frequency Trading Terminal",
-  "short_name": "ApexTrader",
+  "name": "PalOption High-Frequency Trading Terminal",
+  "short_name": "PalOption",
   "description": "Next-Generation HFT Trading Terminal for Volatility Indices, Safaricom M-Pesa STK Push Deposits, and AI Signal Scanning",
   "start_url": "/",
   "display": "standalone",

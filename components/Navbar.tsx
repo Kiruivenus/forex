@@ -121,9 +121,9 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
           </button>
 
           <Link href="/" className="flex items-center space-x-2 font-bold text-lg tracking-tight">
-            <img src="/logo.png" alt="ApexTrader Logo" className="w-7 h-7 object-contain mix-blend-screen shrink-0" />
+            <img src="/logo.png" alt="PalOption Logo" className="w-7 h-7 object-contain mix-blend-screen shrink-0" />
             <span className="bg-gradient-to-r from-white via-slate-200 to-purple-300 bg-clip-text text-transparent font-extrabold text-xl">
-              Apex<span className="text-purple-400">Trader</span>
+              Pal<span className="text-purple-400">Option</span>
             </span>
           </Link>
 

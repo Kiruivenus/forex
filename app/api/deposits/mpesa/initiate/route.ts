@@ -45,14 +45,14 @@ export async function POST(req: NextRequest) {
       stkResult = await initiateGravityPaySTKPush({
         phoneNumber,
         amount: amountKES,
-        accountReference: 'ApexTrader',
+        accountReference: 'PalOption',
         transactionDesc: `Deposit KES ${amountKES} ($${usdEquivalent} USD)`,
       });
     } else {
       stkResult = await initiateSTKPush({
         phoneNumber,
         amount: amountKES,
-        accountReference: 'ApexTrader',
+        accountReference: 'PalOption',
         transactionDesc: `Deposit KES ${amountKES} ($${usdEquivalent} USD)`,
       });
     }

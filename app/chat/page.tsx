@@ -144,7 +144,7 @@ export default function ChatPage() {
             <div className="border-b border-slate-800 pb-3 mb-4 flex items-center justify-between">
               <div>
                 <h3 className="font-bold text-sm text-white flex items-center gap-2">
-                  <span>ApexTrader Specialist Desk</span>
+                  <span>PalOption Specialist Desk</span>
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                 </h3>
                 <p className="text-[11px] text-slate-400 mt-0.5">Average response time: &lt; 15 minutes</p>
@@ -157,11 +157,11 @@ export default function ChatPage() {
             <div className="flex-1 p-3 overflow-y-auto space-y-3 text-xs bg-slate-950/40 rounded-2xl border border-slate-800/60 mb-4">
               <div className="bg-purple-950/40 border border-purple-500/30 p-3.5 rounded-2xl text-purple-200 max-w-md space-y-1">
                 <div className="flex items-center justify-between text-[10px] text-purple-300 font-semibold mb-1">
-                  <span>ApexTrader System Support</span>
+                  <span>PalOption System Support</span>
                   <span>System Bot</span>
                 </div>
                 <p className="text-xs text-slate-200">
-                  Hello! Welcome to ApexTrader support. How can our compliance or trading desk assist you today?
+                  Hello! Welcome to PalOption support. How can our compliance or trading desk assist you today?
                 </p>
               </div>
             </div>

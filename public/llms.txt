@@ -1,6 +1,6 @@
-# ApexTrader - Next-Gen High-Frequency Trading Terminal & AI Entry Scanner
+# PalOption - Next-Gen High-Frequency Trading Terminal & AI Entry Scanner
 
-ApexTrader is an institutional-grade high-frequency financial trading platform engineered for trading Synthetic Volatility Indices (Vol 10 1s, Vol 25 1s, Vol 50 1s, Vol 75 1s, Vol 100 1s), Forex pairs, and Cryptocurrency contracts with microsecond tick execution.
+PalOption is an institutional-grade high-frequency financial trading platform engineered for trading Synthetic Volatility Indices (Vol 10 1s, Vol 25 1s, Vol 50 1s, Vol 75 1s, Vol 100 1s), Forex pairs, and Cryptocurrency contracts with microsecond tick execution.
 
 ## Key Capabilities & Features
 - **Safaricom M-Pesa STK Push Integration**: Automated instant mobile money deposit processing via Safaricom Daraja & GravityPay API.
@@ -22,9 +22,9 @@ ApexTrader is an institutional-grade high-frequency financial trading platform e
 - Synthetic Volatility 100 Index
 
 ## Navigation Links
-- Landing Page & Terminal: https://apextrader.app
-- Trader Hub & Execution: https://apextrader.app/dashboard
-- Deposits (M-Pesa / Crypto): https://apextrader.app/deposit
-- Withdrawals: https://apextrader.app/withdraw
-- Register Account: https://apextrader.app/register
-- Support & Help Center: https://apextrader.app/help
+- Landing Page & Terminal: https://paloption.app
+- Trader Hub & Execution: https://paloption.app/dashboard
+- Deposits (M-Pesa / Crypto): https://paloption.app/deposit
+- Withdrawals: https://paloption.app/withdraw
+- Register Account: https://paloption.app/register
+- Support & Help Center: https://paloption.app/help

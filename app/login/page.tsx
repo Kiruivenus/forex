@@ -73,8 +73,8 @@ export default function LoginPage() {
           <div className="relative z-10 max-w-lg space-y-8">
             {/* Frameless Badge */}
             <div className="inline-flex items-center space-x-2.5 px-4 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-xl">
-              <img src="/logo.png" alt="ApexTrader Logo" className="w-7 h-7 object-contain mix-blend-screen" />
-              <span className="font-extrabold text-xl tracking-tight text-white">ApexTrader</span>
+              <img src="/logo.png" alt="PalOption Logo" className="w-7 h-7 object-contain mix-blend-screen" />
+              <span className="font-extrabold text-xl tracking-tight text-white">PalOption</span>
             </div>
 
             <div className="space-y-4">

@@ -13,7 +13,7 @@ export default function VerifyIdentityPage() {
   const [documentNumber, setDocumentNumber] = useState('');
   const [country, setCountry] = useState('Kenya');
   const [address, setAddress] = useState('');
-  const [documentFrontUrl, setDocumentFrontUrl] = useState('https://apextrader.com/kyc/doc_front_sample.jpg');
+  const [documentFrontUrl, setDocumentFrontUrl] = useState('https://paloption.com/kyc/doc_front_sample.jpg');
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');

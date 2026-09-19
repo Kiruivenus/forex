@@ -1,7 +1,7 @@
 export type AccountMode = 'DEMO' | 'REAL';
 
-const STORAGE_KEY = 'apex_account_mode';
-export const EVENT_NAME = 'apexAccountModeChanged';
+const STORAGE_KEY = 'paloption_account_mode';
+export const EVENT_NAME = 'paloptionAccountModeChanged';
 
 export function getStoredAccountMode(): AccountMode {
   if (typeof window === 'undefined') return 'REAL';

@@ -9,9 +9,9 @@ export default function Footer() {
         {/* Brand Column */}
         <div className="space-y-3">
           <div className="flex items-center space-x-2 font-bold text-base text-slate-100">
-            <img src="/logo.png" alt="ApexTrader Logo" className="w-6 h-6 object-contain mix-blend-screen shrink-0" />
+            <img src="/logo.png" alt="PalOption Logo" className="w-6 h-6 object-contain mix-blend-screen shrink-0" />
             <span className="bg-gradient-to-r from-white via-slate-200 to-purple-300 bg-clip-text text-transparent text-lg">
-              Apex<span className="text-purple-400">Trader</span>
+              Pal<span className="text-purple-400">Option</span>
             </span>
           </div>
           <p className="text-slate-400 text-xs leading-relaxed">
@@ -96,7 +96,7 @@ export default function Footer() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-8 pt-6 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-400 space-y-2 sm:space-y-0">
-        <p>© {new Date().getFullYear()} ApexTrader Inc. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} PalOption Inc. All rights reserved.</p>
         <div className="flex space-x-4">
           <Link href="/responsible-trading" className="hover:text-slate-300">
             Terms of Service

@@ -22,7 +22,7 @@ export default function HelpPage() {
 
       <main className="max-w-5xl mx-auto px-4 pt-20 sm:pt-24 pb-10 w-full flex-1 space-y-8">
         <div className="text-center space-y-3 max-w-xl mx-auto">
-          <h1 className="text-3xl font-extrabold text-slate-100">ApexTrader Knowledge Base</h1>
+          <h1 className="text-3xl font-extrabold text-slate-100">PalOption Knowledge Base</h1>
           <p className="text-xs text-slate-400">Search guides, deposit instructions, and terminal documentation</p>
 
           <div className="relative mt-4">

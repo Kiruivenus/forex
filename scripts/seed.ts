@@ -13,7 +13,7 @@ async function seed() {
   await connectToDatabase();
 
   console.log('Seeding Admin User...');
-  const adminEmail = 'admin@apextrader.com';
+  const adminEmail = 'admin@paloption.com';
   let admin = await User.findOne({ email: adminEmail });
   if (!admin) {
     const passwordHash = await hashPassword('AdminPass123!');
@@ -34,13 +34,13 @@ async function seed() {
       lockedBalance: 0.0,
       currency: 'USD',
     });
-    console.log('Admin user created successfully (admin@apextrader.com / AdminPass123!).');
+    console.log('Admin user created successfully (admin@paloption.com / AdminPass123!).');
   } else {
     console.log('Admin user already exists.');
   }
 
   console.log('Seeding Demo User...');
-  const demoEmail = 'trader@apextrader.com';
+  const demoEmail = 'trader@paloption.com';
   let demoUser = await User.findOne({ email: demoEmail });
   if (!demoUser) {
     const passwordHash = await hashPassword('TraderPass123!');
@@ -62,7 +62,7 @@ async function seed() {
       totalDeposited: 250.0,
       currency: 'USD',
     });
-    console.log('Demo trader created successfully (trader@apextrader.com / TraderPass123!).');
+    console.log('Demo trader created successfully (trader@paloption.com / TraderPass123!).');
   }
 
   console.log('Seeding Instruments...');
@@ -150,7 +150,7 @@ async function seed() {
   }
 
   const helpArticles = [
-    { title: 'Getting Started with ApexTrader', slug: 'getting-started-apextrader', category: 'ACCOUNT', content: 'Welcome to ApexTrader. Learn how to navigate your terminal, deposit funds, and execute trades.' },
+    { title: 'Getting Started with PalOption', slug: 'getting-started-paloption', category: 'ACCOUNT', content: 'Welcome to PalOption. Learn how to navigate your terminal, deposit funds, and execute trades.' },
     { title: 'Depositing via M-Pesa STK Push', slug: 'depositing-mpesa-stk', category: 'DEPOSITS', content: 'Step-by-step guide to depositing using Safaricom M-Pesa Daraja STK Push.' },
     { title: 'Understanding Synthetic Indices', slug: 'understanding-synthetic-indices', category: 'TRADING', content: 'Learn about Volatility 10 (1s), Volatility 75, and how tick contracts evaluate.' },
   ];

@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import { NextRequest } from 'next/server';
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'apextrader_super_secure_jwt_secret_key_change_in_production_2026'
+  process.env.JWT_SECRET || 'paloption_super_secure_jwt_secret_key_change_in_production_2026'
 );
 
 export interface JWTPayload {
@@ -14,7 +14,7 @@ export interface JWTPayload {
   name: string;
 }
 
-export const SESSION_COOKIE_NAME = 'apextrader_session';
+export const SESSION_COOKIE_NAME = 'paloption_session';
 
 export async function hashPassword(password: string): Promise<string> {
   const salt = await bcrypt.genSalt(12);
