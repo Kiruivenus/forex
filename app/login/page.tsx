@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Lock, Mail, AlertCircle, ArrowRight, Loader2, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+import { Lock, Mail, AlertCircle, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
 import { setStoredAccountMode } from '@/lib/accountMode';
+import { getStoredTheme, THEME_EVENT_NAME, ThemeMode } from '@/lib/theme';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,6 +17,19 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [theme, setTheme] = useState<ThemeMode>('light');
+
+  useEffect(() => {
+    setTheme(getStoredTheme());
+    const handleThemeChange = (e: Event) => {
+      const customEvent = e as CustomEvent<ThemeMode>;
+      if (customEvent.detail) {
+        setTheme(customEvent.detail);
+      }
+    };
+    window.addEventListener(THEME_EVENT_NAME, handleThemeChange);
+    return () => window.removeEventListener(THEME_EVENT_NAME, handleThemeChange);
+  }, []);
 
   useEffect(() => {
     fetch('/api/auth/me').then((res) => {
@@ -59,8 +73,10 @@ export default function LoginPage() {
     }
   };
 
+  const isLight = theme === 'light';
+
   return (
-    <div className="min-h-screen bg-[#090714] text-slate-100 flex flex-col font-sans">
+    <div className={`min-h-screen flex flex-col font-sans transition-colors ${isLight ? 'bg-[#f8fafc] text-slate-900' : 'bg-[#090714] text-slate-100'}`}>
       <Navbar />
 
       {/* Main split layout container */}
@@ -104,24 +120,24 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Right Form Column (Directly on dark background, NO card container) */}
-        <div className="flex flex-col justify-center items-center px-6 sm:px-12 lg:px-16 py-12 bg-[#090714] w-full">
+        {/* Right Form Column */}
+        <div className={`flex flex-col justify-center items-center px-6 sm:px-12 lg:px-16 py-12 w-full transition-colors ${isLight ? 'bg-[#f8fafc]' : 'bg-[#090714]'}`}>
           <div className="w-full max-w-md space-y-6">
             <div className="space-y-1.5">
-              <h2 className="text-3xl font-extrabold tracking-tight text-slate-100">Welcome back</h2>
-              <p className="text-xs sm:text-sm text-slate-400">Sign in to your account to continue</p>
+              <h2 className={`text-3xl font-extrabold tracking-tight ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>Welcome back</h2>
+              <p className={`text-xs sm:text-sm ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Sign in to your account to continue</p>
             </div>
 
             {errorMsg && (
-              <div className="bg-rose-950/60 border border-rose-600/40 p-3.5 rounded-xl flex items-start space-x-2.5 text-xs text-rose-300">
-                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+              <div className="bg-rose-50 border border-rose-200 dark:bg-rose-950/60 dark:border-rose-600/40 p-3.5 rounded-xl flex items-start space-x-2.5 text-xs text-rose-700 dark:text-rose-300">
+                <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
                 <p>{errorMsg}</p>
               </div>
             )}
 
             <form onSubmit={handleLogin} className="space-y-4 text-xs">
               <div>
-                <label className="block text-slate-300 font-semibold mb-1.5">Email</label>
+                <label className={`block font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>Email</label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                   <input
@@ -129,14 +145,18 @@ export default function LoginPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
-                    className="w-full bg-[#120f24] border border-purple-950 focus:border-purple-500/80 rounded-xl pl-10 pr-4 py-3 text-slate-100 text-sm focus:outline-none transition-colors"
+                    className={`w-full border rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none transition-colors ${
+                      isLight
+                        ? 'bg-white border-slate-200 text-slate-900 focus:border-purple-600'
+                        : 'bg-[#120f24] border-purple-950 text-slate-100 focus:border-purple-500/80'
+                    }`}
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1.5">Password</label>
+                <label className={`block font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>Password</label>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                   <input
@@ -144,13 +164,17 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
-                    className="w-full bg-[#120f24] border border-purple-950 focus:border-purple-500/80 rounded-xl pl-10 pr-10 py-3 text-slate-100 text-sm focus:outline-none transition-colors"
+                    className={`w-full border rounded-xl pl-10 pr-10 py-3 text-sm focus:outline-none transition-colors ${
+                      isLight
+                        ? 'bg-white border-slate-200 text-slate-900 focus:border-purple-600'
+                        : 'bg-[#120f24] border-purple-950 text-slate-100 focus:border-purple-500/80'
+                    }`}
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-200"
+                    className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                     aria-label="Toggle password visibility"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -159,17 +183,17 @@ export default function LoginPage() {
               </div>
 
               <div className="flex items-center justify-between pt-1">
-                <label className="flex items-center space-x-2 cursor-pointer text-slate-400 hover:text-slate-300 text-xs">
+                <label className={`flex items-center space-x-2 cursor-pointer text-xs ${isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-slate-300'}`}>
                   <input
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="rounded border-purple-900 bg-[#120f24] text-purple-600 focus:ring-purple-500 w-3.5 h-3.5"
+                    className="rounded border-purple-900 bg-purple-600 text-white focus:ring-purple-500 w-3.5 h-3.5"
                   />
                   <span>Remember me</span>
                 </label>
 
-                <Link href="/forgot-password" className="text-purple-400 hover:text-purple-300 font-semibold text-xs transition-colors">
+                <Link href="/forgot-password" className="text-purple-600 dark:text-purple-400 hover:text-purple-700 font-semibold text-xs transition-colors">
                   Forgot password?
                 </Link>
               </div>
@@ -177,7 +201,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 bg-gradient-to-r from-purple-600 via-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-purple-950/60 transition-all flex items-center justify-center space-x-2 disabled:opacity-50 mt-2"
+                className="w-full py-3.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm rounded-xl shadow-md transition-all flex items-center justify-center space-x-2 disabled:opacity-50 mt-2"
               >
                 {loading ? (
                   <>
@@ -193,9 +217,9 @@ export default function LoginPage() {
               </button>
             </form>
 
-            <p className="text-center text-xs text-slate-400 pt-4">
+            <p className={`text-center text-xs pt-4 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
               Don&apos;t have an account?{' '}
-              <Link href="/register" className="text-purple-400 hover:text-purple-300 font-bold transition-colors">
+              <Link href="/register" className="text-purple-600 dark:text-purple-400 hover:text-purple-700 font-bold transition-colors">
                 Create account
               </Link>
             </p>

@@ -4,8 +4,9 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import WithdrawalModal from '@/components/WithdrawalModal';
-import { ArrowDownLeft, Wallet, History, ArrowRight, CheckCircle2, Clock } from 'lucide-react';
+import { ArrowDownLeft, History, ArrowRight, Clock, CheckCircle2 } from 'lucide-react';
 import { getStoredAccountMode, EVENT_NAME, AccountMode } from '@/lib/accountMode';
+import { getStoredTheme, THEME_EVENT_NAME, ThemeMode } from '@/lib/theme';
 
 interface WithdrawalItem {
   _id: string;
@@ -22,6 +23,19 @@ export default function WithdrawPage() {
   const [withdrawals, setWithdrawals] = useState<WithdrawalItem[]>([]);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [accountMode, setAccountMode] = useState<AccountMode>('REAL');
+  const [theme, setTheme] = useState<ThemeMode>('light');
+
+  useEffect(() => {
+    setTheme(getStoredTheme());
+    const handleThemeChange = (e: Event) => {
+      const customEvent = e as CustomEvent<ThemeMode>;
+      if (customEvent.detail) {
+        setTheme(customEvent.detail);
+      }
+    };
+    window.addEventListener(THEME_EVENT_NAME, handleThemeChange);
+    return () => window.removeEventListener(THEME_EVENT_NAME, handleThemeChange);
+  }, []);
 
   const fetchData = async () => {
     try {
@@ -59,33 +73,39 @@ export default function WithdrawPage() {
     return () => window.removeEventListener(EVENT_NAME, handleModeChange);
   }, []);
 
+  const isLight = theme === 'light';
+
   return (
-    <div className="min-h-screen bg-[#090714] text-slate-100 flex flex-col justify-between font-sans">
+    <div className={`min-h-screen flex flex-col justify-between font-sans transition-colors ${isLight ? 'bg-[#f8fafc] text-slate-900' : 'bg-[#090714] text-slate-100'}`}>
       <Navbar />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-20 sm:pt-24 pb-12 w-full flex-1 space-y-6">
         {/* Main Header & Balance Card */}
-        <div className="bg-[#120f26] border border-purple-900/50 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
+        <div className={`border rounded-3xl p-6 sm:p-8 shadow-md space-y-6 transition-colors ${
+          isLight ? 'bg-white border-slate-200/90' : 'bg-[#120f26] border-purple-900/50'
+        }`}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center space-x-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-amber-950/80 border border-amber-600/40 flex items-center justify-center text-amber-400 shrink-0 shadow-lg shadow-amber-950/40">
+              <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-600/40 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0 shadow-sm">
                 <ArrowDownLeft className="w-6 h-6" />
               </div>
               <div>
-                <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Withdraw Funds</h1>
-                <p className="text-xs sm:text-sm text-slate-400">Payout to your M-Pesa phone number or Crypto wallet</p>
+                <h1 className={`text-2xl sm:text-3xl font-black tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>Withdraw Funds</h1>
+                <p className={`text-xs sm:text-sm ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Payout to your M-Pesa phone number or Crypto wallet</p>
               </div>
             </div>
 
-            <div className="bg-[#181335] px-5 py-3 rounded-2xl border border-purple-900/50 sm:text-right shrink-0">
-              <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold block mb-0.5">Withdrawable Real Balance</span>
-              <span className="font-mono font-black text-emerald-400 text-xl">${availableBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD</span>
+            <div className={`px-5 py-3 rounded-2xl border sm:text-right shrink-0 ${
+              isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#181335] border-purple-900/50'
+            }`}>
+              <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold block mb-0.5">Withdrawable Real Balance</span>
+              <span className="font-mono font-black text-emerald-600 dark:text-emerald-400 text-xl">${availableBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD</span>
             </div>
           </div>
 
           <button
             onClick={() => setIsWithdrawModalOpen(true)}
-            className="w-full py-4 bg-gradient-to-r from-purple-600 via-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm rounded-2xl shadow-lg shadow-purple-950/60 transition-all flex items-center justify-center space-x-2"
+            className="w-full py-4 bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm rounded-2xl shadow-md transition-all flex items-center justify-center space-x-2"
           >
             <span>New Withdrawal Request</span>
             <ArrowRight className="w-4 h-4" />
@@ -93,60 +113,60 @@ export default function WithdrawPage() {
         </div>
 
         {/* Withdrawal Request History */}
-        <div className="bg-[#120f26] border border-purple-900/50 rounded-3xl p-6 sm:p-8 shadow-xl space-y-5">
-          <div className="flex items-center space-x-2.5 border-b border-purple-950/80 pb-4">
-            <History className="w-5 h-5 text-purple-400" />
-            <h3 className="font-extrabold text-base text-white">Withdrawal History</h3>
+        <div className={`border rounded-3xl p-6 sm:p-8 shadow-md space-y-5 transition-colors ${
+          isLight ? 'bg-white border-slate-200/90' : 'bg-[#120f26] border-purple-900/50'
+        }`}>
+          <div className={`flex items-center space-x-2.5 border-b pb-4 ${isLight ? 'border-slate-100' : 'border-purple-950/80'}`}>
+            <History className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+            <h3 className={`font-extrabold text-base ${isLight ? 'text-slate-900' : 'text-white'}`}>Withdrawal History</h3>
           </div>
 
           {withdrawals.length > 0 ? (
-            <div className="space-y-3 text-xs">
+            <div className="space-y-3">
               {withdrawals.map((w) => (
-                <div key={w._id} className="bg-[#16122d] p-4 rounded-2xl border border-purple-900/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:border-purple-700/50 transition-colors">
+                <div
+                  key={w._id}
+                  className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs ${
+                    isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#181335] border-purple-900/40'
+                  }`}
+                >
                   <div className="space-y-1">
                     <div className="flex items-center space-x-2">
-                      <span className="font-black text-white text-sm">{w.method}</span>
-                      <span className="text-slate-400 font-mono font-bold text-xs">${w.amount.toFixed(2)} USD</span>
+                      <span className="font-bold text-sm uppercase">{w.method}</span>
+                      <span className="font-mono font-extrabold text-sm text-purple-600 dark:text-purple-400">${w.amount.toFixed(2)} USD</span>
                     </div>
-                    <p className="text-[11px] text-slate-400 font-mono">Destination: {w.destination}</p>
+                    <p className="text-slate-500 font-mono text-[11px]">Destination: {w.destination}</p>
                   </div>
-                  <div className="sm:text-right font-mono flex sm:flex-col justify-between items-center sm:items-end">
-                    <span
-                      className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
-                        w.status === 'COMPLETED'
-                          ? 'bg-emerald-950 text-emerald-400 border border-emerald-800/50'
-                          : w.status === 'PENDING'
-                          ? 'bg-amber-950 text-amber-400 border border-amber-800/50'
-                          : 'bg-rose-950 text-rose-400 border border-rose-800/50'
-                      }`}
-                    >
+
+                  <div className="flex items-center justify-between sm:justify-end space-x-4">
+                    <span className="text-slate-400 text-[10px] font-mono">{new Date(w.createdAt).toLocaleDateString()}</span>
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold font-mono border uppercase ${
+                      w.status === 'COMPLETED'
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-400'
+                        : 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-400'
+                    }`}>
                       {w.status}
-                    </span>
-                    <span className="text-[10px] text-slate-400 mt-1">
-                      {new Date(w.createdAt).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="py-12 text-center text-slate-400 text-xs space-y-2">
-              <Clock className="w-8 h-8 text-purple-400/40 mx-auto mb-2" />
-              <p className="font-semibold text-slate-300">No withdrawal requests recorded</p>
-              <p className="text-[11px] text-slate-500">Your submitted payout requests will appear here with live status updates.</p>
+            <div className="py-12 text-center text-slate-500 text-xs">
+              No withdrawal history found yet.
             </div>
           )}
         </div>
       </main>
 
-      <Footer />
-
       <WithdrawalModal
         isOpen={isWithdrawModalOpen}
         onClose={() => setIsWithdrawModalOpen(false)}
         availableBalance={availableBalance}
-        onSuccess={() => fetchData()}
+        onSuccess={fetchData}
       />
+
+      <Footer />
     </div>
   );
 }
