@@ -114,30 +114,22 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
   };
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-md h-14 border-b transition-colors ${
-        isLight
-          ? 'bg-white/95 border-slate-200/90 text-slate-800 shadow-xs'
-          : 'bg-[#120f24]/95 border-purple-950/60 text-slate-100'
-      }`}
-    >
+    <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md h-14 border-b transition-colors bg-white/95 dark:bg-[#120f24]/95 border-slate-200/90 dark:border-purple-950/60 text-slate-800 dark:text-slate-100 shadow-xs">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 h-14 flex items-center justify-between">
         {/* Hamburger Menu & Brand */}
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle navigation menu"
-            className={`p-1 rounded-lg transition-colors focus:outline-none ${
-              isLight ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' : 'text-slate-300 hover:text-white hover:bg-purple-900/40'
-            }`}
+            className="p-1 rounded-lg transition-colors focus:outline-none text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-purple-900/40 cursor-pointer"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
 
           <Link href="/" className="flex items-center space-x-2 font-bold text-lg tracking-tight">
             <img src="/logo.png" alt="PalOption Logo" className="w-7 h-7 object-contain shrink-0" />
-            <span className={`font-extrabold text-xl ${isLight ? 'text-slate-900' : 'text-white'}`}>
-              Pal<span className="text-purple-600">Option</span>
+            <span className="font-extrabold text-xl text-slate-900 dark:text-white">
+              Pal<span className="text-purple-600 dark:text-purple-400">Option</span>
             </span>
           </Link>
 
@@ -148,12 +140,8 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
                 href="/dashboard"
                 className={`px-3 py-1.5 rounded-md transition-colors ${
                   pathname === '/dashboard'
-                    ? isLight
-                      ? 'bg-purple-50 text-purple-700 font-semibold border border-purple-200'
-                      : 'bg-purple-900/50 text-purple-200 font-semibold'
-                    : isLight
-                      ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-800/40'
+                    ? 'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-200 font-semibold border border-purple-200 dark:border-purple-800/40'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/40'
                 }`}
               >
                 Trader Hub
@@ -162,12 +150,8 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
                 href="/deposit"
                 className={`px-3 py-1.5 rounded-md transition-colors flex items-center space-x-1 ${
                   pathname === '/deposit'
-                    ? isLight
-                      ? 'bg-purple-50 text-purple-700 font-semibold border border-purple-200'
-                      : 'bg-purple-900/50 text-purple-200 font-semibold'
-                    : isLight
-                      ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-800/40'
+                    ? 'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-200 font-semibold border border-purple-200 dark:border-purple-800/40'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/40'
                 }`}
               >
                 <ArrowUpRight className="w-3.5 h-3.5 text-emerald-500" />
@@ -177,12 +161,8 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
                 href="/withdraw"
                 className={`px-3 py-1.5 rounded-md transition-colors flex items-center space-x-1 ${
                   pathname === '/withdraw'
-                    ? isLight
-                      ? 'bg-purple-50 text-purple-700 font-semibold border border-purple-200'
-                      : 'bg-purple-900/50 text-purple-200 font-semibold'
-                    : isLight
-                      ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-800/40'
+                    ? 'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-200 font-semibold border border-purple-200 dark:border-purple-800/40'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/40'
                 }`}
               >
                 <ArrowDownLeft className="w-3.5 h-3.5 text-amber-500" />
@@ -192,12 +172,8 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
                 href="/history"
                 className={`px-3 py-1.5 rounded-md transition-colors flex items-center space-x-1 ${
                   pathname === '/history'
-                    ? isLight
-                      ? 'bg-purple-50 text-purple-700 font-semibold border border-purple-200'
-                      : 'bg-purple-900/50 text-purple-200 font-semibold'
-                    : isLight
-                      ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-800/40'
+                    ? 'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-200 font-semibold border border-purple-200 dark:border-purple-800/40'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/40'
                 }`}
               >
                 <History className="w-3.5 h-3.5" />
@@ -207,12 +183,8 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
                 href="/chat"
                 className={`px-3 py-1.5 rounded-md transition-colors ${
                   pathname === '/chat'
-                    ? isLight
-                      ? 'bg-purple-50 text-purple-700 font-semibold border border-purple-200'
-                      : 'bg-purple-900/50 text-purple-200 font-semibold'
-                    : isLight
-                      ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-800/40'
+                    ? 'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-200 font-semibold border border-purple-200 dark:border-purple-800/40'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/40'
                 }`}
               >
                 Support Chat
@@ -244,17 +216,13 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
           )}
         </div>
 
-        {/* Right Action Bar (Matching Image 3: Sound Icon + Moon/Sun Theme Icon + Account + Deposit + Avatar) */}
+        {/* Right Action Bar */}
         <div className="flex items-center space-x-1.5 sm:space-x-2">
-          {/* Sound Mute/Unmute Toggle Icon (Matching Image 3) */}
+          {/* Sound Mute/Unmute Toggle Icon */}
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
             title={soundEnabled ? 'Mute Sound FX' : 'Enable Sound FX'}
-            className={`p-1.5 rounded-lg border transition-colors shadow-xs ${
-              isLight
-                ? 'bg-slate-100 border-slate-200 hover:bg-slate-200 text-slate-700'
-                : 'bg-purple-950/50 border-purple-900/60 hover:bg-purple-900/60 text-slate-300'
-            }`}
+            className="p-1.5 rounded-lg border transition-colors shadow-xs bg-slate-100 dark:bg-purple-950/50 border-slate-200 dark:border-purple-900/60 hover:bg-slate-200 dark:hover:bg-purple-900/60 text-slate-700 dark:text-slate-300 cursor-pointer"
           >
             {soundEnabled ? (
               <Volume2 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
@@ -263,21 +231,14 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
             )}
           </button>
 
-          {/* LIGHT MODE / DARK MODE TOGGLE BUTTON (Exact Image 3 Match: Moon / Sun Icon) */}
+          {/* LIGHT MODE / DARK MODE TOGGLE BUTTON */}
           <button
             onClick={toggleTheme}
             title={isLight ? 'Turn Off Light Mode (Dark Mode)' : 'Turn On Light Mode'}
-            className={`p-1.5 rounded-lg border transition-all shadow-xs flex items-center justify-center ${
-              isLight
-                ? 'bg-slate-100 border-slate-200 hover:bg-slate-200 text-slate-800'
-                : 'bg-purple-950/50 border-purple-900/60 hover:bg-purple-900/60 text-slate-200'
-            }`}
+            className="p-1.5 rounded-lg border transition-all shadow-xs flex items-center justify-center bg-slate-100 dark:bg-purple-950/50 border-slate-200 dark:border-purple-900/60 hover:bg-slate-200 dark:hover:bg-purple-900/60 text-slate-800 dark:text-slate-200 cursor-pointer"
           >
-            {isLight ? (
-              <Moon className="w-4 h-4 text-slate-800" />
-            ) : (
-              <Sun className="w-4 h-4 text-amber-400" />
-            )}
+            <Sun className="w-4 h-4 text-amber-500 dark:hidden" />
+            <Moon className="w-4 h-4 text-purple-400 hidden dark:block" />
           </button>
 
           {user ? (
@@ -286,11 +247,7 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
               <div className="relative">
                 <button
                   onClick={() => setAccountDropdownOpen(!accountDropdownOpen)}
-                  className={`flex items-center space-x-1.5 border px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition-all shadow-xs ${
-                    isLight
-                      ? 'bg-slate-100 border-slate-200/90 hover:border-slate-300 text-slate-900'
-                      : 'bg-[#1b1633] border-purple-800/60 hover:border-purple-500/80 text-white'
-                  }`}
+                  className="flex items-center space-x-1.5 border px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition-all shadow-xs bg-slate-100 dark:bg-[#1b1633] border-slate-200 dark:border-purple-800/60 hover:border-slate-300 dark:hover:border-purple-500/80 text-slate-900 dark:text-white cursor-pointer"
                 >
                   <span
                     className={`w-5 h-5 rounded flex items-center justify-center font-black text-[11px] ${
@@ -307,20 +264,16 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
                 </button>
 
                 {accountDropdownOpen && (
-                  <div
-                    className={`absolute right-0 mt-2 w-56 rounded-xl shadow-xl py-2 z-50 text-xs border ${
-                      isLight ? 'bg-white border-slate-200 text-slate-800' : 'bg-[#16122c] border-purple-900/80 text-slate-200'
-                    }`}
-                  >
-                    <div className="px-3 py-1.5 border-b text-[10px] uppercase font-bold text-slate-500">
+                  <div className="absolute right-0 mt-2 w-56 rounded-xl shadow-xl py-2 z-50 text-xs border bg-white dark:bg-[#16122c] border-slate-200 dark:border-purple-900/80 text-slate-800 dark:text-slate-200">
+                    <div className="px-3 py-1.5 border-b border-slate-100 dark:border-slate-800 text-[10px] uppercase font-bold text-slate-500">
                       Select Trading Account
                     </div>
                     <button
                       onClick={() => switchAccountMode('DEMO')}
-                      className={`w-full text-left px-3 py-2 flex items-center justify-between transition-colors ${
+                      className={`w-full text-left px-3 py-2 flex items-center justify-between transition-colors cursor-pointer ${
                         activeMode === 'DEMO'
-                          ? isLight ? 'bg-slate-100 font-bold text-slate-900' : 'bg-purple-900/50 font-bold text-white'
-                          : isLight ? 'text-slate-700 hover:bg-slate-50' : 'text-slate-300 hover:bg-purple-900/40'
+                          ? 'bg-slate-100 dark:bg-purple-900/50 font-bold text-slate-900 dark:text-white'
+                          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-purple-900/40'
                       }`}
                     >
                       <div className="flex items-center space-x-2">
@@ -339,10 +292,10 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
 
                     <button
                       onClick={() => switchAccountMode('REAL')}
-                      className={`w-full text-left px-3 py-2 flex items-center justify-between transition-colors ${
+                      className={`w-full text-left px-3 py-2 flex items-center justify-between transition-colors cursor-pointer ${
                         activeMode === 'REAL'
-                          ? isLight ? 'bg-slate-100 font-bold text-slate-900' : 'bg-purple-900/50 font-bold text-white'
-                          : isLight ? 'text-slate-700 hover:bg-slate-50' : 'text-slate-300 hover:bg-purple-900/40'
+                          ? 'bg-slate-100 dark:bg-purple-900/50 font-bold text-slate-900 dark:text-white'
+                          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-purple-900/40'
                       }`}
                     >
                       <div className="flex items-center space-x-2">
@@ -374,11 +327,7 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
               <div className="relative">
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className={`flex items-center space-x-1 p-1.5 rounded-lg border text-xs transition-colors ${
-                    isLight
-                      ? 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-800'
-                      : 'bg-slate-800/80 hover:bg-slate-700/80 border-slate-700 text-slate-200'
-                  }`}
+                  className="flex items-center space-x-1 p-1.5 rounded-lg border text-xs transition-colors bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700/80 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 cursor-pointer"
                 >
                   <div className="w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center font-bold text-white text-xs">
                     {user.name.charAt(0).toUpperCase()}
@@ -387,15 +336,11 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
                 </button>
 
                 {userMenuOpen && (
-                  <div
-                    className={`absolute right-0 mt-2 w-56 rounded-xl shadow-xl py-2 z-50 text-xs border ${
-                      isLight ? 'bg-white border-slate-200 text-slate-800' : 'bg-[#16122c] border-purple-900/60 text-slate-200'
-                    }`}
-                  >
-                    <div className="px-4 py-2 border-b">
+                  <div className="absolute right-0 mt-2 w-56 rounded-xl shadow-xl py-2 z-50 text-xs border bg-white dark:bg-[#16122c] border-slate-200 dark:border-purple-900/60 text-slate-800 dark:text-slate-200">
+                    <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800">
                       <p className="font-bold truncate">{user.name}</p>
                       <p className="text-slate-500 text-[10px] truncate">{user.email}</p>
-                      <span className="inline-block mt-1 px-2 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200 text-[10px] font-semibold">
+                      <span className="inline-block mt-1 px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/40 text-[10px] font-semibold">
                         Role: {user.role}
                       </span>
                     </div>
@@ -403,14 +348,15 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
                     {/* Quick Light/Dark Mode Switcher inside profile menu */}
                     <button
                       onClick={toggleTheme}
-                      className="w-full flex items-center justify-between px-4 py-2 hover:bg-slate-100 dark:hover:bg-purple-900/40 font-medium"
+                      className="w-full flex items-center justify-between px-4 py-2 hover:bg-slate-100 dark:hover:bg-purple-900/40 font-medium cursor-pointer"
                     >
                       <div className="flex items-center space-x-2">
-                        {isLight ? <Moon className="w-4 h-4 text-purple-600" /> : <Sun className="w-4 h-4 text-amber-400" />}
-                        <span>{isLight ? 'Light Mode ON' : 'Dark Mode ON'}</span>
+                        <Sun className="w-4 h-4 text-amber-500 dark:hidden" />
+                        <Moon className="w-4 h-4 text-purple-400 hidden dark:block" />
+                        <span>Toggle Theme</span>
                       </div>
                       <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-200 dark:bg-purple-900 text-slate-700 dark:text-purple-200">
-                        Toggle
+                        Switch
                       </span>
                     </button>
 
@@ -444,7 +390,7 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
                     <Link
                       href="/help"
                       onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center space-x-2 px-4 py-2 hover:bg-slate-100 dark:hover:bg-purple-900/40 font-medium border-t"
+                      className="flex items-center space-x-2 px-4 py-2 hover:bg-slate-100 dark:hover:bg-purple-900/40 font-medium border-t border-slate-100 dark:border-slate-800"
                     >
                       <HelpCircle className="w-4 h-4 text-slate-500" />
                       <span>Help Center</span>
@@ -452,7 +398,7 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
 
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center space-x-2 px-4 py-2 hover:bg-rose-50 dark:hover:bg-rose-950/50 text-rose-600 font-semibold text-left"
+                      className="w-full flex items-center space-x-2 px-4 py-2 hover:bg-rose-50 dark:hover:bg-rose-950/50 text-rose-600 font-semibold text-left cursor-pointer"
                     >
                       <LogOut className="w-4 h-4" />
                       <span>Sign Out</span>
@@ -465,7 +411,7 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
             <div className="flex items-center space-x-2 text-xs font-semibold">
               <Link
                 href="/login"
-                className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors"
+                className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 Log In
               </Link>
@@ -482,22 +428,19 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div
-          className={`md:hidden border-b px-4 py-3 space-y-2 text-sm shadow-lg ${
-            isLight ? 'bg-white border-slate-200 text-slate-800' : 'bg-[#16122b] border-purple-900/60 text-slate-200'
-          }`}
-        >
+        <div className="md:hidden border-b px-4 py-3 space-y-2 text-sm shadow-lg bg-white dark:bg-[#16122b] border-slate-200 dark:border-purple-900/60 text-slate-800 dark:text-slate-200">
           {/* Mobile Theme Toggle Button */}
           <button
             onClick={toggleTheme}
-            className="w-full flex items-center justify-between py-2 text-purple-700 dark:text-purple-300 font-bold border-b border-slate-100 dark:border-slate-800"
+            className="w-full flex items-center justify-between py-2 text-purple-700 dark:text-purple-300 font-bold border-b border-slate-100 dark:border-slate-800 cursor-pointer"
           >
             <div className="flex items-center space-x-2">
-              {isLight ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-purple-400" />}
-              <span>Theme: {isLight ? 'Light Mode (Active)' : 'Dark Mode (Active)'}</span>
+              <Sun className="w-4 h-4 text-amber-500 dark:hidden" />
+              <Moon className="w-4 h-4 text-purple-400 hidden dark:block" />
+              <span>Toggle Theme</span>
             </div>
             <span className="text-xs px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200">
-              Switch Theme
+              Switch
             </span>
           </button>
 
@@ -556,7 +499,7 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
               )}
               <button
                 onClick={handleLogout}
-                className="w-full text-left py-2 text-rose-600 font-bold"
+                className="w-full text-left py-2 text-rose-600 font-bold cursor-pointer"
               >
                 Sign Out
               </button>

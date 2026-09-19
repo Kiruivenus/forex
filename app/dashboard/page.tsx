@@ -30,7 +30,6 @@ import {
 } from 'lucide-react';
 
 import { getStoredAccountMode, EVENT_NAME, AccountMode } from '@/lib/accountMode';
-import { getStoredTheme, THEME_EVENT_NAME, ThemeMode } from '@/lib/theme';
 
 interface Instrument {
   _id?: string;
@@ -82,19 +81,6 @@ export default function DashboardPage() {
   const [leftTab, setLeftTab] = useState<'OPEN' | 'CLOSED' | 'TRANSACTIONS'>('OPEN');
   const [mobileTab, setMobileTab] = useState<'TRADE' | 'POSITIONS'>('TRADE');
   const [accountMode, setAccountMode] = useState<AccountMode>('REAL');
-  const [theme, setTheme] = useState<ThemeMode>('light');
-
-  useEffect(() => {
-    setTheme(getStoredTheme());
-    const handleThemeChange = (e: Event) => {
-      const customEvent = e as CustomEvent<ThemeMode>;
-      if (customEvent.detail) {
-        setTheme(customEvent.detail);
-      }
-    };
-    window.addEventListener(THEME_EVENT_NAME, handleThemeChange);
-    return () => window.removeEventListener(THEME_EVENT_NAME, handleThemeChange);
-  }, []);
 
   useEffect(() => {
     setAccountMode(getStoredAccountMode());
@@ -430,11 +416,7 @@ export default function DashboardPage() {
   const openPositions = trades.filter((t) => t.status === 'OPEN' || t.status === 'PENDING');
 
   return (
-    <div
-      className={`min-h-screen flex flex-col font-sans pt-16 sm:pt-16 pb-16 md:pb-0 transition-colors ${
-        theme === 'light' ? 'bg-[#f8fafc] text-slate-900' : 'bg-[#0b0e17] text-slate-100'
-      }`}
-    >
+    <div className="min-h-screen flex flex-col font-sans pt-16 sm:pt-16 pb-16 md:pb-0 transition-colors bg-[#f8fafc] dark:bg-[#0b0e17] text-slate-900 dark:text-slate-100">
       <Navbar
         accountMode={accountMode}
         onAccountModeChange={(mode) => setAccountMode(mode)}
@@ -446,39 +428,35 @@ export default function DashboardPage() {
       <main className="flex-1 max-w-[1600px] w-full mx-auto p-2 sm:p-4 grid grid-cols-1 lg:grid-cols-12 gap-3 items-start">
         {/* LEFT PANEL: Trade History & Positions (Desktop Col 3) */}
         <div
-          className={`lg:col-span-3 rounded-2xl flex flex-col justify-between h-[540px] sm:h-[600px] lg:h-[calc(100vh-105px)] min-h-[540px] max-h-[750px] shadow-xs text-xs overflow-hidden border transition-colors ${
-            theme === 'light'
-              ? 'bg-white border-slate-200/90 text-slate-900'
-              : 'bg-[#120f26] border-purple-950/80 text-slate-100'
-          } ${
+          className={`lg:col-span-3 rounded-2xl flex flex-col justify-between h-[540px] sm:h-[600px] lg:h-[calc(100vh-105px)] min-h-[540px] max-h-[750px] shadow-xs text-xs overflow-hidden border transition-colors bg-white dark:bg-[#120f26] border-slate-200/90 dark:border-purple-950/80 text-slate-900 dark:text-slate-100 ${
             mobileTab === 'POSITIONS' ? 'block' : 'hidden lg:flex'
           }`}
         >
           {/* Header Tabs Bar */}
-          <div className="p-3 border-b border-slate-100 space-y-2">
+          <div className="p-3 border-b border-slate-100 dark:border-slate-800 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="font-extrabold text-slate-900 text-xs tracking-tight">Active Trade Contracts</span>
-              <span className="text-[10px] font-mono text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200 font-bold">
+              <span className="font-extrabold text-slate-900 dark:text-slate-100 text-xs tracking-tight">Active Trade Contracts</span>
+              <span className="text-[10px] font-mono text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/50 px-2 py-0.5 rounded border border-purple-200 dark:border-purple-800/40 font-bold">
                 {openPositions.length} OPEN
               </span>
             </div>
 
-            <div className="flex bg-slate-100 p-1 rounded-xl font-semibold text-xs border border-slate-200/80">
+            <div className="flex bg-slate-100 dark:bg-slate-900 p-1 rounded-xl font-semibold text-xs border border-slate-200/80 dark:border-slate-800">
               <button
                 onClick={() => setLeftTab('OPEN')}
-                className={`flex-1 py-1 rounded transition-colors ${leftTab === 'OPEN' ? 'bg-purple-600 text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+                className={`flex-1 py-1 rounded transition-colors ${leftTab === 'OPEN' ? 'bg-purple-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'}`}
               >
                 Positions ({openPositions.length})
               </button>
               <button
                 onClick={() => setLeftTab('CLOSED')}
-                className={`flex-1 py-1 rounded transition-colors ${leftTab === 'CLOSED' ? 'bg-purple-600 text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+                className={`flex-1 py-1 rounded transition-colors ${leftTab === 'CLOSED' ? 'bg-purple-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'}`}
               >
                 Closed ({closedPositions.length})
               </button>
               <button
                 onClick={() => setLeftTab('TRANSACTIONS')}
-                className={`flex-1 py-1 rounded transition-colors ${leftTab === 'TRANSACTIONS' ? 'bg-purple-600 text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+                className={`flex-1 py-1 rounded transition-colors ${leftTab === 'TRANSACTIONS' ? 'bg-purple-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'}`}
               >
                 History
               </button>
@@ -492,41 +470,41 @@ export default function DashboardPage() {
                 openPositions.map((t) => (
                   <div
                     key={t.tradeId}
-                    className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 relative shadow-xs"
+                    className="bg-slate-50 dark:bg-[#181335] p-3 rounded-xl border border-slate-200 dark:border-purple-900/40 space-y-2 relative shadow-xs"
                   >
                     <div className="flex items-center justify-between font-semibold">
                       <div className="flex items-center space-x-1.5">
-                        <span className="font-bold text-slate-900 text-xs">{t.symbol}</span>
-                        <span className="text-[10px] bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded font-mono border border-purple-200 font-bold">
+                        <span className="font-bold text-slate-900 dark:text-slate-100 text-xs">{t.symbol}</span>
+                        <span className="text-[10px] bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 px-1.5 py-0.5 rounded font-mono border border-purple-200 dark:border-purple-800/40 font-bold">
                           ● {t.direction}
                         </span>
                       </div>
-                      <span className="text-[10px] text-amber-700 font-mono flex items-center space-x-1 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-300 font-bold">
+                      <span className="text-[10px] text-amber-700 dark:text-amber-400 font-mono flex items-center space-x-1 bg-amber-50 dark:bg-amber-950/50 px-1.5 py-0.5 rounded border border-amber-300 dark:border-amber-800/40 font-bold">
                         <Clock className="w-3 h-3 animate-spin" />
                         <span>Tick 1</span>
                       </span>
                     </div>
 
-                    <div className="text-[10px] bg-white p-2 rounded-lg space-y-1 font-mono text-slate-700 border border-slate-200">
+                    <div className="text-[10px] bg-white dark:bg-[#0f0c21] p-2 rounded-lg space-y-1 font-mono text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800">
                       <div className="flex justify-between">
-                        <span className="text-slate-500">USD Tag:</span>
-                        <span className="font-bold text-slate-900">USD</span>
+                        <span className="text-slate-500 dark:text-slate-400">USD Tag:</span>
+                        <span className="font-bold text-slate-900 dark:text-slate-100">USD</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Total Profit/Loss:</span>
-                        <span className="text-amber-600 font-bold animate-pulse">0.00</span>
+                        <span className="text-slate-500 dark:text-slate-400">Total Profit/Loss:</span>
+                        <span className="text-amber-600 dark:text-amber-400 font-bold animate-pulse">0.00</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Contract Value:</span>
+                        <span className="text-slate-500 dark:text-slate-400">Contract Value:</span>
                         <span>0.00</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Stake:</span>
-                        <span className="font-bold text-slate-900">${t.stake.toFixed(2)}</span>
+                        <span className="text-slate-500 dark:text-slate-400">Stake:</span>
+                        <span className="font-bold text-slate-900 dark:text-slate-100">${t.stake.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Potential Payout:</span>
-                        <span className="text-purple-700 font-bold">${(t.stake * 1.95).toFixed(3)}</span>
+                        <span className="text-slate-500 dark:text-slate-400">Potential Payout:</span>
+                        <span className="text-purple-700 dark:text-purple-400 font-bold">${(t.stake * 1.95).toFixed(3)}</span>
                       </div>
                     </div>
 
@@ -534,7 +512,7 @@ export default function DashboardPage() {
                     <button
                       onClick={() => handleCloseTrade(t.tradeId)}
                       disabled={closingTradeId === t.tradeId}
-                      className="w-full py-1.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-lg shadow-xs transition-all flex items-center justify-center space-x-1"
+                      className="w-full py-1.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-lg shadow-xs transition-all flex items-center justify-center space-x-1 cursor-pointer"
                     >
                       {closingTradeId === t.tradeId ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -545,47 +523,47 @@ export default function DashboardPage() {
                   </div>
                 ))
               ) : (
-                <div className="py-16 text-center text-slate-500 text-xs space-y-2">
-                  <Clock className="w-8 h-8 text-purple-600 mx-auto" />
-                  <p className="font-bold text-slate-800">No Open Positions</p>
+                <div className="py-16 text-center text-slate-500 dark:text-slate-400 text-xs space-y-2">
+                  <Clock className="w-8 h-8 text-purple-600 dark:text-purple-400 mx-auto" />
+                  <p className="font-bold text-slate-800 dark:text-slate-200">No Open Positions</p>
                   <p className="text-[11px]">Active trade contracts will appear here automatically.</p>
                 </div>
               )
             ) : leftTab === 'CLOSED' ? (
               closedPositions.length > 0 ? (
                 closedPositions.map((t) => (
-                  <div key={t.tradeId} className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5">
+                  <div key={t.tradeId} className="bg-slate-50 dark:bg-[#181335] p-3 rounded-xl border border-slate-200 dark:border-purple-900/40 space-y-1.5">
                     <div className="flex items-center justify-between font-semibold">
                       <div className="flex items-center space-x-1.5">
-                        <span className="text-slate-900 font-bold">{t.symbol}</span>
-                        <span className="text-[10px] text-purple-700 font-bold">● {t.direction}</span>
+                        <span className="text-slate-900 dark:text-slate-100 font-bold">{t.symbol}</span>
+                        <span className="text-[10px] text-purple-700 dark:text-purple-400 font-bold">● {t.direction}</span>
                       </div>
                       <span
                         className={`font-bold font-mono text-[11px] px-2 py-0.5 rounded ${
-                          t.status === 'WON' ? 'bg-emerald-50 text-emerald-700 border border-emerald-300' : 'bg-rose-50 text-rose-700 border border-rose-300'
+                          t.status === 'WON' ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800/40' : 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-400 border border-rose-300 dark:border-rose-800/40'
                         }`}
                       >
                         {t.status === 'WON' ? `+$${t.profit.toFixed(2)}` : `-$${t.stake.toFixed(2)}`}
                       </span>
                     </div>
-                    <div className="flex justify-between text-slate-600 text-[10px] font-mono font-medium">
+                    <div className="flex justify-between text-slate-600 dark:text-slate-400 text-[10px] font-mono font-medium">
                       <span>Stake: ${t.stake.toFixed(2)}</span>
                       <span>Contract Val: {t.payout.toFixed(2)}</span>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="py-16 text-center text-slate-500 text-xs">No closed positions yet.</div>
+                <div className="py-16 text-center text-slate-500 dark:text-slate-400 text-xs">No closed positions yet.</div>
               )
             ) : (
               <div className="space-y-2">
                 {trades.slice(0, 15).map((t) => (
-                  <div key={t.tradeId} className="p-2.5 bg-slate-50 rounded-lg border border-slate-200 flex justify-between items-center text-[11px]">
+                  <div key={t.tradeId} className="p-2.5 bg-slate-50 dark:bg-[#181335] rounded-lg border border-slate-200 dark:border-purple-900/40 flex justify-between items-center text-[11px]">
                     <div>
-                      <p className="font-bold text-slate-900">{t.tradeId}</p>
-                      <p className="text-[10px] text-slate-500">{new Date(t.createdAt).toLocaleTimeString()}</p>
+                      <p className="font-bold text-slate-900 dark:text-slate-100">{t.tradeId}</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">{new Date(t.createdAt).toLocaleTimeString()}</p>
                     </div>
-                    <span className={`font-mono font-bold ${t.status === 'WON' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    <span className={`font-mono font-bold ${t.status === 'WON' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                       {t.status === 'WON' ? `+$${t.profit.toFixed(2)}` : `-$${t.stake.toFixed(2)}`}
                     </span>
                   </div>
@@ -595,19 +573,19 @@ export default function DashboardPage() {
           </div>
 
           {/* Session Summary Footer Bar */}
-          <div className="bg-slate-100 p-3 border-t border-slate-200 space-y-1.5 font-mono text-xs">
+          <div className="bg-slate-100 dark:bg-[#0e0b1d] p-3 border-t border-slate-200 dark:border-purple-950/60 space-y-1.5 font-mono text-xs">
             <div className="flex items-center justify-between">
-              <span className="flex items-center space-x-1.5 text-amber-700 font-bold text-[11px]">
+              <span className="flex items-center space-x-1.5 text-amber-700 dark:text-amber-400 font-bold text-[11px]">
                 <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping inline-block" />
                 <span>● Auto-Trading</span>
               </span>
-              <span className="text-slate-600 text-[10px] font-semibold">
+              <span className="text-slate-600 dark:text-slate-400 text-[10px] font-semibold">
                 {trades.length} trades ({wonCount}W / {lostCount}L)
               </span>
             </div>
-            <div className="flex justify-between items-center text-xs font-bold pt-1 border-t border-slate-200">
-              <span className="text-slate-700">Session P/L:</span>
-              <span className={sessionPL >= 0 ? 'text-emerald-600 font-extrabold' : 'text-rose-600 font-extrabold'}>
+            <div className="flex justify-between items-center text-xs font-bold pt-1 border-t border-slate-200 dark:border-slate-800">
+              <span className="text-slate-700 dark:text-slate-300">Session P/L:</span>
+              <span className={sessionPL >= 0 ? 'text-emerald-600 dark:text-emerald-400 font-extrabold' : 'text-rose-600 dark:text-rose-400 font-extrabold'}>
                 {sessionPL >= 0 ? `+${sessionPL.toFixed(2)} USD` : `${sessionPL.toFixed(2)} USD`}
               </span>
             </div>
@@ -635,27 +613,23 @@ export default function DashboardPage() {
 
         {/* RIGHT PANEL: Order Execution Controls (Desktop Col 3) */}
         <div
-          className={`lg:col-span-3 rounded-2xl p-4 flex flex-col justify-between h-[540px] sm:h-[600px] lg:h-[calc(100vh-105px)] min-h-[540px] max-h-[750px] overflow-y-auto text-xs shadow-xs border transition-colors ${
-            theme === 'light'
-              ? 'bg-white border-slate-200/90 text-slate-900'
-              : 'bg-[#120f26] border-purple-950/80 text-slate-100'
-          } ${
+          className={`lg:col-span-3 rounded-2xl p-4 flex flex-col justify-between h-[540px] sm:h-[600px] lg:h-[calc(100vh-105px)] min-h-[540px] max-h-[750px] overflow-y-auto text-xs shadow-xs border transition-colors bg-white dark:bg-[#120f26] border-slate-200/90 dark:border-purple-950/80 text-slate-900 dark:text-slate-100 ${
             mobileTab === 'TRADE' ? 'block' : 'hidden lg:flex'
           }`}
         >
           {/* TRADING MODE Switcher Header */}
           <div>
             <div className="flex items-center justify-between mb-1">
-              <span className="font-extrabold text-[11px] text-slate-900 uppercase tracking-wider">Trading Mode</span>
-              <span className="text-[10px] text-purple-700 font-bold">
+              <span className="font-extrabold text-[11px] text-slate-900 dark:text-slate-100 uppercase tracking-wider">Trading Mode</span>
+              <span className="text-[10px] text-purple-700 dark:text-purple-300 font-bold">
                 {tradingMode === 'AUTO' ? 'Bot places trades · martingale' : 'Manual execution'}
               </span>
             </div>
-            <div className="grid grid-cols-2 gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/80 font-bold text-xs">
+            <div className="grid grid-cols-2 gap-1 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200/80 dark:border-slate-800 font-bold text-xs">
               <button
                 onClick={() => setTradingMode('AUTO')}
                 className={`py-2 rounded-lg transition-all ${
-                  tradingMode === 'AUTO' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  tradingMode === 'AUTO' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
                 }`}
               >
                 AUTO
@@ -666,7 +640,7 @@ export default function DashboardPage() {
                   updateAutoTrading(false);
                 }}
                 className={`py-2 rounded-lg transition-all ${
-                  tradingMode === 'MANUAL' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  tradingMode === 'MANUAL' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
                 }`}
               >
                 MANUAL
@@ -676,11 +650,11 @@ export default function DashboardPage() {
 
           {/* Trade Contract Type Selector */}
           <div>
-            <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/80 font-semibold text-[11px]">
+            <div className="grid grid-cols-3 gap-1 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200/80 dark:border-slate-800 font-semibold text-[11px]">
               <button
                 onClick={() => setTradeType('EVEN_ODD')}
                 className={`py-1.5 rounded-lg transition-all ${
-                  tradeType === 'EVEN_ODD' ? 'bg-purple-600 text-white' : 'text-slate-600 hover:text-slate-900'
+                  tradeType === 'EVEN_ODD' ? 'bg-purple-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
                 }`}
               >
                 Even / Odd
@@ -688,7 +662,7 @@ export default function DashboardPage() {
               <button
                 onClick={() => setTradeType('MATCH_DIFFER')}
                 className={`py-1.5 rounded-lg transition-all ${
-                  tradeType === 'MATCH_DIFFER' ? 'bg-purple-600 text-white' : 'text-slate-600 hover:text-slate-900'
+                  tradeType === 'MATCH_DIFFER' ? 'bg-purple-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
                 }`}
               >
                 Match / Differ
@@ -696,7 +670,7 @@ export default function DashboardPage() {
               <button
                 onClick={() => setTradeType('OVER_UNDER')}
                 className={`py-1.5 rounded-lg transition-all ${
-                  tradeType === 'OVER_UNDER' ? 'bg-purple-600 text-white' : 'text-slate-600 hover:text-slate-900'
+                  tradeType === 'OVER_UNDER' ? 'bg-purple-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
                 }`}
               >
                 Over / Under
@@ -707,21 +681,21 @@ export default function DashboardPage() {
           {/* Stake Amount Input & Quick Chips */}
           <div>
             <div className="flex justify-between items-center mb-1">
-              <label className="text-slate-600 font-bold">STAKE AMOUNT</label>
-              <div className="flex bg-slate-100 p-0.5 rounded border border-slate-200 text-[10px] font-mono font-bold">
+              <label className="text-slate-600 dark:text-slate-400 font-bold">STAKE AMOUNT</label>
+              <div className="flex bg-slate-100 dark:bg-slate-900 p-0.5 rounded border border-slate-200 dark:border-slate-800 text-[10px] font-mono font-bold">
                 <span className="px-1.5 py-0.5 bg-purple-600 text-white rounded">Stake</span>
-                <span className="px-1.5 py-0.5 text-slate-500">Payout</span>
+                <span className="px-1.5 py-0.5 text-slate-500 dark:text-slate-400">Payout</span>
               </div>
             </div>
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => adjustStake(-1)}
-                className="w-9 h-9 rounded-lg bg-slate-100 border border-slate-200 hover:bg-slate-200 text-slate-800 flex items-center justify-center font-bold text-base"
+                className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 flex items-center justify-center font-bold text-base cursor-pointer"
               >
                 -
               </button>
-              <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 flex items-center justify-center space-x-1 font-mono font-bold text-base text-slate-900">
-                <span className="text-purple-600">$</span>
+              <div className="flex-1 bg-slate-50 dark:bg-[#181335] border border-slate-200 dark:border-purple-900/40 rounded-lg px-3 py-1.5 flex items-center justify-center space-x-1 font-mono font-bold text-base text-slate-900 dark:text-slate-100">
+                <span className="text-purple-600 dark:text-purple-400">$</span>
                 <input
                   type="number"
                   value={stake}
@@ -733,7 +707,7 @@ export default function DashboardPage() {
               </div>
               <button
                 onClick={() => adjustStake(1)}
-                className="w-9 h-9 rounded-lg bg-slate-100 border border-slate-200 hover:bg-slate-200 text-slate-800 flex items-center justify-center font-bold text-base"
+                className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 flex items-center justify-center font-bold text-base cursor-pointer"
               >
                 +
               </button>
@@ -745,10 +719,10 @@ export default function DashboardPage() {
                 <button
                   key={amt}
                   onClick={() => setStake(amt)}
-                  className={`py-1 rounded font-bold transition-colors ${
+                  className={`py-1 rounded font-bold transition-colors cursor-pointer ${
                     stake === amt
                       ? 'bg-purple-600 text-white'
-                      : 'bg-slate-100 text-slate-700 border border-slate-200 hover:text-slate-900'
+                      : 'bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
                   }`}
                 >
                   ${amt}
@@ -760,16 +734,16 @@ export default function DashboardPage() {
           {/* Barrier Digit Selector for Match/Differ and Over/Under */}
           {(tradeType === 'MATCH_DIFFER' || tradeType === 'OVER_UNDER') && (
             <div>
-              <label className="block text-slate-700 font-bold mb-1">Last Digit Barrier ({barrier})</label>
+              <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">Last Digit Barrier ({barrier})</label>
               <div className="grid grid-cols-5 gap-1 font-mono font-bold">
                 {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((digit) => (
                   <button
                     key={digit}
                     onClick={() => setBarrier(digit)}
-                    className={`py-1.5 rounded transition-all ${
+                    className={`py-1.5 rounded transition-all cursor-pointer ${
                       barrier === digit
                         ? 'bg-purple-600 text-white shadow-xs'
-                        : 'bg-slate-100 text-slate-700 hover:text-slate-900 border border-slate-200'
+                        : 'bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 border border-slate-200 dark:border-slate-800'
                     }`}
                   >
                     {digit}
@@ -780,17 +754,17 @@ export default function DashboardPage() {
           )}
 
           {/* Payout Display Line */}
-          <div className="flex justify-between items-center text-xs font-mono py-1.5 px-2.5 bg-slate-50 rounded-lg border border-slate-200">
-            <span className="text-slate-600 font-medium">Payout</span>
-            <span className="font-extrabold text-slate-900">${potentialPayout.toFixed(2)} USD</span>
+          <div className="flex justify-between items-center text-xs font-mono py-1.5 px-2.5 bg-slate-50 dark:bg-[#181335] rounded-lg border border-slate-200 dark:border-purple-900/40">
+            <span className="text-slate-600 dark:text-slate-400 font-medium">Payout</span>
+            <span className="font-extrabold text-slate-900 dark:text-slate-100">${potentialPayout.toFixed(2)} USD</span>
           </div>
 
           {/* Target Profit, Stop Loss, Multiplier Widgets */}
           <div className="grid grid-cols-3 gap-1.5 text-center font-mono">
-            <div className="bg-emerald-50/60 p-2 rounded-xl border border-emerald-200">
-              <span className="block text-[9px] text-emerald-800 font-bold uppercase tracking-wider">Target Profit</span>
-              <div className="flex items-center justify-center space-x-1 mt-1 text-emerald-900 font-bold text-xs">
-                <span className="text-emerald-700">$</span>
+            <div className="bg-emerald-50/60 dark:bg-emerald-950/40 p-2 rounded-xl border border-emerald-200 dark:border-emerald-800/40">
+              <span className="block text-[9px] text-emerald-800 dark:text-emerald-300 font-bold uppercase tracking-wider">Target Profit</span>
+              <div className="flex items-center justify-center space-x-1 mt-1 text-emerald-900 dark:text-emerald-100 font-bold text-xs">
+                <span className="text-emerald-700 dark:text-emerald-400">$</span>
                 <input
                   type="number"
                   value={targetProfit}
@@ -798,15 +772,15 @@ export default function DashboardPage() {
                     setTargetProfit(Number(e.target.value));
                     setHasTriggeredTarget(false);
                   }}
-                  className="w-12 bg-transparent text-center text-emerald-800 font-bold text-xs focus:outline-none"
+                  className="w-12 bg-transparent text-center text-emerald-800 dark:text-emerald-300 font-bold text-xs focus:outline-none"
                 />
               </div>
             </div>
 
-            <div className="bg-rose-50/60 p-2 rounded-xl border border-rose-200">
-              <span className="block text-[9px] text-rose-800 font-bold uppercase tracking-wider">Stop Loss</span>
-              <div className="flex items-center justify-center space-x-1 mt-1 text-rose-900 font-bold text-xs">
-                <span className="text-rose-700">$</span>
+            <div className="bg-rose-50/60 dark:bg-rose-950/40 p-2 rounded-xl border border-rose-200 dark:border-rose-800/40">
+              <span className="block text-[9px] text-rose-800 dark:text-rose-300 font-bold uppercase tracking-wider">Stop Loss</span>
+              <div className="flex items-center justify-center space-x-1 mt-1 text-rose-900 dark:text-rose-100 font-bold text-xs">
+                <span className="text-rose-700 dark:text-rose-400">$</span>
                 <input
                   type="number"
                   value={stopLoss}
@@ -814,35 +788,35 @@ export default function DashboardPage() {
                     setStopLoss(Number(e.target.value));
                     setHasTriggeredTarget(false);
                   }}
-                  className="w-12 bg-transparent text-center text-rose-800 font-bold text-xs focus:outline-none"
+                  className="w-12 bg-transparent text-center text-rose-800 dark:text-rose-300 font-bold text-xs focus:outline-none"
                 />
               </div>
             </div>
 
-            <div className="bg-amber-50/60 p-2 rounded-xl border border-amber-200">
-              <span className="block text-[9px] text-amber-800 font-bold uppercase tracking-wider">Multiplier</span>
-              <div className="flex items-center justify-center space-x-0.5 mt-1 text-amber-900 font-bold text-xs">
+            <div className="bg-amber-50/60 dark:bg-amber-950/40 p-2 rounded-xl border border-amber-200 dark:border-amber-800/40">
+              <span className="block text-[9px] text-amber-800 dark:text-amber-300 font-bold uppercase tracking-wider">Multiplier</span>
+              <div className="flex items-center justify-center space-x-0.5 mt-1 text-amber-900 dark:text-amber-100 font-bold text-xs">
                 <span>x</span>
                 <input
                   type="number"
                   value={multiplierValue}
                   onChange={(e) => setMultiplierValue(Number(e.target.value))}
-                  className="w-8 bg-transparent text-center text-amber-800 font-bold text-xs focus:outline-none"
+                  className="w-8 bg-transparent text-center text-amber-800 dark:text-amber-300 font-bold text-xs focus:outline-none"
                 />
               </div>
             </div>
           </div>
 
           {/* Live Session Strip Bar */}
-          <div className="bg-slate-100 p-2.5 rounded-xl border border-slate-200 flex items-center justify-between font-mono text-xs">
+          <div className="bg-slate-100 dark:bg-[#0e0b1d] p-2.5 rounded-xl border border-slate-200 dark:border-purple-950/60 flex items-center justify-between font-mono text-xs">
             <div className="flex items-center space-x-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-slate-700 text-[10px] font-bold">
+              <span className="text-slate-700 dark:text-slate-300 text-[10px] font-bold">
                 LAST {trades.length}T · {wonCount}W - {lostCount}L
               </span>
             </div>
             <div className="text-right">
-              <span className={`font-extrabold text-sm ${sessionPL >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+              <span className={`font-extrabold text-sm ${sessionPL >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                 {sessionPL >= 0 ? `+$${sessionPL.toFixed(2)}` : `-$${Math.abs(sessionPL).toFixed(2)}`}
               </span>
             </div>
@@ -853,7 +827,7 @@ export default function DashboardPage() {
             <div className="pt-1">
               <button
                 onClick={handleToggleAutoTrading}
-                className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-wider shadow-md transition-all flex items-center justify-center space-x-2 ${
+                className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-wider shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer ${
                   isAutoTrading
                     ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-600/30 animate-pulse'
                     : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30'
@@ -880,17 +854,17 @@ export default function DashboardPage() {
                   <button
                     onClick={() => handleExecuteTrade('EVEN')}
                     disabled={tradeExecuting}
-                    className="w-full bg-emerald-50/70 hover:bg-emerald-100 border border-emerald-300 p-3 rounded-2xl flex items-center justify-between transition-all group shadow-xs"
+                    className="w-full bg-emerald-50/70 dark:bg-emerald-950/30 hover:bg-emerald-100 dark:hover:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-800/50 p-3 rounded-2xl flex items-center justify-between transition-all group shadow-xs cursor-pointer"
                   >
                     <div className="flex items-center space-x-3">
                       <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center group-hover:scale-105 transition-transform shadow-xs">
                         <Grid className="w-5 h-5" />
                       </div>
-                      <span className="font-extrabold text-slate-900 text-sm">Even</span>
+                      <span className="font-extrabold text-slate-900 dark:text-slate-100 text-sm">Even</span>
                     </div>
                     <div className="text-right">
-                      <p className="font-extrabold text-emerald-700 text-xs">${potentialPayout.toFixed(2)} USD</p>
-                      <p className="text-[10px] text-slate-500 font-bold">95.22%</p>
+                      <p className="font-extrabold text-emerald-700 dark:text-emerald-400 text-xs">${potentialPayout.toFixed(2)} USD</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">95.22%</p>
                     </div>
                   </button>
 
@@ -898,17 +872,17 @@ export default function DashboardPage() {
                   <button
                     onClick={() => handleExecuteTrade('ODD')}
                     disabled={tradeExecuting}
-                    className="w-full bg-rose-50/70 hover:bg-rose-100 border border-rose-300 p-3 rounded-2xl flex items-center justify-between transition-all group shadow-xs"
+                    className="w-full bg-rose-50/70 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-950/50 border border-rose-300 dark:border-rose-800/50 p-3 rounded-2xl flex items-center justify-between transition-all group shadow-xs cursor-pointer"
                   >
                     <div className="flex items-center space-x-3">
                       <div className="w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center group-hover:scale-105 transition-transform shadow-xs">
                         <Triangle className="w-5 h-5" />
                       </div>
-                      <span className="font-extrabold text-slate-900 text-sm">Odd</span>
+                      <span className="font-extrabold text-slate-900 dark:text-slate-100 text-sm">Odd</span>
                     </div>
                     <div className="text-right">
-                      <p className="font-extrabold text-rose-700 text-xs">${potentialPayout.toFixed(2)} USD</p>
-                      <p className="text-[10px] text-slate-500 font-bold">95.22%</p>
+                      <p className="font-extrabold text-rose-700 dark:text-rose-400 text-xs">${potentialPayout.toFixed(2)} USD</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">95.22%</p>
                     </div>
                   </button>
                 </div>
@@ -919,14 +893,14 @@ export default function DashboardPage() {
                   <button
                     onClick={() => handleExecuteTrade('MATCH')}
                     disabled={tradeExecuting}
-                    className="py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs flex items-center justify-center space-x-1"
+                    className="py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs flex items-center justify-center space-x-1 cursor-pointer"
                   >
                     <span>MATCHES ({barrier})</span>
                   </button>
                   <button
                     onClick={() => handleExecuteTrade('DIFFER')}
                     disabled={tradeExecuting}
-                    className="py-3 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-xl shadow-xs flex items-center justify-center space-x-1"
+                    className="py-3 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-xl shadow-xs flex items-center justify-center space-x-1 cursor-pointer"
                   >
                     <span>DIFFERS ({barrier})</span>
                   </button>
@@ -938,14 +912,14 @@ export default function DashboardPage() {
                   <button
                     onClick={() => handleExecuteTrade('OVER')}
                     disabled={tradeExecuting}
-                    className="py-3 bg-teal-600 hover:bg-teal-700 text-white font-extrabold text-xs rounded-xl shadow-xs flex items-center justify-center space-x-1"
+                    className="py-3 bg-teal-600 hover:bg-teal-700 text-white font-extrabold text-xs rounded-xl shadow-xs flex items-center justify-center space-x-1 cursor-pointer"
                   >
                     <span>OVER ({barrier})</span>
                   </button>
                   <button
                     onClick={() => handleExecuteTrade('UNDER')}
                     disabled={tradeExecuting}
-                    className="py-3 bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs rounded-xl shadow-xs flex items-center justify-center space-x-1"
+                    className="py-3 bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs rounded-xl shadow-xs flex items-center justify-center space-x-1 cursor-pointer"
                   >
                     <span>UNDER ({barrier})</span>
                   </button>
