@@ -83,7 +83,7 @@ export default function LandingLiveTerminal() {
       {/* Top Scrolling Ticker Bar */}
       <div className="w-full overflow-hidden bg-slate-100/90 dark:bg-[#07090e]/90 backdrop-blur-md border-y border-slate-200/90 dark:border-purple-950/60 py-2 text-xs transition-colors">
         <div className="flex items-center space-x-6 animate-marquee whitespace-nowrap px-4">
-          {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, idx) => (
+          {[...TICKER_ITEMS, ...TICKER_ITEMS, ...TICKER_ITEMS, ...TICKER_ITEMS].map((item, idx) => (
             <div key={idx} className="inline-flex items-center space-x-2 font-mono text-[11px] font-semibold">
               <span className="w-5 h-5 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold flex items-center justify-center text-[9px]">
                 {item.symbol.charAt(0)}
