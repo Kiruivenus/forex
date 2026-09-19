@@ -141,7 +141,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdSchema) }}
         />
       </head>
-      <body className="min-h-full flex flex-col bg-[#0b0e17] text-slate-100">{children}</body>
+      <body className="min-h-full flex flex-col bg-[#f8fafc] text-slate-900">{children}</body>
     </html>
   );
 }

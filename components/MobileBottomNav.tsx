@@ -15,20 +15,20 @@ export default function MobileBottomNav({
   onOpenAIScanner,
 }: MobileBottomNavProps) {
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#100d24]/95 backdrop-blur-md border-t border-purple-950/80 flex items-center justify-around h-16 px-6">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 flex items-center justify-around h-16 px-6 shadow-lg">
       {/* Trade Button (3 Vertical Bars matching reference image) */}
       <button
         onClick={() => onTabChange('TRADE')}
         className={`flex flex-col items-center justify-center space-y-1 transition-all ${
-          activeTab === 'TRADE' ? 'text-purple-400 font-bold scale-105' : 'text-purple-400/80 hover:text-purple-300'
+          activeTab === 'TRADE' ? 'text-purple-700 font-bold scale-105' : 'text-slate-500 hover:text-slate-800'
         }`}
       >
-        <svg className="w-6 h-6 text-purple-400 fill-current" viewBox="0 0 24 24">
+        <svg className="w-6 h-6 text-purple-600 fill-current" viewBox="0 0 24 24">
           <rect x="3" y="10" width="3.5" height="10" rx="1.5" />
           <rect x="10.25" y="4" width="3.5" height="16" rx="1.5" />
           <rect x="17.5" y="8" width="3.5" height="12" rx="1.5" />
         </svg>
-        <span className="text-[11px] font-bold text-purple-400 tracking-wide">Trade</span>
+        <span className="text-[11px] font-bold text-purple-700 tracking-wide">Trade</span>
       </button>
 
       {/* Prominent Enlarged AI Scanner Button matching reference image */}
@@ -37,7 +37,7 @@ export default function MobileBottomNav({
         className="flex flex-col items-center justify-center space-y-1 group transition-transform active:scale-95 cursor-pointer -mt-1"
       >
         <AIScannerIcon className="w-11 h-11" />
-        <span className="font-extrabold text-[12px] bg-gradient-to-r from-pink-500 via-rose-400 to-purple-400 bg-clip-text text-transparent group-hover:brightness-125 tracking-wider">
+        <span className="font-extrabold text-[12px] bg-gradient-to-r from-pink-600 via-purple-600 to-purple-800 bg-clip-text text-transparent group-hover:brightness-125 tracking-wider">
           AI
         </span>
       </button>
@@ -46,7 +46,7 @@ export default function MobileBottomNav({
       <button
         onClick={() => onTabChange('POSITIONS')}
         className={`flex flex-col items-center justify-center space-y-1 transition-all ${
-          activeTab === 'POSITIONS' ? 'text-purple-400 font-bold scale-105' : 'text-slate-400 hover:text-slate-200'
+          activeTab === 'POSITIONS' ? 'text-purple-700 font-bold scale-105' : 'text-slate-500 hover:text-slate-800'
         }`}
       >
         <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">

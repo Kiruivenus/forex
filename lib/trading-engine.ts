@@ -33,29 +33,25 @@ export function getDeterministicPrice(symbol: string, basePrice: number, timesta
     hash |= 0;
   }
 
-  const pseudoRand1 = (Math.sin(hash) + 1) / 2;
+  // Instant tick noise factor
+  const pseudoRand = (Math.sin(hash * 9999) + 1) / 2 - 0.5;
 
-  // Natural wave oscillation
-  const wave1 = Math.sin(roundedSec / 15) * 0.0018;
-  const wave2 = Math.cos(roundedSec / 45) * 0.0028;
-
-  // Micro jitter per second
-  const microJitter = (pseudoRand1 - 0.495) * 0.0012;
-
-  // Minute bucket drift (prevents static repeating loops)
-  const minuteBucket = Math.floor(roundedSec / 60);
-  let minuteDrift = 0;
-  for (let m = minuteBucket - 3; m <= minuteBucket; m++) {
-    const mSeed = `${symbol}_min_${m}`;
-    let mHash = 0;
-    for (let j = 0; j < mSeed.length; j++) {
-      mHash = (mHash << 5) - mHash + mSeed.charCodeAt(j);
-      mHash |= 0;
+  // Cumulative random walk over 15-second windows for realistic volatility trends
+  const windowIdx = Math.floor(roundedSec / 8);
+  let walk = 0;
+  for (let w = windowIdx - 12; w <= windowIdx; w++) {
+    const wSeed = `${symbol}_w_${w}`;
+    let wHash = 0;
+    for (let j = 0; j < wSeed.length; j++) {
+      wHash = (wHash << 5) - wHash + wSeed.charCodeAt(j);
+      wHash |= 0;
     }
-    minuteDrift += Math.sin(mHash) * 0.0006;
+    const wStep = (Math.sin(wHash * 43758.5453) + 1) / 2 - 0.5;
+    walk += wStep * 0.0012;
   }
 
-  const priceFactor = 1 + wave1 + wave2 + microJitter + minuteDrift;
+  const tickJitter = pseudoRand * 0.0006;
+  const priceFactor = 1 + walk + tickJitter;
   return Number((basePrice * priceFactor).toFixed(2));
 }
 
