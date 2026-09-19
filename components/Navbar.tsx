@@ -24,7 +24,7 @@ import {
   VolumeX,
 } from 'lucide-react';
 import { getStoredAccountMode, setStoredAccountMode, EVENT_NAME, AccountMode } from '@/lib/accountMode';
-import { getStoredTheme, setStoredTheme, initTheme, THEME_EVENT_NAME, ThemeMode } from '@/lib/theme';
+import { useTheme } from '@/components/ThemeProvider';
 import AIScannerIcon from './AIScannerIcon';
 
 interface UserSession {
@@ -51,34 +51,14 @@ interface NavbarProps {
 export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChange, liveWallet }: NavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const { isLight, toggleTheme } = useTheme();
   const [user, setUser] = useState<UserSession | null>(null);
   const [wallet, setWallet] = useState<WalletState | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
   const [activeMode, setActiveMode] = useState<AccountMode>('REAL');
-  const [theme, setTheme] = useState<ThemeMode>('light');
   const [soundEnabled, setSoundEnabled] = useState(true);
-
-  useEffect(() => {
-    const initialTheme = initTheme();
-    setTheme(initialTheme);
-
-    const handleThemeEvent = (e: Event) => {
-      const customEvent = e as CustomEvent<ThemeMode>;
-      if (customEvent.detail) {
-        setTheme(customEvent.detail);
-      }
-    };
-    window.addEventListener(THEME_EVENT_NAME, handleThemeEvent);
-    return () => window.removeEventListener(THEME_EVENT_NAME, handleThemeEvent);
-  }, []);
-
-  const toggleTheme = () => {
-    const nextTheme: ThemeMode = theme === 'light' ? 'dark' : 'light';
-    setStoredTheme(nextTheme);
-    setTheme(nextTheme);
-  };
 
   useEffect(() => {
     setActiveMode(accountMode || getStoredAccountMode());
@@ -132,8 +112,6 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
     router.push('/login');
     router.refresh();
   };
-
-  const isLight = theme === 'light';
 
   return (
     <header

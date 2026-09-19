@@ -73,43 +73,43 @@ export default function WithdrawalModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="bg-[#120f26] border border-purple-800/60 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl text-slate-100 flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 dark:bg-black/80 backdrop-blur-sm">
+      <div className="bg-white dark:bg-[#120f26] border border-slate-200 dark:border-purple-800/60 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl text-slate-900 dark:text-slate-100 flex flex-col transition-colors">
         {/* Header */}
-        <div className="bg-[#181335] px-5 py-4 border-b border-purple-950/80 flex items-center justify-between">
+        <div className="bg-slate-50 dark:bg-[#181335] px-5 py-4 border-b border-slate-200 dark:border-purple-950/80 flex items-center justify-between">
           <div>
-            <h3 className="font-bold text-base text-slate-100">Withdraw Funds</h3>
-            <p className="text-[11px] text-slate-400">Available: <span className="font-bold text-emerald-400">${availableBalance.toFixed(2)} USD</span></p>
+            <h3 className="font-bold text-base text-slate-900 dark:text-slate-100">Withdraw Funds</h3>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">Available: <span className="font-bold text-emerald-600 dark:text-emerald-400">${availableBalance.toFixed(2)} USD</span></p>
           </div>
-          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800">
+          <button onClick={onClose} className="p-1.5 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Method Selector */}
-        <div className="flex border-b border-purple-950/80 bg-[#0e0b1f] text-xs font-semibold">
+        <div className="flex border-b border-slate-200 dark:border-purple-950/80 bg-slate-100/80 dark:bg-[#0e0b1f] text-xs font-semibold">
           <button
             onClick={() => setMethod('MPESA')}
-            className={`flex-1 py-3 flex items-center justify-center space-x-2 border-b-2 transition-colors ${
+            className={`flex-1 py-3 flex items-center justify-center space-x-2 border-b-2 transition-colors cursor-pointer ${
               method === 'MPESA'
-                ? 'border-purple-500 text-purple-300 bg-purple-950/30'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-purple-500 text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/30 font-bold'
+                : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
             }`}
           >
-            <Smartphone className="w-4 h-4 text-emerald-400" />
+            <Smartphone className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             <span>M-Pesa Payout</span>
           </button>
 
           <button
             onClick={() => setMethod('CRYPTO')}
-            className={`flex-1 py-3 flex items-center justify-center space-x-2 border-b-2 transition-colors ${
+            className={`flex-1 py-3 flex items-center justify-center space-x-2 border-b-2 transition-colors cursor-pointer ${
               method === 'CRYPTO'
-                ? 'border-purple-500 text-purple-300 bg-purple-950/30'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-purple-500 text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/30 font-bold'
+                : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
             }`}
           >
-            <Bitcoin className="w-4 h-4 text-amber-400" />
-            <span>Crypto Wallet</span>
+            <Bitcoin className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+            <span>Crypto Payout</span>
           </button>
         </div>
 

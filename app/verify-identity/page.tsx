@@ -75,44 +75,44 @@ export default function VerifyIdentityPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#07090e] text-slate-100 flex flex-col justify-between selection:bg-purple-500 selection:text-white">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#07090e] text-slate-900 dark:text-slate-100 flex flex-col justify-between transition-colors selection:bg-purple-500 selection:text-white">
       <Navbar />
 
       <main className="max-w-3xl mx-auto px-4 pt-20 sm:pt-24 pb-12 w-full flex-1 space-y-6">
         {/* Header Badge */}
         <div className="flex flex-col items-center text-center space-y-2 mb-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-medium">
-            <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-700 dark:text-purple-300 text-xs font-medium">
+            <ShieldCheck className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
             <span>Account Verification</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">Identity Verification (KYC)</h1>
-          <p className="text-xs sm:text-sm text-slate-400 max-w-md">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Identity Verification (KYC)</h1>
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-md">
             Verify your government identity to unlock full withdrawal access and higher account limits.
           </p>
         </div>
 
-        {/* Main Glass Card */}
-        <div className="bg-slate-900/60 backdrop-blur-xl border border-purple-500/20 rounded-3xl p-5 sm:p-8 shadow-2xl shadow-purple-950/20 space-y-6">
+        {/* Main Card */}
+        <div className="bg-white dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200 dark:border-purple-500/20 rounded-3xl p-5 sm:p-8 shadow-xl dark:shadow-2xl dark:shadow-purple-950/20 space-y-6 transition-colors">
           {kyc && (
             <div
               className={`p-4 rounded-2xl border flex items-start gap-3 text-xs transition-all ${
                 kyc.status === 'APPROVED'
-                  ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-300'
+                  ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-300'
                   : kyc.status === 'PENDING'
-                  ? 'bg-amber-950/40 border-amber-500/30 text-amber-300'
-                  : 'bg-rose-950/40 border-rose-500/30 text-rose-300'
+                  ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-500/30 text-amber-800 dark:text-amber-300'
+                  : 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-500/30 text-rose-800 dark:text-rose-300'
               }`}
             >
               {kyc.status === 'APPROVED' ? (
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
               ) : kyc.status === 'PENDING' ? (
-                <Loader2 className="w-5 h-5 text-amber-400 animate-spin shrink-0 mt-0.5" />
+                <Loader2 className="w-5 h-5 text-amber-600 dark:text-amber-400 animate-spin shrink-0 mt-0.5" />
               ) : (
-                <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
               )}
               <div>
                 <span className="font-bold text-sm block capitalize">Verification Status: {kyc.status}</span>
-                <span className="text-xs text-slate-300 mt-0.5 block">
+                <span className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 block">
                   {kyc.status === 'APPROVED'
                     ? 'Your identity has been verified. Payouts and full features are enabled.'
                     : kyc.status === 'PENDING'
@@ -126,8 +126,8 @@ export default function VerifyIdentityPage() {
           <form onSubmit={handleSubmit} className="space-y-5 text-xs">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-slate-300 font-medium mb-1.5 flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-purple-400" />
+                <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1.5 flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                   <span>Legal Full Name</span>
                 </label>
                 <input
@@ -135,22 +135,22 @@ export default function VerifyIdentityPage() {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="As shown on passport / National ID"
-                  className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-xs transition-all"
+                  className="w-full bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-xs transition-all"
                   required
                   disabled={kyc?.status === 'APPROVED'}
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-medium mb-1.5 flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-purple-400" />
+                <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1.5 flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                   <span>Date of Birth</span>
                 </label>
                 <input
                   type="date"
                   value={dateOfBirth}
                   onChange={(e) => setDateOfBirth(e.target.value)}
-                  className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-xs transition-all"
+                  className="w-full bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-xs transition-all"
                   required
                   disabled={kyc?.status === 'APPROVED'}
                 />
@@ -159,14 +159,14 @@ export default function VerifyIdentityPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-slate-300 font-medium mb-1.5 flex items-center gap-1.5">
-                  <FileBadge className="w-3.5 h-3.5 text-purple-400" />
+                <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1.5 flex items-center gap-1.5">
+                  <FileBadge className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                   <span>Document Type</span>
                 </label>
                 <select
                   value={documentType}
                   onChange={(e) => setDocumentType(e.target.value)}
-                  className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-100 focus:outline-none focus:border-purple-500 text-xs transition-all cursor-pointer"
+                  className="w-full bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-purple-500 text-xs transition-all cursor-pointer"
                   disabled={kyc?.status === 'APPROVED'}
                 >
                   <option value="NATIONAL_ID">National ID Card</option>
@@ -176,8 +176,8 @@ export default function VerifyIdentityPage() {
               </div>
 
               <div>
-                <label className="block text-slate-300 font-medium mb-1.5 flex items-center gap-1.5">
-                  <FileText className="w-3.5 h-3.5 text-purple-400" />
+                <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1.5 flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                   <span>Document Number</span>
                 </label>
                 <input
@@ -185,7 +185,7 @@ export default function VerifyIdentityPage() {
                   value={documentNumber}
                   onChange={(e) => setDocumentNumber(e.target.value)}
                   placeholder="ID or Passport Number"
-                  className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-xs transition-all"
+                  className="w-full bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-xs transition-all"
                   required
                   disabled={kyc?.status === 'APPROVED'}
                 />
@@ -193,8 +193,8 @@ export default function VerifyIdentityPage() {
             </div>
 
             <div>
-              <label className="block text-slate-300 font-medium mb-1.5 flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-purple-400" />
+              <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1.5 flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                 <span>Residential Address</span>
               </label>
               <input
@@ -202,22 +202,22 @@ export default function VerifyIdentityPage() {
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder="Street Address, City, Country"
-                className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-xs transition-all"
+                className="w-full bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-xs transition-all"
                 required
                 disabled={kyc?.status === 'APPROVED'}
               />
             </div>
 
             {statusMsg && (
-              <div className="bg-emerald-950/40 border border-emerald-500/30 p-3.5 rounded-xl text-emerald-300 flex items-center gap-2 text-xs">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-500/30 p-3.5 rounded-xl text-emerald-800 dark:text-emerald-300 flex items-center gap-2 text-xs">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <span>{statusMsg}</span>
               </div>
             )}
 
             {errorMsg && (
-              <div className="bg-rose-950/40 border border-rose-500/30 p-3.5 rounded-xl text-rose-300 flex items-center gap-2 text-xs">
-                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+              <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-500/30 p-3.5 rounded-xl text-rose-800 dark:text-rose-300 flex items-center gap-2 text-xs">
+                <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
                 <span>{errorMsg}</span>
               </div>
             )}
@@ -225,7 +225,7 @@ export default function VerifyIdentityPage() {
             <button
               type="submit"
               disabled={loading || kyc?.status === 'APPROVED'}
-              className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-xs rounded-xl shadow-lg shadow-purple-900/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-xs rounded-xl shadow-lg shadow-purple-900/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

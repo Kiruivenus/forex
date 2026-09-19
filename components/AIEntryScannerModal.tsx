@@ -136,18 +136,18 @@ export default function AIEntryScannerModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-      <div className="bg-[#120f26] border border-purple-900/60 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl text-slate-100 flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 dark:bg-black/80 backdrop-blur-md animate-fade-in">
+      <div className="bg-white dark:bg-[#120f26] border border-slate-200 dark:border-purple-900/60 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl text-slate-900 dark:text-slate-100 flex flex-col transition-colors">
         {/* Header */}
-        <div className="px-5 py-4 flex items-center justify-between border-b border-purple-950/80">
+        <div className="px-5 py-4 flex items-center justify-between border-b border-slate-200 dark:border-purple-950/80 bg-slate-50 dark:bg-[#181335]">
           <div className="flex items-center space-x-3">
             <AIScannerIcon className="w-8 h-8 shrink-0 drop-shadow-md" />
-            <h3 className="font-extrabold text-base text-slate-100 tracking-tight">Entry Scanner</h3>
+            <h3 className="font-extrabold text-base text-slate-900 dark:text-slate-100 tracking-tight">Entry Scanner</h3>
           </div>
 
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-purple-900/40 transition-colors"
+            className="p-1.5 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white rounded-lg hover:bg-slate-200 dark:hover:bg-purple-900/40 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -156,7 +156,7 @@ export default function AIEntryScannerModal({
         {/* Modal Content */}
         <div className="p-5 space-y-4">
           {/* Introductory Description Card */}
-          <div className="bg-[#181335] p-3.5 rounded-2xl border border-purple-900/40 text-[11px] text-slate-300 leading-relaxed">
+          <div className="bg-purple-50 dark:bg-[#181335] p-3.5 rounded-2xl border border-purple-200 dark:border-purple-900/40 text-[11px] text-purple-900 dark:text-slate-300 leading-relaxed">
             Pick the market category you want to scan. The deep scanner walks every{' '}
             <strong className="text-white font-extrabold">volatility / synthetic</strong> index and
             surfaces the best entry point for that category based on historical tick patterns.

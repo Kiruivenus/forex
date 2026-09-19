@@ -5,26 +5,14 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { History, Layers, Clock, TrendingUp, Wallet } from 'lucide-react';
 import { getStoredAccountMode, EVENT_NAME, AccountMode } from '@/lib/accountMode';
-import { getStoredTheme, THEME_EVENT_NAME, ThemeMode } from '@/lib/theme';
+import { useTheme } from '@/components/ThemeProvider';
 
 export default function HistoryPage() {
   const [activeTab, setActiveTab] = useState<'TRADES' | 'LEDGER'>('TRADES');
   const [trades, setTrades] = useState<unknown[]>([]);
   const [ledger, setLedger] = useState<unknown[]>([]);
   const [accountMode, setAccountMode] = useState<AccountMode>('REAL');
-  const [theme, setTheme] = useState<ThemeMode>('light');
-
-  useEffect(() => {
-    setTheme(getStoredTheme());
-    const handleThemeChange = (e: Event) => {
-      const customEvent = e as CustomEvent<ThemeMode>;
-      if (customEvent.detail) {
-        setTheme(customEvent.detail);
-      }
-    };
-    window.addEventListener(THEME_EVENT_NAME, handleThemeChange);
-    return () => window.removeEventListener(THEME_EVENT_NAME, handleThemeChange);
-  }, []);
+  const { isLight } = useTheme();
 
   const fetchHistory = (mode: AccountMode) => {
     fetch(`/api/trades/history?accountMode=${mode}&limit=100`)
@@ -58,25 +46,21 @@ export default function HistoryPage() {
     return () => window.removeEventListener(EVENT_NAME, handleModeChange);
   }, []);
 
-  const isLight = theme === 'light';
-
   return (
-    <div className={`min-h-screen flex flex-col justify-between font-sans transition-colors ${isLight ? 'bg-[#f8fafc] text-slate-900' : 'bg-[#090714] text-slate-100'}`}>
+    <div className="min-h-screen flex flex-col justify-between font-sans transition-colors bg-[#f8fafc] dark:bg-[#090714] text-slate-900 dark:text-slate-100">
       <Navbar />
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-20 sm:pt-24 pb-12 w-full flex-1 space-y-6">
         {/* Main Card */}
-        <div className={`border rounded-3xl p-6 sm:p-8 shadow-md space-y-6 transition-colors ${
-          isLight ? 'bg-white border-slate-200/90' : 'bg-[#120f26] border-purple-900/50'
-        }`}>
-          <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-5 ${isLight ? 'border-slate-100' : 'border-purple-950/80'}`}>
+        <div className="border border-slate-200/90 dark:border-purple-900/50 rounded-3xl p-6 sm:p-8 shadow-md space-y-6 transition-colors bg-white dark:bg-[#120f26]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-purple-950/80 pb-5">
             <div className="flex items-center space-x-3.5">
               <div className="w-12 h-12 rounded-2xl bg-purple-100 dark:bg-purple-950/80 border border-purple-300 dark:border-purple-600/40 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0 shadow-sm">
                 <History className="w-6 h-6" />
               </div>
               <div>
-                <h1 className={`text-2xl sm:text-3xl font-black tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>Trade & Ledger History</h1>
-                <p className={`text-xs sm:text-sm ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Audit trail of all executed trades and financial wallet activities</p>
+                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">Trade & Ledger History</h1>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Audit trail of all executed trades and financial wallet activities</p>
               </div>
             </div>
 
@@ -95,17 +79,15 @@ export default function HistoryPage() {
           </div>
 
           {/* Segmented Control Tabs */}
-          <div className={`flex p-1.5 rounded-2xl border text-xs font-semibold max-w-md ${
-            isLight ? 'bg-slate-100 border-slate-200' : 'bg-[#0b0818] border-purple-900/40'
-          }`}>
+          <div className="flex p-1.5 rounded-2xl border text-xs font-semibold max-w-md bg-slate-100 dark:bg-[#0b0818] border-slate-200 dark:border-purple-900/40">
             {(['TRADES', 'LEDGER'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`flex-1 py-2.5 rounded-xl transition-all font-bold ${
+                className={`flex-1 py-2.5 rounded-xl transition-all font-bold cursor-pointer ${
                   activeTab === tab
                     ? 'bg-purple-600 text-white shadow-md'
-                    : isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-white'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 {tab === 'TRADES' ? 'Trade History' : 'Financial Ledger'}
@@ -119,9 +101,7 @@ export default function HistoryPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs font-mono">
                   <thead>
-                    <tr className={`border-b text-[11px] uppercase tracking-wider ${
-                      isLight ? 'border-slate-200 text-slate-600 bg-slate-50' : 'border-purple-950 text-slate-400 bg-[#0d091e]'
-                    }`}>
+                    <tr className="border-b text-[11px] uppercase tracking-wider border-slate-200 dark:border-purple-950 text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-[#0d091e]">
                       <th className="py-3 px-4">Trade ID</th>
                       <th className="py-3 px-4">Symbol</th>
                       <th className="py-3 px-4">Type</th>
@@ -133,9 +113,7 @@ export default function HistoryPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-200 dark:divide-purple-950/60">
                     {trades.map((t: any) => (
-                      <tr key={t.tradeId} className={`hover:bg-slate-50 dark:hover:bg-[#181335] transition-colors ${
-                        isLight ? 'text-slate-800' : 'text-slate-200'
-                      }`}>
+                      <tr key={t.tradeId} className="hover:bg-slate-50 dark:hover:bg-[#181335] transition-colors text-slate-800 dark:text-slate-200">
                         <td className="py-3 px-4 font-bold text-slate-900 dark:text-slate-100">{t.tradeId}</td>
                         <td className="py-3 px-4 font-semibold">{t.symbol}</td>
                         <td className="py-3 px-4 text-purple-600 dark:text-purple-300">{t.tradeType} ({t.direction})</td>
@@ -166,9 +144,7 @@ export default function HistoryPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs font-mono">
                   <thead>
-                    <tr className={`border-b text-[11px] uppercase tracking-wider ${
-                      isLight ? 'border-slate-200 text-slate-600 bg-slate-50' : 'border-purple-950 text-slate-400 bg-[#0d091e]'
-                    }`}>
+                    <tr className="border-b text-[11px] uppercase tracking-wider border-slate-200 dark:border-purple-950 text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-[#0d091e]">
                       <th className="py-3 px-4">Date</th>
                       <th className="py-3 px-4">Type</th>
                       <th className="py-3 px-4">Amount</th>
@@ -178,9 +154,7 @@ export default function HistoryPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-200 dark:divide-purple-950/60">
                     {ledger.map((entry: any, i: number) => (
-                      <tr key={i} className={`hover:bg-slate-50 dark:hover:bg-[#181335] transition-colors ${
-                        isLight ? 'text-slate-800' : 'text-slate-200'
-                      }`}>
+                      <tr key={i} className="hover:bg-slate-50 dark:hover:bg-[#181335] transition-colors text-slate-800 dark:text-slate-200">
                         <td className="py-3 px-4 text-slate-500">{new Date(entry.createdAt).toLocaleString()}</td>
                         <td className="py-3 px-4 font-bold">{entry.type}</td>
                         <td className={`py-3 px-4 font-bold ${entry.amount >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>

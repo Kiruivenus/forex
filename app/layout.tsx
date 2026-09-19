@@ -102,6 +102,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { ThemeProvider } from '@/components/ThemeProvider';
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const jsonLdSchema = {
     '@context': 'https://schema.org',
@@ -132,16 +134,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   };
 
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`} suppressHydrationWarning>
       <head>
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/icon.svg" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('paloption_theme')||'dark';if(t==='dark'){document.documentElement.classList.add('dark')}else{document.documentElement.classList.remove('dark')}}catch(e){}})()`,
+          }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdSchema) }}
         />
       </head>
-      <body className="min-h-full flex flex-col bg-[#f8fafc] text-slate-900">{children}</body>
+      <body className="min-h-full flex flex-col bg-[#f8fafc] dark:bg-[#0b0e17] text-slate-900 dark:text-slate-100 transition-colors duration-200">
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

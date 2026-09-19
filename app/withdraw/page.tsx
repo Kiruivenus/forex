@@ -6,7 +6,7 @@ import Footer from '@/components/Footer';
 import WithdrawalModal from '@/components/WithdrawalModal';
 import { ArrowDownLeft, History, ArrowRight, Clock, CheckCircle2 } from 'lucide-react';
 import { getStoredAccountMode, EVENT_NAME, AccountMode } from '@/lib/accountMode';
-import { getStoredTheme, THEME_EVENT_NAME, ThemeMode } from '@/lib/theme';
+import { useTheme } from '@/components/ThemeProvider';
 
 interface WithdrawalItem {
   _id: string;
@@ -23,19 +23,7 @@ export default function WithdrawPage() {
   const [withdrawals, setWithdrawals] = useState<WithdrawalItem[]>([]);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [accountMode, setAccountMode] = useState<AccountMode>('REAL');
-  const [theme, setTheme] = useState<ThemeMode>('light');
-
-  useEffect(() => {
-    setTheme(getStoredTheme());
-    const handleThemeChange = (e: Event) => {
-      const customEvent = e as CustomEvent<ThemeMode>;
-      if (customEvent.detail) {
-        setTheme(customEvent.detail);
-      }
-    };
-    window.addEventListener(THEME_EVENT_NAME, handleThemeChange);
-    return () => window.removeEventListener(THEME_EVENT_NAME, handleThemeChange);
-  }, []);
+  const { isLight } = useTheme();
 
   const fetchData = async () => {
     try {
@@ -73,31 +61,25 @@ export default function WithdrawPage() {
     return () => window.removeEventListener(EVENT_NAME, handleModeChange);
   }, []);
 
-  const isLight = theme === 'light';
-
   return (
-    <div className={`min-h-screen flex flex-col justify-between font-sans transition-colors ${isLight ? 'bg-[#f8fafc] text-slate-900' : 'bg-[#090714] text-slate-100'}`}>
+    <div className="min-h-screen flex flex-col justify-between font-sans transition-colors bg-[#f8fafc] dark:bg-[#090714] text-slate-900 dark:text-slate-100">
       <Navbar />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-20 sm:pt-24 pb-12 w-full flex-1 space-y-6">
         {/* Main Header & Balance Card */}
-        <div className={`border rounded-3xl p-6 sm:p-8 shadow-md space-y-6 transition-colors ${
-          isLight ? 'bg-white border-slate-200/90' : 'bg-[#120f26] border-purple-900/50'
-        }`}>
+        <div className="border border-slate-200/90 dark:border-purple-900/50 rounded-3xl p-6 sm:p-8 shadow-md space-y-6 transition-colors bg-white dark:bg-[#120f26]">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center space-x-3.5">
               <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-600/40 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0 shadow-sm">
                 <ArrowDownLeft className="w-6 h-6" />
               </div>
               <div>
-                <h1 className={`text-2xl sm:text-3xl font-black tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>Withdraw Funds</h1>
-                <p className={`text-xs sm:text-sm ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Payout to your M-Pesa phone number or Crypto wallet</p>
+                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">Withdraw Funds</h1>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Payout to your M-Pesa phone number or Crypto wallet</p>
               </div>
             </div>
 
-            <div className={`px-5 py-3 rounded-2xl border sm:text-right shrink-0 ${
-              isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#181335] border-purple-900/50'
-            }`}>
+            <div className="px-5 py-3 rounded-2xl border sm:text-right shrink-0 bg-slate-50 dark:bg-[#181335] border-slate-200 dark:border-purple-900/50">
               <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold block mb-0.5">Withdrawable Real Balance</span>
               <span className="font-mono font-black text-emerald-600 dark:text-emerald-400 text-xl">${availableBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD</span>
             </div>
@@ -105,7 +87,7 @@ export default function WithdrawPage() {
 
           <button
             onClick={() => setIsWithdrawModalOpen(true)}
-            className="w-full py-4 bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm rounded-2xl shadow-md transition-all flex items-center justify-center space-x-2"
+            className="w-full py-4 bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm rounded-2xl shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer"
           >
             <span>New Withdrawal Request</span>
             <ArrowRight className="w-4 h-4" />
@@ -113,12 +95,10 @@ export default function WithdrawPage() {
         </div>
 
         {/* Withdrawal Request History */}
-        <div className={`border rounded-3xl p-6 sm:p-8 shadow-md space-y-5 transition-colors ${
-          isLight ? 'bg-white border-slate-200/90' : 'bg-[#120f26] border-purple-900/50'
-        }`}>
-          <div className={`flex items-center space-x-2.5 border-b pb-4 ${isLight ? 'border-slate-100' : 'border-purple-950/80'}`}>
+        <div className="border border-slate-200/90 dark:border-purple-900/50 rounded-3xl p-6 sm:p-8 shadow-md space-y-5 transition-colors bg-white dark:bg-[#120f26]">
+          <div className="flex items-center space-x-2.5 border-b border-slate-100 dark:border-purple-950/80 pb-4">
             <History className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-            <h3 className={`font-extrabold text-base ${isLight ? 'text-slate-900' : 'text-white'}`}>Withdrawal History</h3>
+            <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Withdrawal History</h3>
           </div>
 
           {withdrawals.length > 0 ? (
@@ -126,9 +106,7 @@ export default function WithdrawPage() {
               {withdrawals.map((w) => (
                 <div
                   key={w._id}
-                  className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs ${
-                    isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#181335] border-purple-900/40'
-                  }`}
+                  className="p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs bg-slate-50 dark:bg-[#181335] border-slate-200 dark:border-purple-900/40"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center space-x-2">

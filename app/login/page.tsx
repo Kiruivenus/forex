@@ -7,7 +7,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Lock, Mail, AlertCircle, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
 import { setStoredAccountMode } from '@/lib/accountMode';
-import { getStoredTheme, THEME_EVENT_NAME, ThemeMode } from '@/lib/theme';
+import { useTheme } from '@/components/ThemeProvider';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,19 +17,7 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const [theme, setTheme] = useState<ThemeMode>('light');
-
-  useEffect(() => {
-    setTheme(getStoredTheme());
-    const handleThemeChange = (e: Event) => {
-      const customEvent = e as CustomEvent<ThemeMode>;
-      if (customEvent.detail) {
-        setTheme(customEvent.detail);
-      }
-    };
-    window.addEventListener(THEME_EVENT_NAME, handleThemeChange);
-    return () => window.removeEventListener(THEME_EVENT_NAME, handleThemeChange);
-  }, []);
+  const { isLight } = useTheme();
 
   useEffect(() => {
     fetch('/api/auth/me').then((res) => {
@@ -73,10 +61,8 @@ export default function LoginPage() {
     }
   };
 
-  const isLight = theme === 'light';
-
   return (
-    <div className={`min-h-screen flex flex-col font-sans transition-colors ${isLight ? 'bg-[#f8fafc] text-slate-900' : 'bg-[#090714] text-slate-100'}`}>
+    <div className="min-h-screen flex flex-col font-sans transition-colors bg-[#f8fafc] dark:bg-[#090714] text-slate-900 dark:text-slate-100">
       <Navbar />
 
       {/* Main split layout container */}
@@ -121,11 +107,11 @@ export default function LoginPage() {
         </div>
 
         {/* Right Form Column */}
-        <div className={`flex flex-col justify-center items-center px-6 sm:px-12 lg:px-16 py-12 w-full transition-colors ${isLight ? 'bg-[#f8fafc]' : 'bg-[#090714]'}`}>
+        <div className="flex flex-col justify-center items-center px-6 sm:px-12 lg:px-16 py-12 w-full transition-colors bg-[#f8fafc] dark:bg-[#090714]">
           <div className="w-full max-w-md space-y-6">
             <div className="space-y-1.5">
-              <h2 className={`text-3xl font-extrabold tracking-tight ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>Welcome back</h2>
-              <p className={`text-xs sm:text-sm ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Sign in to your account to continue</p>
+              <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">Welcome back</h2>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Sign in to your account to continue</p>
             </div>
 
             {errorMsg && (
@@ -137,7 +123,7 @@ export default function LoginPage() {
 
             <form onSubmit={handleLogin} className="space-y-4 text-xs">
               <div>
-                <label className={`block font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>Email</label>
+                <label className="block font-semibold mb-1.5 text-slate-700 dark:text-slate-300">Email</label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                   <input
@@ -145,18 +131,14 @@ export default function LoginPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
-                    className={`w-full border rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none transition-colors ${
-                      isLight
-                        ? 'bg-white border-slate-200 text-slate-900 focus:border-purple-600'
-                        : 'bg-[#120f24] border-purple-950 text-slate-100 focus:border-purple-500/80'
-                    }`}
+                    className="w-full border rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none transition-colors bg-white dark:bg-[#120f24] border-slate-200 dark:border-purple-950 text-slate-900 dark:text-slate-100 focus:border-purple-600 dark:focus:border-purple-500/80"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className={`block font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>Password</label>
+                <label className="block font-semibold mb-1.5 text-slate-700 dark:text-slate-300">Password</label>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                   <input
@@ -164,11 +146,7 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
-                    className={`w-full border rounded-xl pl-10 pr-10 py-3 text-sm focus:outline-none transition-colors ${
-                      isLight
-                        ? 'bg-white border-slate-200 text-slate-900 focus:border-purple-600'
-                        : 'bg-[#120f24] border-purple-950 text-slate-100 focus:border-purple-500/80'
-                    }`}
+                    className="w-full border rounded-xl pl-10 pr-10 py-3 text-sm focus:outline-none transition-colors bg-white dark:bg-[#120f24] border-slate-200 dark:border-purple-950 text-slate-900 dark:text-slate-100 focus:border-purple-600 dark:focus:border-purple-500/80"
                     required
                   />
                   <button
@@ -183,7 +161,7 @@ export default function LoginPage() {
               </div>
 
               <div className="flex items-center justify-between pt-1">
-                <label className={`flex items-center space-x-2 cursor-pointer text-xs ${isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-slate-300'}`}>
+                <label className="flex items-center space-x-2 cursor-pointer text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-300">
                   <input
                     type="checkbox"
                     checked={rememberMe}
@@ -201,7 +179,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm rounded-xl shadow-md transition-all flex items-center justify-center space-x-2 disabled:opacity-50 mt-2"
+                className="w-full py-3.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm rounded-xl shadow-md transition-all flex items-center justify-center space-x-2 disabled:opacity-50 mt-2 cursor-pointer"
               >
                 {loading ? (
                   <>
@@ -217,7 +195,7 @@ export default function LoginPage() {
               </button>
             </form>
 
-            <p className={`text-center text-xs pt-4 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+            <p className="text-center text-xs pt-4 text-slate-600 dark:text-slate-400">
               Don&apos;t have an account?{' '}
               <Link href="/register" className="text-purple-600 dark:text-purple-400 hover:text-purple-700 font-bold transition-colors">
                 Create account

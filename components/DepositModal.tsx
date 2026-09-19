@@ -258,42 +258,42 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-      <div className="bg-[#120f26] border border-purple-800/60 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl text-slate-100 flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 dark:bg-black/80 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white dark:bg-[#120f26] border border-slate-200 dark:border-purple-800/60 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl text-slate-900 dark:text-slate-100 flex flex-col transition-colors">
         {/* Modal Header */}
-        <div className="bg-[#181335] px-5 py-4 border-b border-purple-950/80 flex items-center justify-between">
-          <h3 className="font-bold text-base text-slate-100">Deposit Funds</h3>
-          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800">
+        <div className="bg-slate-50 dark:bg-[#181335] px-5 py-4 border-b border-slate-200 dark:border-purple-950/80 flex items-center justify-between">
+          <h3 className="font-bold text-base text-slate-900 dark:text-slate-100">Deposit Funds</h3>
+          <button onClick={onClose} className="p-1.5 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Payment Tabs */}
-        <div className="flex border-b border-purple-950/80 bg-[#0e0b1f] text-xs font-semibold">
+        <div className="flex border-b border-slate-200 dark:border-purple-950/80 bg-slate-100/80 dark:bg-[#0e0b1f] text-xs font-semibold">
           <button
             onClick={() => {
               setActiveTab('MPESA');
               setCryptoStep('FORM');
             }}
-            className={`flex-1 py-3 flex items-center justify-center space-x-2 border-b-2 transition-colors ${
+            className={`flex-1 py-3 flex items-center justify-center space-x-2 border-b-2 transition-colors cursor-pointer ${
               activeTab === 'MPESA'
-                ? 'border-purple-500 text-purple-300 bg-purple-950/30 font-bold'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-purple-500 text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/30 font-bold'
+                : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
             }`}
           >
-            <Smartphone className="w-4 h-4 text-emerald-400" />
+            <Smartphone className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             <span>M-Pesa STK Push</span>
           </button>
 
           <button
             onClick={() => setActiveTab('CRYPTO')}
-            className={`flex-1 py-3 flex items-center justify-center space-x-2 border-b-2 transition-colors ${
+            className={`flex-1 py-3 flex items-center justify-center space-x-2 border-b-2 transition-colors cursor-pointer ${
               activeTab === 'CRYPTO'
-                ? 'border-purple-500 text-purple-300 bg-purple-950/30 font-bold'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-purple-500 text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/30 font-bold'
+                : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
             }`}
           >
-            <Bitcoin className="w-4 h-4 text-amber-400" />
+            <Bitcoin className="w-4 h-4 text-amber-600 dark:text-amber-400" />
             <span>Crypto Transfer</span>
           </button>
         </div>

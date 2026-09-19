@@ -39,6 +39,8 @@ interface TickPoint {
   price: number;
 }
 
+import { useTheme } from '@/components/ThemeProvider';
+
 export default function TradingChart({
   instrument,
   allInstruments = [],
@@ -51,19 +53,7 @@ export default function TradingChart({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [zoomLevel, setZoomLevel] = useState<'100%' | '50%'>('100%');
   const [activeChartTool, setActiveChartTool] = useState<'line' | 'bars' | 'trend'>('line');
-  const [theme, setTheme] = useState<ThemeMode>('light');
-
-  useEffect(() => {
-    setTheme(getStoredTheme());
-    const handleThemeChange = (e: Event) => {
-      const customEvent = e as CustomEvent<ThemeMode>;
-      if (customEvent.detail) {
-        setTheme(customEvent.detail);
-      }
-    };
-    window.addEventListener(THEME_EVENT_NAME, handleThemeChange);
-    return () => window.removeEventListener(THEME_EVENT_NAME, handleThemeChange);
-  }, []);
+  const { theme, isLight } = useTheme();
 
   // Initialize tick series deterministically based on timestamp
   useEffect(() => {
@@ -280,8 +270,6 @@ export default function TradingChart({
   const numericPcts = digitCounts.map((c) => (c / total) * 100);
   const maxPct = Math.max(...numericPcts);
   const minPct = Math.min(...numericPcts);
-
-  const isLight = theme === 'light';
 
   return (
     <div
