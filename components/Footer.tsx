@@ -61,6 +61,16 @@ export default function Footer() {
           <h4 className="font-semibold text-slate-200 uppercase tracking-wider text-[11px] mb-3">Platform & Legal</h4>
           <ul className="space-y-2">
             <li>
+              <Link href="/about" className="hover:text-purple-300 transition-colors">
+                About PalOption
+              </Link>
+            </li>
+            <li>
+              <Link href="/contact" className="hover:text-purple-300 transition-colors">
+                Contact Support Desk
+              </Link>
+            </li>
+            <li>
               <Link href="/responsible-trading" className="hover:text-purple-300 transition-colors">
                 Responsible Trading Policy
               </Link>
@@ -73,11 +83,6 @@ export default function Footer() {
             <li>
               <Link href="/verify-identity" className="hover:text-purple-300 transition-colors">
                 Identity & KYC Verification
-              </Link>
-            </li>
-            <li>
-              <Link href="/chat" className="hover:text-purple-300 transition-colors">
-                Customer Support Chat
               </Link>
             </li>
           </ul>
@@ -98,14 +103,17 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-8 pt-6 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-400 space-y-2 sm:space-y-0">
         <p>© {new Date().getFullYear()} PalOption Inc. All rights reserved.</p>
         <div className="flex space-x-4">
-          <Link href="/responsible-trading" className="hover:text-slate-300">
+          <Link href="/about" className="hover:text-slate-300">
+            About
+          </Link>
+          <Link href="/terms" className="hover:text-slate-300">
             Terms of Service
           </Link>
-          <Link href="/responsible-trading" className="hover:text-slate-300">
+          <Link href="/privacy" className="hover:text-slate-300">
             Privacy Policy
           </Link>
-          <Link href="/help" className="hover:text-slate-300">
-            Security Overview
+          <Link href="/contact" className="hover:text-slate-300">
+            Contact
           </Link>
         </div>
       </div>
