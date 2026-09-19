@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 
 import { getStoredAccountMode, EVENT_NAME, AccountMode } from '@/lib/accountMode';
+import { getStoredTheme, THEME_EVENT_NAME, ThemeMode } from '@/lib/theme';
 
 interface Instrument {
   _id?: string;
@@ -81,6 +82,19 @@ export default function DashboardPage() {
   const [leftTab, setLeftTab] = useState<'OPEN' | 'CLOSED' | 'TRANSACTIONS'>('OPEN');
   const [mobileTab, setMobileTab] = useState<'TRADE' | 'POSITIONS'>('TRADE');
   const [accountMode, setAccountMode] = useState<AccountMode>('REAL');
+  const [theme, setTheme] = useState<ThemeMode>('light');
+
+  useEffect(() => {
+    setTheme(getStoredTheme());
+    const handleThemeChange = (e: Event) => {
+      const customEvent = e as CustomEvent<ThemeMode>;
+      if (customEvent.detail) {
+        setTheme(customEvent.detail);
+      }
+    };
+    window.addEventListener(THEME_EVENT_NAME, handleThemeChange);
+    return () => window.removeEventListener(THEME_EVENT_NAME, handleThemeChange);
+  }, []);
 
   useEffect(() => {
     setAccountMode(getStoredAccountMode());
@@ -416,7 +430,11 @@ export default function DashboardPage() {
   const openPositions = trades.filter((t) => t.status === 'OPEN' || t.status === 'PENDING');
 
   return (
-    <div className="min-h-screen bg-[#0b0e17] text-slate-100 flex flex-col font-sans pt-16 sm:pt-16 pb-16 md:pb-0">
+    <div
+      className={`min-h-screen flex flex-col font-sans pt-16 sm:pt-16 pb-16 md:pb-0 transition-colors ${
+        theme === 'light' ? 'bg-[#f8fafc] text-slate-900' : 'bg-[#0b0e17] text-slate-100'
+      }`}
+    >
       <Navbar
         accountMode={accountMode}
         onAccountModeChange={(mode) => setAccountMode(mode)}
@@ -428,7 +446,11 @@ export default function DashboardPage() {
       <main className="flex-1 max-w-[1600px] w-full mx-auto p-2 sm:p-4 grid grid-cols-1 lg:grid-cols-12 gap-3 items-start">
         {/* LEFT PANEL: Trade History & Positions (Desktop Col 3) */}
         <div
-          className={`lg:col-span-3 bg-white border border-slate-200/90 rounded-2xl flex flex-col justify-between h-[540px] sm:h-[600px] lg:h-[calc(100vh-105px)] min-h-[540px] max-h-[750px] shadow-xs text-xs overflow-hidden ${
+          className={`lg:col-span-3 rounded-2xl flex flex-col justify-between h-[540px] sm:h-[600px] lg:h-[calc(100vh-105px)] min-h-[540px] max-h-[750px] shadow-xs text-xs overflow-hidden border transition-colors ${
+            theme === 'light'
+              ? 'bg-white border-slate-200/90 text-slate-900'
+              : 'bg-[#120f26] border-purple-950/80 text-slate-100'
+          } ${
             mobileTab === 'POSITIONS' ? 'block' : 'hidden lg:flex'
           }`}
         >
@@ -613,7 +635,11 @@ export default function DashboardPage() {
 
         {/* RIGHT PANEL: Order Execution Controls (Desktop Col 3) */}
         <div
-          className={`lg:col-span-3 bg-white border border-slate-200/90 rounded-2xl p-4 flex flex-col justify-between h-[540px] sm:h-[600px] lg:h-[calc(100vh-105px)] min-h-[540px] max-h-[750px] overflow-y-auto text-xs shadow-xs ${
+          className={`lg:col-span-3 rounded-2xl p-4 flex flex-col justify-between h-[540px] sm:h-[600px] lg:h-[calc(100vh-105px)] min-h-[540px] max-h-[750px] overflow-y-auto text-xs shadow-xs border transition-colors ${
+            theme === 'light'
+              ? 'bg-white border-slate-200/90 text-slate-900'
+              : 'bg-[#120f26] border-purple-950/80 text-slate-100'
+          } ${
             mobileTab === 'TRADE' ? 'block' : 'hidden lg:flex'
           }`}
         >
