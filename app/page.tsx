@@ -55,8 +55,25 @@ export default function LandingPage() {
     ]);
   }, []);
 
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: f.answer,
+      },
+    })),
+  };
+
   return (
     <div className="min-h-screen flex flex-col font-sans transition-colors bg-[#f8fafc] dark:bg-[#0b0e17] text-slate-900 dark:text-slate-100">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       <Navbar onOpenAIScanner={() => setIsAIScannerOpen(true)} />
 
       {/* Hero Section */}
