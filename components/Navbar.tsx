@@ -127,11 +127,17 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
           </button>
 
           <Link href="/" className="flex items-center space-x-2 font-bold text-lg tracking-tight">
-            <img src="/logo.png" alt="PalOption Logo" className="w-7 h-7 object-contain shrink-0" />
-            <span className="font-extrabold text-xl text-slate-900 dark:text-white">
+            <img src="/icon.svg" alt="PalOption Logo" className="w-8 h-8 rounded-full object-contain shrink-0" />
+            <span className="font-extrabold text-xl text-slate-900 dark:text-white hidden sm:inline">
               Pal<span className="text-purple-600 dark:text-purple-400">Option</span>
             </span>
           </Link>
+
+          {/* Platform Trader Badge Pill matching screenshot 5 */}
+          <div className="hidden lg:flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-purple-950/70 border border-purple-800/60 text-purple-200 text-xs font-semibold">
+            <span className="w-5 h-5 rounded bg-purple-800/80 text-purple-300 font-bold text-[10px] flex items-center justify-center">TO</span>
+            <span>PalOption Trader</span>
+          </div>
 
           {/* Desktop Navigation Links */}
           {user && (

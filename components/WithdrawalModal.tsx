@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Smartphone, Bitcoin, AlertCircle, Loader2 } from 'lucide-react';
+import { X, Smartphone, ArrowRight, ArrowLeft, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 interface WithdrawalModalProps {
   isOpen: boolean;
@@ -10,28 +10,65 @@ interface WithdrawalModalProps {
   onSuccess?: () => void;
 }
 
+function UsdtIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm.75 14.5v-1.1c2.14-.14 3.75-.82 3.75-1.65 0-.83-1.61-1.51-3.75-1.65v-1.3c2.47.16 4.35.94 4.35 1.95 0 1.01-1.88 1.79-4.35 1.95v1.8h-1.5v-1.8c-2.47-.16-4.35-.94-4.35-1.95 0-1.01 1.88-1.79 4.35-1.95v1.3c-2.14.14-3.75.82-3.75 1.65 0 .83 1.61 1.51 3.75 1.65v1.1h1.5zM12 6.5c3.5 0 6.5.67 6.5 1.5S15.5 9.5 12 9.5 5.5 8.83 5.5 8 8.5 6.5 12 6.5z" />
+    </svg>
+  );
+}
+
 export default function WithdrawalModal({
   isOpen,
   onClose,
   availableBalance = 0,
   onSuccess,
 }: WithdrawalModalProps) {
-  const [method, setMethod] = useState<'MPESA' | 'CRYPTO'>('MPESA');
-  const [amountUSD, setAmountUSD] = useState('20');
+  const [step, setStep] = useState<'METHOD_SELECT' | 'FORM'>('METHOD_SELECT');
+  const [method, setMethod] = useState<'MPESA' | 'USDT'>('MPESA');
+  const [amountUSD, setAmountUSD] = useState('0.00');
   const [destination, setDestination] = useState('');
-  const [cryptoAsset, setCryptoAsset] = useState('USDT');
-  const [cryptoNetwork, setCryptoNetwork] = useState('TRC20');
+  const [userPhone, setUserPhone] = useState('2541***826');
+  const [rawPhone, setRawPhone] = useState('25418134131826');
   const [status, setStatus] = useState<'IDLE' | 'SUBMITTING' | 'SUCCESS' | 'FAILED'>('IDLE');
   const [errorMsg, setErrorMsg] = useState('');
-  const [minWithdrawalUSD, setMinWithdrawalUSD] = useState<number>(10.0);
+  const [successMsg, setSuccessMsg] = useState('');
+  const [minWithdrawalUSD, setMinWithdrawalUSD] = useState<number>(1);
+  const [maxWithdrawalUSD, setMaxWithdrawalUSD] = useState<number>(1900);
 
   useEffect(() => {
     if (isOpen) {
+      setStep('METHOD_SELECT');
+      setStatus('IDLE');
+      setErrorMsg('');
+      setSuccessMsg('');
+      
+      // Fetch user profile and system limits
+      fetch('/api/auth/me')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.user?.phone) {
+            const ph = data.user.phone;
+            setRawPhone(ph);
+            if (ph.length >= 7) {
+              const start = ph.slice(0, 4);
+              const end = ph.slice(-3);
+              setUserPhone(`${start}***${end}`);
+            } else {
+              setUserPhone(ph);
+            }
+          }
+        })
+        .catch(() => {});
+
       fetch('/api/system/settings')
         .then((res) => res.json())
         .then((data) => {
           if (data.success && data.settings?.MIN_WITHDRAWAL) {
             setMinWithdrawalUSD(Number(data.settings.MIN_WITHDRAWAL));
+          }
+          if (data.success && data.settings?.MAX_WITHDRAWAL) {
+            setMaxWithdrawalUSD(Number(data.settings.MAX_WITHDRAWAL));
           }
         })
         .catch((err) => console.error('Fetch withdrawal settings error:', err));
@@ -40,10 +77,24 @@ export default function WithdrawalModal({
 
   if (!isOpen) return null;
 
+  const handleSelectMethod = (selected: 'MPESA' | 'USDT') => {
+    setMethod(selected);
+    setStep('FORM');
+    setStatus('IDLE');
+    setErrorMsg('');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('SUBMITTING');
     setErrorMsg('');
+
+    const numericAmount = Number(amountUSD.replace(/[^0-9.]/g, ''));
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      setStatus('FAILED');
+      setErrorMsg('Please enter a valid amount.');
+      return;
+    }
 
     try {
       const res = await fetch('/api/withdrawals', {
@@ -51,16 +102,17 @@ export default function WithdrawalModal({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           method,
-          amountUSD: Number(amountUSD),
-          destination,
-          cryptoAsset: method === 'CRYPTO' ? cryptoAsset : undefined,
-          cryptoNetwork: method === 'CRYPTO' ? cryptoNetwork : undefined,
+          amountUSD: numericAmount,
+          destination: method === 'MPESA' ? (rawPhone || destination) : destination,
+          cryptoAsset: method === 'USDT' ? 'USDT' : undefined,
+          cryptoNetwork: method === 'USDT' ? 'TRC20' : undefined,
         }),
       });
 
       const data = await res.json();
       if (res.ok && data.success) {
         setStatus('SUCCESS');
+        setSuccessMsg('Withdrawal request submitted successfully! Funds will be processed shortly.');
         if (onSuccess) onSuccess();
       } else {
         setStatus('FAILED');
@@ -73,147 +125,159 @@ export default function WithdrawalModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 dark:bg-black/80 backdrop-blur-sm">
-      <div className="bg-white dark:bg-[#120f26] border border-slate-200 dark:border-purple-800/60 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl text-slate-900 dark:text-slate-100 flex flex-col transition-colors">
-        {/* Header */}
-        <div className="bg-slate-50 dark:bg-[#181335] px-5 py-4 border-b border-slate-200 dark:border-purple-950/80 flex items-center justify-between">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+      <div className="bg-[#1d1838] border border-[#2b2256] rounded-3xl w-full max-w-md overflow-hidden p-6 sm:p-7 shadow-2xl text-white transition-colors relative">
+        {/* Header matching Screenshots 3 & 4 */}
+        <div className="flex items-start justify-between mb-5">
           <div>
-            <h3 className="font-bold text-base text-slate-900 dark:text-slate-100">Withdraw Funds</h3>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">Available: <span className="font-bold text-emerald-600 dark:text-emerald-400">${availableBalance.toFixed(2)} USD</span></p>
+            <h3 className="font-bold text-xl text-white tracking-tight">Withdraw Funds</h3>
+            <p className="text-xs text-slate-400 font-medium mt-0.5">
+              Balance: ${availableBalance.toFixed(2)}
+            </p>
           </div>
-          <button onClick={onClose} className="p-1.5 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          <button
+            onClick={onClose}
+            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Method Selector */}
-        <div className="flex border-b border-slate-200 dark:border-purple-950/80 bg-slate-100/80 dark:bg-[#0e0b1f] text-xs font-semibold">
-          <button
-            onClick={() => setMethod('MPESA')}
-            className={`flex-1 py-3 flex items-center justify-center space-x-2 border-b-2 transition-colors cursor-pointer ${
-              method === 'MPESA'
-                ? 'border-purple-500 text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/30 font-bold'
-                : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
-          >
-            <Smartphone className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            <span>M-Pesa Payout</span>
-          </button>
-
-          <button
-            onClick={() => setMethod('CRYPTO')}
-            className={`flex-1 py-3 flex items-center justify-center space-x-2 border-b-2 transition-colors cursor-pointer ${
-              method === 'CRYPTO'
-                ? 'border-purple-500 text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/30 font-bold'
-                : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
-          >
-            <Bitcoin className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-            <span>Crypto Payout</span>
-          </button>
-        </div>
-
-        {/* Body Form */}
-        <form onSubmit={handleSubmit} className="p-5 space-y-4 text-xs">
-          <div>
-            <label className="block text-slate-400 font-medium mb-1.5">
-              Withdrawal Amount ($ USD) <span className="text-purple-400 font-normal text-[11px]">(Min: ${minWithdrawalUSD.toFixed(2)})</span>
-            </label>
-            <input
-              type="number"
-              value={amountUSD}
-              onChange={(e) => setAmountUSD(e.target.value)}
-              min={minWithdrawalUSD}
-              max={availableBalance}
-              className="w-full bg-[#0b0818] border border-purple-900/60 rounded-lg px-3 py-2.5 text-slate-100 font-mono text-sm focus:outline-none focus:border-purple-500"
-              required
-            />
-          </div>
-
-          {method === 'MPESA' ? (
-            <div>
-              <label className="block text-slate-400 font-medium mb-1.5">M-Pesa Phone Number</label>
-              <input
-                type="text"
-                value={destination}
-                onChange={(e) => setDestination(e.target.value)}
-                placeholder="2547XXXXXXXX"
-                className="w-full bg-[#0b0818] border border-purple-900/60 rounded-lg px-3 py-2.5 text-slate-100 font-mono text-sm focus:outline-none focus:border-purple-500"
-                required
-              />
-              <p className="text-[11px] text-slate-400 mt-1">Payout Fee: $0.50 USD. Received as KES via Safaricom M-Pesa B2C.</p>
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-slate-400 font-medium mb-1">Asset</label>
-                  <select
-                    value={cryptoAsset}
-                    onChange={(e) => setCryptoAsset(e.target.value)}
-                    className="w-full bg-[#0b0818] border border-purple-900/60 rounded-lg px-2 py-2 text-slate-100"
-                  >
-                    <option value="USDT">USDT</option>
-                    <option value="BTC">BTC</option>
-                  </select>
+        {/* STEP 1: METHOD SELECTION (Screenshot 3) */}
+        {step === 'METHOD_SELECT' && (
+          <div className="space-y-3">
+            {/* M-Pesa Option */}
+            <button
+              onClick={() => handleSelectMethod('MPESA')}
+              className={`w-full bg-[#16112e] rounded-2xl p-4 flex items-center justify-between transition-all cursor-pointer group text-left ${
+                method === 'MPESA' ? 'border-2 border-slate-200 shadow-lg' : 'border border-[#2b2256] hover:border-purple-500/50'
+              }`}
+            >
+              <div className="flex items-center space-x-4">
+                <div className="w-11 h-11 rounded-2xl bg-[#2a2252] text-[#a78bfa] flex items-center justify-center shrink-0">
+                  <Smartphone className="w-5 h-5" />
                 </div>
                 <div>
-                  <label className="block text-slate-400 font-medium mb-1">Network</label>
-                  <select
-                    value={cryptoNetwork}
-                    onChange={(e) => setCryptoNetwork(e.target.value)}
-                    className="w-full bg-[#0b0818] border border-purple-900/60 rounded-lg px-2 py-2 text-slate-100"
-                  >
-                    <option value="TRC20">TRC20</option>
-                    <option value="ERC20">ERC20</option>
-                  </select>
+                  <h4 className="font-bold text-white text-sm">M-Pesa</h4>
+                  <p className="text-xs text-slate-400 mt-0.5">Withdraw to mobile money</p>
                 </div>
               </div>
+              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-white transition-colors" />
+            </button>
 
-              <div>
-                <label className="block text-slate-400 font-medium mb-1.5">Destination Wallet Address</label>
+            {/* USDT (TRC20) Option */}
+            <button
+              onClick={() => handleSelectMethod('USDT')}
+              className={`w-full bg-[#16112e] rounded-2xl p-4 flex items-center justify-between transition-all cursor-pointer group text-left ${
+                method === 'USDT' ? 'border-2 border-slate-200 shadow-lg' : 'border border-[#2b2256] hover:border-purple-500/50'
+              }`}
+            >
+              <div className="flex items-center space-x-4">
+                <div className="w-11 h-11 rounded-2xl bg-[#0d9488]/20 text-[#14b8a6] flex items-center justify-center shrink-0">
+                  <UsdtIcon className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-white text-sm">USDT (TRC20)</h4>
+                  <p className="text-xs text-slate-400 mt-0.5">Withdraw to crypto wallet</p>
+                </div>
+              </div>
+              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-white transition-colors" />
+            </button>
+          </div>
+        )}
+
+        {/* STEP 2: AMOUNT & DETAILS (Screenshot 4) */}
+        {step === 'FORM' && (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Back Navigation Link */}
+            <button
+              type="button"
+              onClick={() => {
+                setStep('METHOD_SELECT');
+                setStatus('IDLE');
+                setErrorMsg('');
+              }}
+              className="text-slate-400 hover:text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer mb-2 transition-colors"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back</span>
+            </button>
+
+            {/* Amount Field */}
+            <div>
+              <label className="block text-slate-300 text-xs font-semibold mb-1.5">Amount (USD)</label>
+              <input
+                type="text"
+                value={amountUSD}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/[^0-9.]/g, '');
+                  setAmountUSD(raw);
+                }}
+                className="w-full bg-[#130e26] border border-[#2b2256] focus:border-purple-500 rounded-xl px-4 py-3 text-white font-mono text-base font-bold focus:outline-none transition-colors"
+                placeholder="0.00"
+                required
+              />
+              <p className="text-slate-400 text-xs mt-1.5 font-medium">
+                Min: ${minWithdrawalUSD} • Max: ${maxWithdrawalUSD.toLocaleString()}
+              </p>
+            </div>
+
+            {/* Method Details (M-Pesa or Crypto) */}
+            {method === 'MPESA' ? (
+              <div className="space-y-1 pt-1">
+                <h4 className="text-xs font-bold text-white">M-Pesa</h4>
+                <p className="text-xs text-slate-300 font-normal">
+                  Withdrawals will be sent to your registered number: <span className="font-bold text-white">{userPhone}</span>
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-1 pt-1">
+                <h4 className="text-xs font-bold text-white mb-1">USDT (TRC20) Address</h4>
                 <input
                   type="text"
                   value={destination}
                   onChange={(e) => setDestination(e.target.value)}
-                  placeholder="Paste your crypto wallet address"
-                  className="w-full bg-[#0b0818] border border-purple-900/60 rounded-lg px-3 py-2.5 text-slate-100 font-mono text-xs focus:outline-none focus:border-purple-500"
+                  placeholder="Enter your USDT TRC20 wallet address"
+                  className="w-full bg-[#130e26] border border-[#2b2256] focus:border-purple-500 rounded-xl px-4 py-3 text-white font-mono text-xs focus:outline-none transition-colors"
                   required
                 />
-                <p className="text-[11px] text-slate-400 mt-1">Network Fee: $2.00 USD.</p>
               </div>
-            </>
-          )}
-
-          {status === 'SUCCESS' && (
-            <div className="bg-emerald-950/50 border border-emerald-600/40 p-3 rounded-lg text-emerald-300">
-              <p className="font-semibold">Withdrawal request submitted! Funds will be transferred upon security review.</p>
-            </div>
-          )}
-
-          {status === 'FAILED' && (
-            <div className="bg-rose-950/50 border border-rose-600/40 p-3 rounded-lg flex items-start space-x-2 text-rose-300">
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-              <p>{errorMsg}</p>
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={status === 'SUBMITTING' || availableBalance < Number(amountUSD)}
-            className="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
-          >
-            {status === 'SUBMITTING' ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Processing Request...</span>
-              </>
-            ) : (
-              <span>Submit Withdrawal Request</span>
             )}
-          </button>
-        </form>
+
+            {/* Notifications */}
+            {status === 'SUCCESS' && (
+              <div className="bg-emerald-950/60 border border-emerald-500/40 p-3 rounded-xl flex items-center space-x-2 text-emerald-300 text-xs">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>{successMsg}</span>
+              </div>
+            )}
+
+            {status === 'FAILED' && (
+              <div className="bg-rose-950/60 border border-rose-500/40 p-3 rounded-xl flex items-center space-x-2 text-rose-300 text-xs">
+                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                <span>{errorMsg}</span>
+              </div>
+            )}
+
+            {/* Submit Button (Screenshot 4) */}
+            <button
+              type="submit"
+              disabled={status === 'SUBMITTING'}
+              className="w-full py-3.5 bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-bold text-sm rounded-xl shadow-lg shadow-purple-950/60 transition-all flex items-center justify-center space-x-2 disabled:opacity-50 cursor-pointer mt-2"
+            >
+              {status === 'SUBMITTING' ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Processing Withdrawal...</span>
+                </>
+              ) : (
+                <span>Withdraw</span>
+              )}
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );
 }
+

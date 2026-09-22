@@ -1,19 +1,20 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="pinkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="pinkTrendGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#f43f5e" />
-      <stop offset="35%" stop-color="#ec4899" />
-      <stop offset="75%" stop-color="#d946ef" />
+      <stop offset="40%" stop-color="#ec4899" />
+      <stop offset="80%" stop-color="#d946ef" />
       <stop offset="100%" stop-color="#c026d3" />
     </linearGradient>
   </defs>
 
-  <!-- Circular Pink Gradient Base -->
-  <circle cx="256" cy="256" r="240" fill="url(#pinkGradient)" />
+  <!-- Circular Pink Gradient Background -->
+  <circle cx="256" cy="256" r="240" fill="url(#pinkTrendGrad)" />
 
-  <!-- Outer Ring -->
-  <circle cx="256" cy="256" r="244" stroke="#ffffff" stroke-opacity="0.15" stroke-width="8" />
+  <!-- Outer Glass Ring -->
+  <circle cx="256" cy="256" r="244" stroke="#ffffff" stroke-opacity="0.2" stroke-width="8" />
 
-  <!-- Bold White 'P' Letter -->
-  <path d="M175 125 H275 C335 125 375 155 375 215 C375 275 335 305 275 305 H235 V385 H175 V125 Z M235 175 V255 H270 C300 255 315 242 315 215 C315 188 300 175 270 175 H235 Z" fill="#FFFFFF" />
+  <!-- White Upward Trending Graph Line with Arrow -->
+  <path d="M120 340 L190 260 L250 300 L370 170" stroke="#FFFFFF" stroke-width="42" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M295 170 H370 V245" stroke="#FFFFFF" stroke-width="42" stroke-linecap="round" stroke-linejoin="round" />
 </svg>

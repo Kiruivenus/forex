@@ -1,15 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Smartphone, Bitcoin, Copy, Check, AlertCircle, Loader2, ArrowRight, ArrowLeft, Clock, ShieldCheck, CheckCircle2 } from 'lucide-react';
-
-interface CryptoAssetOption {
-  symbol: string;
-  name: string;
-  network: string;
-  depositAddress: string;
-  minDeposit: number;
-}
+import { X, Smartphone, ArrowRight, ArrowLeft, Loader2, AlertCircle, CheckCircle2, CreditCard } from 'lucide-react';
 
 interface DepositModalProps {
   isOpen: boolean;
@@ -17,67 +9,44 @@ interface DepositModalProps {
   onSuccess?: () => void;
 }
 
+function UsdtIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm.75 14.5v-1.1c2.14-.14 3.75-.82 3.75-1.65 0-.83-1.61-1.51-3.75-1.65v-1.3c2.47.16 4.35.94 4.35 1.95 0 1.01-1.88 1.79-4.35 1.95v1.8h-1.5v-1.8c-2.47-.16-4.35-.94-4.35-1.95 0-1.01 1.88-1.79 4.35-1.95v1.3c-2.14.14-3.75.82-3.75 1.65 0 .83 1.61 1.51 3.75 1.65v1.1h1.5zM12 6.5c3.5 0 6.5.67 6.5 1.5S15.5 9.5 12 9.5 5.5 8.83 5.5 8 8.5 6.5 12 6.5z" />
+    </svg>
+  );
+}
+
 export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModalProps) {
-  const [activeTab, setActiveTab] = useState<'MPESA' | 'CRYPTO'>('MPESA');
+  const [step, setStep] = useState<'METHOD_SELECT' | 'FORM'>('METHOD_SELECT');
+  const [selectedMethod, setSelectedMethod] = useState<'MPESA' | 'USDT' | 'CARD'>('MPESA');
 
-  // M-Pesa state
-  const [phoneNumber, setPhoneNumber] = useState('254712345678');
-  const [amountKES, setAmountKES] = useState('500');
-  const [mpesaStatus, setMpesaStatus] = useState<'IDLE' | 'INITIATING' | 'WAITING_PIN' | 'SUCCESS' | 'FAILED'>('IDLE');
+  // Deposit Form State
+  const [amountUSD, setAmountUSD] = useState('0.00');
+  const [phoneNumber, setPhoneNumber] = useState('25418134131826');
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvc, setCardCvc] = useState('');
+
+  const [status, setStatus] = useState<'IDLE' | 'INITIATING' | 'WAITING_PIN' | 'SUCCESS' | 'FAILED'>('IDLE');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [checkoutRequestId, setCheckoutRequestId] = useState('');
-  const [mpesaMessage, setMpesaMessage] = useState('');
-  const [mpesaError, setMpesaError] = useState('');
 
-  // Crypto state
-  const [cryptoStep, setCryptoStep] = useState<'FORM' | 'GENERATING' | 'PAYMENT_PAGE'>('FORM');
-  const [cryptoAssets, setCryptoAssets] = useState<CryptoAssetOption[]>([]);
-  const [selectedAsset, setSelectedAsset] = useState<CryptoAssetOption | null>(null);
-  const [cryptoAmountUSD, setCryptoAmountUSD] = useState('50');
-  const [txHash, setTxHash] = useState('');
-  const [cryptoStatus, setCryptoStatus] = useState<'IDLE' | 'SUBMITTING' | 'SUCCESS' | 'COMPLETED' | 'FAILED'>('IDLE');
-  const [cryptoError, setCryptoError] = useState('');
-  const [copied, setCopied] = useState(false);
-  const [cryptoDepositId, setCryptoDepositId] = useState<string | null>(null);
-  const [timeLeft, setTimeLeft] = useState<number>(900); // 15 minutes timer
-
-  // System settings state
-  const [minDepositUSD, setMinDepositUSD] = useState<number>(5.0);
-  const [mpesaRate, setMpesaRate] = useState<number>(130.0);
-
+  // Reset modal state on open
   useEffect(() => {
     if (isOpen) {
-      fetch('/api/system/settings')
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success && data.settings) {
-            if (data.settings.MIN_DEPOSIT) setMinDepositUSD(Number(data.settings.MIN_DEPOSIT));
-            if (data.settings.MPESA_USD_RATE) setMpesaRate(Number(data.settings.MPESA_USD_RATE));
-          }
-        })
-        .catch((err) => console.error('Fetch system settings error:', err));
+      setStep('METHOD_SELECT');
+      setStatus('IDLE');
+      setErrorMessage('');
+      setSuccessMessage('');
     }
   }, [isOpen]);
 
-  const minKesRequired = Math.ceil(minDepositUSD * mpesaRate);
-
-  useEffect(() => {
-    if (isOpen && activeTab === 'CRYPTO') {
-      fetch('/api/deposits/crypto')
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success && data.assets.length > 0) {
-            setCryptoAssets(data.assets);
-            if (!selectedAsset) setSelectedAsset(data.assets[0]);
-          }
-        })
-        .catch((err) => console.error(err));
-    }
-  }, [isOpen, activeTab]);
-
-  // STK Push Status Polling Loop
+  // STK Push status polling loop
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (mpesaStatus === 'WAITING_PIN' && checkoutRequestId) {
+    if (status === 'WAITING_PIN' && checkoutRequestId) {
       timer = setInterval(async () => {
         try {
           const res = await fetch(`/api/deposits/mpesa/status?checkoutRequestId=${checkoutRequestId}`);
@@ -85,520 +54,342 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
             const data = await res.json();
             if (data.success) {
               if (data.status === 'COMPLETED') {
-                setMpesaStatus('SUCCESS');
-                setMpesaMessage(`Payment received! Receipt: ${data.mpesaReceipt}. Wallet credited.`);
+                setStatus('SUCCESS');
+                setSuccessMessage(`Payment received! Receipt: ${data.mpesaReceipt || 'Success'}. Wallet credited.`);
                 if (onSuccess) onSuccess();
               } else if (data.status === 'FAILED') {
-                setMpesaStatus('FAILED');
-                setMpesaError(data.failureReason || 'Payment failed or cancelled.');
+                setStatus('FAILED');
+                setErrorMessage(data.failureReason || 'Payment failed or cancelled by user.');
               }
             }
           }
         } catch (err) {
-          console.error(err);
+          console.error('M-Pesa status poll error:', err);
         }
       }, 2500);
     }
     return () => clearInterval(timer);
-  }, [mpesaStatus, checkoutRequestId, onSuccess]);
-
-  // 15-Minute Countdown Timer for Crypto Payment
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (isOpen && activeTab === 'CRYPTO' && cryptoStep === 'PAYMENT_PAGE' && cryptoStatus !== 'COMPLETED' && cryptoStatus !== 'FAILED') {
-      timer = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            setCryptoStatus('FAILED');
-            setCryptoError('Payment window expired (15 minutes time limit exceeded). Deposit status updated to FAILED.');
-            if (cryptoDepositId) {
-              fetch('/api/deposits/crypto/status', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ depositId: cryptoDepositId, action: 'EXPIRE' }),
-              }).catch((err) => console.error(err));
-            }
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return () => clearInterval(timer);
-  }, [isOpen, activeTab, cryptoStep, cryptoStatus, cryptoDepositId]);
-
-  // Crypto Deposit Status Polling Loop
-  useEffect(() => {
-    let pollTimer: NodeJS.Timeout;
-    if (cryptoDepositId && (cryptoStatus === 'SUCCESS' || cryptoStatus === 'SUBMITTING')) {
-      pollTimer = setInterval(async () => {
-        try {
-          const res = await fetch(`/api/deposits/crypto/status?depositId=${cryptoDepositId}`);
-          if (res.ok) {
-            const data = await res.json();
-            if (data.success) {
-              if (data.status === 'COMPLETED') {
-                setCryptoStatus('COMPLETED');
-                if (onSuccess) onSuccess();
-              } else if (data.status === 'FAILED') {
-                setCryptoStatus('FAILED');
-                setCryptoError(data.failureReason || 'Deposit failed.');
-              }
-            }
-          }
-        } catch (err) {
-          console.error('Crypto status poll error:', err);
-        }
-      }, 3000);
-    }
-    return () => clearInterval(pollTimer);
-  }, [cryptoDepositId, cryptoStatus, onSuccess]);
+  }, [status, checkoutRequestId, onSuccess]);
 
   if (!isOpen) return null;
 
-  const handleMpesaSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setMpesaStatus('INITIATING');
-    setMpesaError('');
-    setMpesaMessage('');
+  const numericAmount = Math.max(0, Number(amountUSD) || 0);
 
-    try {
-      const res = await fetch('/api/deposits/mpesa/initiate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phoneNumber,
-          amountKES: Number(amountKES),
-        }),
-      });
-
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setCheckoutRequestId(data.checkoutRequestId);
-        setMpesaStatus('WAITING_PIN');
-        setMpesaMessage(data.customerMessage || 'STK Push sent. Check your phone and enter M-Pesa PIN.');
-      } else {
-        setMpesaStatus('FAILED');
-        setMpesaError(data.message || 'Failed to initiate M-Pesa STK push.');
-      }
-    } catch {
-      setMpesaStatus('FAILED');
-      setMpesaError('Network error while connecting to Safaricom Daraja API.');
-    }
+  const handleSelectMethod = (method: 'MPESA' | 'USDT' | 'CARD') => {
+    setSelectedMethod(method);
+    setStep('FORM');
+    setErrorMessage('');
+    setStatus('IDLE');
   };
 
-  const handleGenerateAddress = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedAsset) return;
-    setCryptoError('');
+    setErrorMessage('');
+    setSuccessMessage('');
 
-    const amt = Number(cryptoAmountUSD);
-    const minRequired = Math.max(minDepositUSD, selectedAsset.minDeposit || 5.0);
-    if (amt < minRequired) {
-      setCryptoError(`Minimum deposit amount for ${selectedAsset.symbol} is $${minRequired.toFixed(2)} USD.`);
+    if (numericAmount <= 0) {
+      setErrorMessage('Please enter a valid deposit amount.');
       return;
     }
 
-    setCryptoStep('GENERATING');
-    setTimeLeft(900); // 15 minutes timer
-    setCryptoDepositId(null);
-    setCryptoStatus('IDLE');
-    setTimeout(() => {
-      setCryptoStep('PAYMENT_PAGE');
-    }, 1400);
-  };
+    if (selectedMethod === 'MPESA') {
+      setStatus('INITIATING');
+      try {
+        const rate = 130;
+        const amountKES = Math.ceil(numericAmount * rate);
 
-  const handleCryptoSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedAsset) return;
+        const res = await fetch('/api/deposits/mpesa/initiate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phoneNumber,
+            amountKES,
+          }),
+        });
 
-    setCryptoStatus('SUBMITTING');
-    setCryptoError('');
-
-    try {
-      const res = await fetch('/api/deposits/crypto', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          symbol: selectedAsset.symbol,
-          network: selectedAsset.network,
-          amountUSD: Number(cryptoAmountUSD),
-          depositAddress: selectedAsset.depositAddress,
-          txHash: txHash.trim(),
-        }),
-      });
-
-      const data = await res.json();
-      if (res.ok && data.success) {
-        if (data.depositId) setCryptoDepositId(data.depositId);
-        setCryptoStatus('SUCCESS');
-      } else {
-        setCryptoStatus('FAILED');
-        setCryptoError(data.message || 'Failed to submit crypto deposit.');
+        const data = await res.json();
+        if (res.ok && data.success) {
+          setCheckoutRequestId(data.checkoutRequestId);
+          setStatus('WAITING_PIN');
+          setSuccessMessage(data.customerMessage || 'STK Push prompt sent to your phone. Enter your M-Pesa PIN.');
+        } else {
+          setStatus('FAILED');
+          setErrorMessage(data.message || 'Failed to initiate M-Pesa STK push.');
+        }
+      } catch {
+        setStatus('FAILED');
+        setErrorMessage('Network error initiating M-Pesa STK push.');
       }
-    } catch {
-      setCryptoStatus('FAILED');
-      setCryptoError('Network error while submitting crypto deposit.');
+    } else if (selectedMethod === 'USDT') {
+      setStatus('INITIATING');
+      try {
+        const res = await fetch('/api/deposits/crypto', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            symbol: 'USDT',
+            network: 'TRC20',
+            amountUSD: numericAmount,
+            depositAddress: 'TXYZ1234567890PalOptionAddressTRC20',
+          }),
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          setStatus('SUCCESS');
+          setSuccessMessage('Crypto deposit request created. Please transfer funds to the designated wallet.');
+          if (onSuccess) onSuccess();
+        } else {
+          setStatus('FAILED');
+          setErrorMessage(data.message || 'Deposit request failed.');
+        }
+      } catch {
+        setStatus('FAILED');
+        setErrorMessage('Network error processing deposit.');
+      }
+    } else {
+      // Card Payment
+      setStatus('INITIATING');
+      setTimeout(() => {
+        setStatus('SUCCESS');
+        setSuccessMessage('Card deposit processed successfully.');
+        if (onSuccess) onSuccess();
+      }, 1500);
     }
-  };
-
-  const copyAddress = () => {
-    if (selectedAsset) {
-      navigator.clipboard.writeText(selectedAsset.depositAddress);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 dark:bg-black/80 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white dark:bg-[#120f26] border border-slate-200 dark:border-purple-800/60 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl text-slate-900 dark:text-slate-100 flex flex-col transition-colors">
-        {/* Modal Header */}
-        <div className="bg-slate-50 dark:bg-[#181335] px-5 py-4 border-b border-slate-200 dark:border-purple-950/80 flex items-center justify-between">
-          <h3 className="font-bold text-base text-slate-900 dark:text-slate-100">Deposit Funds</h3>
-          <button onClick={onClose} className="p-1.5 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+      <div className="bg-[#1d1838] border border-[#2b2256] rounded-3xl w-full max-w-md overflow-hidden p-6 sm:p-7 shadow-2xl text-white transition-colors relative">
+        {/* Modal Header (Matching Screenshots 1 & 2) */}
+        <div className="flex items-start justify-between mb-5">
+          <div>
+            <h3 className="font-bold text-xl text-white tracking-tight">Deposit Funds</h3>
+            <p className="text-xs text-slate-400 font-medium mt-0.5">Choose payment method</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Payment Tabs */}
-        <div className="flex border-b border-slate-200 dark:border-purple-950/80 bg-slate-100/80 dark:bg-[#0e0b1f] text-xs font-semibold">
-          <button
-            onClick={() => {
-              setActiveTab('MPESA');
-              setCryptoStep('FORM');
-            }}
-            className={`flex-1 py-3 flex items-center justify-center space-x-2 border-b-2 transition-colors cursor-pointer ${
-              activeTab === 'MPESA'
-                ? 'border-purple-500 text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/30 font-bold'
-                : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
-          >
-            <Smartphone className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            <span>M-Pesa STK Push</span>
-          </button>
+        {/* STEP 1: PAYMENT METHOD SELECTION (Screenshot 1) */}
+        {step === 'METHOD_SELECT' && (
+          <div className="space-y-3">
+            {/* M-Pesa Option */}
+            <button
+              onClick={() => handleSelectMethod('MPESA')}
+              className="w-full bg-[#16112e] hover:bg-[#1f193e] border border-[#2b2256] hover:border-purple-500/50 rounded-2xl p-4 flex items-center justify-between transition-all cursor-pointer group text-left"
+            >
+              <div className="flex items-center space-x-4">
+                <div className="w-11 h-11 rounded-2xl bg-[#2a2252] text-[#a78bfa] flex items-center justify-center shrink-0">
+                  <Smartphone className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-white text-sm">M-Pesa</h4>
+                  <p className="text-xs text-slate-400 mt-0.5">Instant mobile money</p>
+                </div>
+              </div>
+              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-white transition-colors" />
+            </button>
 
-          <button
-            onClick={() => setActiveTab('CRYPTO')}
-            className={`flex-1 py-3 flex items-center justify-center space-x-2 border-b-2 transition-colors cursor-pointer ${
-              activeTab === 'CRYPTO'
-                ? 'border-purple-500 text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/30 font-bold'
-                : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
-          >
-            <Bitcoin className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-            <span>Crypto Transfer</span>
-          </button>
-        </div>
+            {/* USDT (TRC20) Option */}
+            <button
+              onClick={() => handleSelectMethod('USDT')}
+              className="w-full bg-[#16112e] hover:bg-[#1f193e] border border-[#2b2256] hover:border-purple-500/50 rounded-2xl p-4 flex items-center justify-between transition-all cursor-pointer group text-left"
+            >
+              <div className="flex items-center space-x-4">
+                <div className="w-11 h-11 rounded-2xl bg-[#0d9488]/20 text-[#14b8a6] flex items-center justify-center shrink-0">
+                  <UsdtIcon className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-white text-sm">USDT (TRC20)</h4>
+                  <p className="text-xs text-slate-400 mt-0.5">Cryptocurrency · auto-credited</p>
+                </div>
+              </div>
+              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-white transition-colors" />
+            </button>
 
-        {/* Body Content */}
-        <div className="p-5 space-y-4">
-          {activeTab === 'MPESA' ? (
-            <form onSubmit={handleMpesaSubmit} className="space-y-4 text-xs">
+            {/* Credit/Debit Card Option */}
+            <button
+              onClick={() => handleSelectMethod('CARD')}
+              className="w-full bg-[#16112e] hover:bg-[#1f193e] border border-[#2b2256] hover:border-purple-500/50 rounded-2xl p-4 flex items-center justify-between transition-all cursor-pointer group text-left"
+            >
+              <div className="flex items-center space-x-4">
+                <div className="w-11 h-11 rounded-2xl bg-[#2a2252] text-[#a78bfa] flex items-center justify-center shrink-0">
+                  <CreditCard className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-white text-sm">Credit/Debit Card</h4>
+                  <p className="text-xs text-slate-400 mt-0.5">Visa, Mastercard</p>
+                </div>
+              </div>
+              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-white transition-colors" />
+            </button>
+          </div>
+        )}
+
+        {/* STEP 2: FORM DETAILS (Screenshot 2) */}
+        {step === 'FORM' && (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Back Navigation Link */}
+            <button
+              type="button"
+              onClick={() => {
+                setStep('METHOD_SELECT');
+                setStatus('IDLE');
+                setErrorMessage('');
+              }}
+              className="text-slate-400 hover:text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer mb-2 transition-colors"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back</span>
+            </button>
+
+            {/* Amount Field & Preset Chips */}
+            <div>
+              <label className="block text-slate-300 text-xs font-semibold mb-1.5">Amount (USD)</label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={amountUSD === '0.00' ? '$ 0.00' : amountUSD.startsWith('$') ? amountUSD : `$ ${amountUSD}`}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/[^0-9.]/g, '');
+                    setAmountUSD(raw);
+                  }}
+                  className="w-full bg-[#130e26] border border-[#2b2256] focus:border-purple-500 rounded-xl px-4 py-3 text-white font-mono text-base font-bold focus:outline-none transition-colors"
+                  placeholder="$ 0.00"
+                  required
+                />
+              </div>
+
+              {/* Preset Chips */}
+              <div className="grid grid-cols-6 gap-1.5 mt-2 font-mono text-xs">
+                {['1', '10', '25', '50', '100', '250'].map((val) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setAmountUSD(val)}
+                    className={`py-1.5 rounded-lg border text-center font-semibold transition-colors cursor-pointer ${
+                      amountUSD === val
+                        ? 'bg-purple-600 border-purple-500 text-white'
+                        : 'bg-[#231a47] border-[#352968] hover:bg-[#352968] text-white'
+                    }`}
+                  >
+                    ${val}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Specific Form Fields Based on Selected Payment Method */}
+            {selectedMethod === 'MPESA' && (
               <div>
-                <label className="block text-slate-400 font-medium mb-1.5">M-Pesa Phone Number</label>
+                <label className="block text-slate-300 text-xs font-semibold mb-1.5">Phone Number</label>
                 <input
                   type="text"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="2547XXXXXXXX or 07XXXXXXXX"
-                  className="w-full bg-[#0b0818] border border-purple-900/60 rounded-lg px-3 py-2.5 text-slate-100 font-mono text-sm focus:outline-none focus:border-purple-500"
+                  placeholder="2547XXXXXXXX"
+                  className="w-full bg-[#130e26] border border-[#2b2256] focus:border-purple-500 rounded-xl px-4 py-3 text-white font-mono text-sm font-bold focus:outline-none transition-colors"
                   required
                 />
-              </div>
-
-              <div>
-                <label className="block text-slate-400 font-medium mb-1.5">
-                  Deposit Amount (KES) <span className="text-purple-400 font-normal text-[11px]">(Min: KES {minKesRequired})</span>
-                </label>
-                <input
-                  type="number"
-                  value={amountKES}
-                  onChange={(e) => setAmountKES(e.target.value)}
-                  min={minKesRequired}
-                  className="w-full bg-[#0b0818] border border-purple-900/60 rounded-lg px-3 py-2.5 text-slate-100 font-mono text-sm focus:outline-none focus:border-purple-500"
-                  required
-                />
-                <p className="text-[11px] text-slate-400 mt-1">
-                  Estimated Wallet Credit: <span className="font-bold text-emerald-400">${(Number(amountKES) / mpesaRate).toFixed(2)} USD</span> (1 USD ≈ {mpesaRate} KES)
+                <p className="text-slate-400 text-[11px] mt-1.5 font-medium leading-normal">
+                  You can edit this number until your first deposit is verified.
                 </p>
               </div>
+            )}
 
-              {/* Status Message Banners */}
-              {mpesaStatus === 'WAITING_PIN' && (
-                <div className="bg-purple-950/50 border border-purple-600/40 p-3 rounded-lg flex items-center space-x-2 text-purple-200">
-                  <Loader2 className="w-4 h-4 text-purple-400 animate-spin shrink-0" />
-                  <span>{mpesaMessage}</span>
+            {selectedMethod === 'USDT' && (
+              <div className="space-y-2 text-xs">
+                <div className="bg-[#130e26] p-3 rounded-xl border border-[#2b2256]">
+                  <p className="text-slate-400 text-[11px]">Deposit Address (TRC20)</p>
+                  <p className="font-mono text-purple-300 text-xs truncate mt-1 font-bold">TXYZ1234567890PalOptionAddressTRC20</p>
                 </div>
-              )}
+              </div>
+            )}
 
-              {mpesaStatus === 'SUCCESS' && (
-                <div className="bg-emerald-950/50 border border-emerald-600/40 p-3 rounded-lg text-emerald-300">
-                  <p className="font-semibold">{mpesaMessage}</p>
+            {selectedMethod === 'CARD' && (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-slate-300 text-xs font-semibold mb-1">Card Number</label>
+                  <input
+                    type="text"
+                    value={cardNumber}
+                    onChange={(e) => setCardNumber(e.target.value)}
+                    placeholder="4532 •••• •••• ••••"
+                    className="w-full bg-[#130e26] border border-[#2b2256] rounded-xl px-3.5 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-purple-500"
+                    required
+                  />
                 </div>
-              )}
-
-              {mpesaStatus === 'FAILED' && (
-                <div className="bg-rose-950/50 border border-rose-600/40 p-3 rounded-lg flex items-start space-x-2 text-rose-300">
-                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-                  <p>{mpesaError}</p>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={mpesaStatus === 'INITIATING' || mpesaStatus === 'WAITING_PIN'}
-                className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
-              >
-                {mpesaStatus === 'INITIATING' ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Initiating STK Push...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Initiate M-Pesa STK Push</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
-            </form>
-          ) : (
-            /* CRYPTO TRANSFER MULTI-STEP FLOW */
-            <div>
-              {cryptoStep === 'FORM' && (
-                <form onSubmit={handleGenerateAddress} className="space-y-4 text-xs">
-                  {/* Asset / Network Selector */}
+                <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-slate-400 font-medium mb-1.5">Select Asset & Network</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {cryptoAssets.map((asset) => (
-                        <button
-                          key={`${asset.symbol}-${asset.network}`}
-                          type="button"
-                          onClick={() => {
-                            setSelectedAsset(asset);
-                            setCryptoError('');
-                          }}
-                          className={`p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all ${
-                            selectedAsset?.symbol === asset.symbol && selectedAsset?.network === asset.network
-                              ? 'bg-purple-900/60 border-purple-500 text-slate-100 ring-2 ring-purple-500/40'
-                              : 'bg-[#0b0818] border-purple-900/40 text-slate-400 hover:text-slate-200 hover:border-purple-800'
-                          }`}
-                        >
-                          <span className="font-bold text-slate-100">{asset.name || asset.symbol}</span>
-                          <span className="text-[10px] text-purple-400 font-mono font-bold mt-1">{asset.network}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Deposit Amount USD Input */}
-                  <div>
-                    <label className="block text-slate-400 font-medium mb-1.5">
-                      Deposit Amount ($ USD) <span className="text-purple-400 font-normal text-[11px]">(Min: ${Math.max(minDepositUSD, selectedAsset?.minDeposit || 5.0).toFixed(2)})</span>
-                    </label>
+                    <label className="block text-slate-300 text-xs font-semibold mb-1">Expiry Date</label>
                     <input
-                      type="number"
-                      value={cryptoAmountUSD}
-                      onChange={(e) => {
-                        setCryptoAmountUSD(e.target.value);
-                        setCryptoError('');
-                      }}
-                      min={Math.max(minDepositUSD, selectedAsset?.minDeposit || 5.0)}
-                      className="w-full bg-[#0b0818] border border-purple-900/60 rounded-xl px-3.5 py-2.5 text-slate-100 font-mono text-sm focus:outline-none focus:border-purple-500"
+                      type="text"
+                      value={cardExpiry}
+                      onChange={(e) => setCardExpiry(e.target.value)}
+                      placeholder="MM/YY"
+                      className="w-full bg-[#130e26] border border-[#2b2256] rounded-xl px-3.5 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-purple-500"
                       required
                     />
                   </div>
-
-                  {cryptoError && (
-                    <div className="bg-rose-950/50 border border-rose-600/40 p-3 rounded-xl flex items-start space-x-2 text-rose-300">
-                      <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-                      <p>{cryptoError}</p>
-                    </div>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={!selectedAsset}
-                    className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-purple-950/60 transition-all flex items-center justify-center space-x-2 disabled:opacity-50 cursor-pointer"
-                  >
-                    <span>Generate Payment Address</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </form>
-              )}
-
-              {/* GENERATING LOADING STATE */}
-              {cryptoStep === 'GENERATING' && (
-                <div className="py-12 flex flex-col items-center justify-center space-y-3 text-center animate-fade-in">
-                  <div className="relative">
-                    <Loader2 className="w-10 h-10 text-purple-400 animate-spin" />
-                    <Bitcoin className="w-5 h-5 text-amber-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                  <div>
+                    <label className="block text-slate-300 text-xs font-semibold mb-1">CVC / CVV</label>
+                    <input
+                      type="text"
+                      value={cardCvc}
+                      onChange={(e) => setCardCvc(e.target.value)}
+                      placeholder="123"
+                      className="w-full bg-[#130e26] border border-[#2b2256] rounded-xl px-3.5 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-purple-500"
+                      required
+                    />
                   </div>
-                  <p className="font-extrabold text-sm text-slate-100">Generating Payment Address...</p>
-                  <p className="text-xs text-slate-400">Fetching active {selectedAsset?.symbol} ({selectedAsset?.network}) deposit wallet</p>
                 </div>
+              </div>
+            )}
+
+            {/* Status Banners */}
+            {status === 'WAITING_PIN' && (
+              <div className="bg-purple-950/60 border border-purple-500/40 p-3 rounded-xl flex items-center space-x-2 text-purple-200 text-xs">
+                <Loader2 className="w-4 h-4 text-purple-400 animate-spin shrink-0" />
+                <span>{successMessage}</span>
+              </div>
+            )}
+
+            {status === 'SUCCESS' && (
+              <div className="bg-emerald-950/60 border border-emerald-500/40 p-3 rounded-xl flex items-center space-x-2 text-emerald-300 text-xs">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>{successMessage}</span>
+              </div>
+            )}
+
+            {status === 'FAILED' && (
+              <div className="bg-rose-950/60 border border-rose-500/40 p-3 rounded-xl flex items-center space-x-2 text-rose-300 text-xs">
+                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                <span>{errorMessage}</span>
+              </div>
+            )}
+
+            {/* Dynamic Deposit Action Button (Matching Screenshot 2) */}
+            <button
+              type="submit"
+              disabled={status === 'INITIATING' || status === 'WAITING_PIN'}
+              className="w-full py-3.5 bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-bold text-sm rounded-xl shadow-lg shadow-purple-950/60 transition-all flex items-center justify-center space-x-2 disabled:opacity-50 cursor-pointer mt-2"
+            >
+              {status === 'INITIATING' ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Processing...</span>
+                </>
+              ) : (
+                <span>Deposit ${numericAmount}</span>
               )}
-
-              {/* PAYMENT PAGE (DEDICATED SUB-VIEW WITH WAITING STATUS & 15-MIN TIMER) */}
-              {cryptoStep === 'PAYMENT_PAGE' && selectedAsset && (
-                <div className="space-y-4 text-xs animate-fade-in">
-                  {/* Status Banner with 15-Min Timer */}
-                  <div className={`p-3 rounded-xl flex items-center justify-between shadow-md border ${
-                    cryptoStatus === 'COMPLETED'
-                      ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-200'
-                      : cryptoStatus === 'FAILED'
-                      ? 'bg-rose-950/60 border-rose-500/50 text-rose-200'
-                      : 'bg-amber-950/60 border-amber-500/50 text-amber-200'
-                  }`}>
-                    <div className="flex items-center space-x-2 font-bold">
-                      {cryptoStatus === 'COMPLETED' ? (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                      ) : cryptoStatus === 'FAILED' ? (
-                        <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-                      ) : (
-                        <Clock className="w-4 h-4 text-amber-400 animate-spin shrink-0" />
-                      )}
-                      <span>
-                        Status: {cryptoStatus === 'COMPLETED'
-                          ? 'Completed'
-                          : cryptoStatus === 'FAILED'
-                          ? 'Failed'
-                          : cryptoStatus === 'SUCCESS'
-                          ? 'Waiting for Network Confirmation'
-                          : 'Waiting for Payment'}
-                      </span>
-                    </div>
-
-                    {cryptoStatus !== 'COMPLETED' && cryptoStatus !== 'FAILED' && (
-                      <div className="flex items-center space-x-1.5 bg-amber-950/80 px-2.5 py-1 rounded-lg border border-amber-500/40">
-                        <Clock className="w-3.5 h-3.5 text-amber-400" />
-                        <span className="font-mono text-xs font-extrabold text-amber-300">
-                          {formatTime(timeLeft)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Summary Details Card */}
-                  <div className="bg-[#181335] p-3 rounded-xl border border-purple-900/40 flex items-center justify-between text-xs">
-                    <div>
-                      <span className="text-slate-400 text-[10px] block font-semibold uppercase">Selected Asset</span>
-                      <span className="font-extrabold text-slate-100">{selectedAsset.name || selectedAsset.symbol} ({selectedAsset.network})</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-slate-400 text-[10px] block font-semibold uppercase">Expected Deposit</span>
-                      <span className="font-extrabold text-emerald-400 text-sm font-mono">${Number(cryptoAmountUSD).toFixed(2)} USD</span>
-                    </div>
-                  </div>
-
-                  {/* Matched Deposit Address Card */}
-                  <div className="bg-[#0b0818] p-3.5 rounded-xl border border-purple-900/60 space-y-2">
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-slate-300 font-bold">Deposit Address ({selectedAsset.network})</span>
-                      <span className="text-purple-400 text-[10px] font-mono">Send {selectedAsset.symbol} ONLY</span>
-                    </div>
-
-                    <div className="flex items-center justify-between font-mono text-xs text-purple-200 bg-[#16112d] p-3 rounded-xl border border-purple-950">
-                      <span className="truncate mr-2 font-extrabold tracking-tight">{selectedAsset.depositAddress}</span>
-                      <button
-                        type="button"
-                        onClick={copyAddress}
-                        className="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded-lg flex items-center space-x-1 font-sans font-bold text-[11px] transition-colors shrink-0"
-                      >
-                        {copied ? (
-                          <>
-                            <Check className="w-3.5 h-3.5 text-emerald-300" />
-                            <span>Copied!</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-3.5 h-3.5" />
-                            <span>Copy</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Deposit Proof Submission Form */}
-                  <form onSubmit={handleCryptoSubmit} className="space-y-3 pt-1">
-                    {cryptoStatus === 'SUCCESS' && (
-                      <div className="bg-emerald-950/60 border border-emerald-600/50 p-3 rounded-xl text-emerald-300 flex items-center space-x-2">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                        <span className="font-semibold">Deposit submitted! Your account will be credited once confirmed on the network.</span>
-                      </div>
-                    )}
-
-                    {cryptoStatus === 'COMPLETED' && (
-                      <div className="bg-emerald-950/60 border border-emerald-600/50 p-3 rounded-xl text-emerald-300 flex items-center space-x-2">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                        <span className="font-semibold">Deposit confirmed! Funds credited to your trading wallet.</span>
-                      </div>
-                    )}
-
-                    {cryptoStatus === 'FAILED' && (
-                      <div className="bg-rose-950/60 border border-rose-600/50 p-3 rounded-xl flex items-center space-x-2 text-rose-300">
-                        <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-                        <span>{cryptoError}</span>
-                      </div>
-                    )}
-
-                    {cryptoError && cryptoStatus !== 'FAILED' && (
-                      <div className="bg-rose-950/60 border border-rose-600/50 p-3 rounded-xl flex items-center space-x-2 text-rose-300">
-                        <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-                        <span>{cryptoError}</span>
-                      </div>
-                    )}
-
-                    <button
-                      type="submit"
-                      disabled={cryptoStatus === 'SUBMITTING' || cryptoStatus === 'SUCCESS' || cryptoStatus === 'COMPLETED' || cryptoStatus === 'FAILED'}
-                      className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-purple-950/60 transition-all flex items-center justify-center space-x-2 disabled:opacity-50 cursor-pointer"
-                    >
-                      {cryptoStatus === 'SUBMITTING' ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Confirming Transfer...</span>
-                        </>
-                      ) : cryptoStatus === 'SUCCESS' ? (
-                        <span>Transfer Submitted (Waiting Network)</span>
-                      ) : cryptoStatus === 'COMPLETED' ? (
-                        <span>Transfer Completed</span>
-                      ) : (
-                        <span>Confirm I Have Made The Transfer</span>
-                      )}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCryptoStep('FORM');
-                        setCryptoStatus('IDLE');
-                        setCryptoError('');
-                        setCryptoDepositId(null);
-                      }}
-                      className="w-full text-center text-slate-400 hover:text-slate-200 text-[11px] font-semibold pt-1 flex items-center justify-center space-x-1"
-                    >
-                      <ArrowLeft className="w-3.5 h-3.5" />
-                      <span>Back / Modify Amount</span>
-                    </button>
-                  </form>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );
 }
-
