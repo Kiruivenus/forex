@@ -27,6 +27,9 @@ import { getStoredAccountMode, setStoredAccountMode, EVENT_NAME, AccountMode } f
 import { useTheme } from '@/components/ThemeProvider';
 import AIScannerIcon from './AIScannerIcon';
 
+import DepositModal from '@/components/DepositModal';
+import WithdrawalModal from '@/components/WithdrawalModal';
+
 interface UserSession {
   id: string;
   name: string;
@@ -59,6 +62,8 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
   const [activeMode, setActiveMode] = useState<AccountMode>('REAL');
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [isDepositOpen, setIsDepositOpen] = useState(false);
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
 
   useEffect(() => {
     setActiveMode(accountMode || getStoredAccountMode());
@@ -155,28 +160,20 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
                 >
                   Trader Hub
                 </Link>
-                <Link
-                  href="/deposit"
-                  className={`px-3 py-1.5 rounded-md transition-colors flex items-center space-x-1 ${
-                    pathname === '/deposit'
-                      ? 'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-200 font-semibold border border-purple-200 dark:border-purple-800/40'
-                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/40'
-                  }`}
+                <button
+                  onClick={() => setIsDepositOpen(true)}
+                  className="px-3 py-1.5 rounded-md transition-colors flex items-center space-x-1 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/40 cursor-pointer"
                 >
                   <ArrowUpRight className="w-3.5 h-3.5 text-emerald-500" />
                   <span>Deposit</span>
-                </Link>
-                <Link
-                  href="/withdraw"
-                  className={`px-3 py-1.5 rounded-md transition-colors flex items-center space-x-1 ${
-                    pathname === '/withdraw'
-                      ? 'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-200 font-semibold border border-purple-200 dark:border-purple-800/40'
-                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/40'
-                  }`}
+                </button>
+                <button
+                  onClick={() => setIsWithdrawModalOpen(true)}
+                  className="px-3 py-1.5 rounded-md transition-colors flex items-center space-x-1 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/40 cursor-pointer"
                 >
                   <ArrowDownLeft className="w-3.5 h-3.5 text-amber-500" />
                   <span>Withdraw</span>
-                </Link>
+                </button>
                 <Link
                   href="/history"
                   className={`px-3 py-1.5 rounded-md transition-colors flex items-center space-x-1 ${
@@ -326,12 +323,12 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
                 </div>
 
                 {/* Deposit Quick Action Button */}
-                <Link
-                  href="/deposit"
-                  className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-bold text-xs px-4 py-1.5 rounded-xl shadow-md transition-all"
+                <button
+                  onClick={() => setIsDepositOpen(true)}
+                  className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-bold text-xs px-4 py-1.5 rounded-xl shadow-md transition-all cursor-pointer"
                 >
                   <span>Deposit</span>
-                </Link>
+                </button>
 
                 {/* Notification Bell Button */}
                 <button
@@ -426,30 +423,34 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
                 </Link>
 
                 {/* Deposit */}
-                <Link
-                  href="/deposit"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-between p-3 rounded-xl hover:bg-[#1c163a] text-slate-200 transition-colors"
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setIsDepositOpen(true);
+                  }}
+                  className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-[#1c163a] text-slate-200 transition-colors text-left cursor-pointer"
                 >
                   <div className="flex items-center space-x-3">
                     <ArrowDownLeft className="w-4 h-4 text-slate-400" />
                     <span>Deposit</span>
                   </div>
                   <span className="text-slate-500 text-xs">›</span>
-                </Link>
+                </button>
 
                 {/* Withdraw */}
-                <Link
-                  href="/withdraw"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-between p-3 rounded-xl hover:bg-[#1c163a] text-slate-200 transition-colors"
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setIsWithdrawModalOpen(true);
+                  }}
+                  className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-[#1c163a] text-slate-200 transition-colors text-left cursor-pointer"
                 >
                   <div className="flex items-center space-x-3">
                     <ArrowUpRight className="w-4 h-4 text-slate-400" />
                     <span>Withdraw</span>
                   </div>
                   <span className="text-slate-500 text-xs">›</span>
-                </Link>
+                </button>
 
                 {/* History */}
                 <Link
@@ -536,8 +537,17 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
           </div>
         </div>
       )}
+
+      {/* Modals rendered inside Navbar so Deposit & Withdrawal modals open anywhere on the site */}
+      <DepositModal isOpen={isDepositOpen} onClose={() => setIsDepositOpen(false)} />
+      <WithdrawalModal
+        isOpen={isWithdrawModalOpen}
+        onClose={() => setIsWithdrawModalOpen(false)}
+        availableBalance={liveWallet?.availableBalance ?? wallet?.availableBalance ?? 0}
+      />
     </>
   );
 }
+
 
 

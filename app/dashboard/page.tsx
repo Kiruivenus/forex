@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import TradingChart from '@/components/TradingChart';
 import AIEntryScannerModal from '@/components/AIEntryScannerModal';
 import DepositModal from '@/components/DepositModal';
+import WithdrawalModal from '@/components/WithdrawalModal';
 import MobileBottomNav from '@/components/MobileBottomNav';
 import TargetProfitModal from '@/components/TargetProfitModal';
 import InsufficientBalanceModal from '@/components/InsufficientBalanceModal';
@@ -81,6 +82,8 @@ export default function DashboardPage() {
   const [leftTab, setLeftTab] = useState<'OPEN' | 'CLOSED' | 'TRANSACTIONS'>('OPEN');
   const [mobileTab, setMobileTab] = useState<'TRADE' | 'POSITIONS'>('TRADE');
   const [accountMode, setAccountMode] = useState<AccountMode>('REAL');
+  const [isDepositOpen, setIsDepositOpen] = useState(false);
+  const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
 
   useEffect(() => {
     setAccountMode(getStoredAccountMode());
@@ -91,6 +94,18 @@ export default function DashboardPage() {
       }
     };
     window.addEventListener(EVENT_NAME, handleModeChange);
+
+    // Listen for ?action=deposit or ?action=withdraw URL queries
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const action = params.get('action');
+      if (action === 'deposit') {
+        setIsDepositOpen(true);
+      } else if (action === 'withdraw') {
+        setIsWithdrawalModalOpen(true);
+      }
+    }
+
     return () => window.removeEventListener(EVENT_NAME, handleModeChange);
   }, []);
 
@@ -152,7 +167,6 @@ export default function DashboardPage() {
 
   // Modals
   const [isAIScannerOpen, setIsAIScannerOpen] = useState(false);
-  const [isDepositOpen, setIsDepositOpen] = useState(false);
   const [isInsufficientModalOpen, setIsInsufficientModalOpen] = useState(false);
   const [isAiScannerActive, setIsAiScannerActive] = useState(false);
 
@@ -1014,6 +1028,12 @@ export default function DashboardPage() {
       <DepositModal
         isOpen={isDepositOpen}
         onClose={() => setIsDepositOpen(false)}
+      />
+
+      <WithdrawalModal
+        isOpen={isWithdrawalModalOpen}
+        onClose={() => setIsWithdrawalModalOpen(false)}
+        availableBalance={wallet?.availableBalance ?? 0}
       />
 
       <InsufficientBalanceModal

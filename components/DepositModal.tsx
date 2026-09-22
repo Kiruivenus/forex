@@ -147,13 +147,10 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
         setErrorMessage('Network error processing deposit.');
       }
     } else {
-      // Card Payment
-      setStatus('INITIATING');
-      setTimeout(() => {
-        setStatus('SUCCESS');
-        setSuccessMessage('Card deposit processed successfully.');
-        if (onSuccess) onSuccess();
-      }, 1500);
+      // Card Payment (Not supported)
+      setStatus('FAILED');
+      setErrorMessage('Card payment method is currently not supported in your region. Please select M-Pesa or USDT (TRC20).');
+      return;
     }
   };
 
