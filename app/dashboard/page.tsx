@@ -849,22 +849,20 @@ export default function DashboardPage() {
           ) : (
             <div className="space-y-2 pt-1">
               {tradeType === 'EVEN_ODD' && (
-                <div className="space-y-2 font-mono">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 font-mono">
                   {/* Even Order Action Card */}
                   <button
                     onClick={() => handleExecuteTrade('EVEN')}
                     disabled={tradeExecuting}
-                    className="w-full bg-emerald-50/70 dark:bg-emerald-950/30 hover:bg-emerald-100 dark:hover:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-800/50 p-3 rounded-2xl flex items-center justify-between transition-all group shadow-xs cursor-pointer"
+                    className="w-full bg-[#10b981] hover:bg-[#059669] p-4 rounded-2xl text-white shadow-lg shadow-emerald-950/40 flex flex-col justify-between transition-all group cursor-pointer text-left"
                   >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center group-hover:scale-105 transition-transform shadow-xs">
-                        <Grid className="w-5 h-5" />
-                      </div>
-                      <span className="font-extrabold text-slate-900 dark:text-slate-100 text-sm">Even</span>
+                    <div className="flex items-center justify-between w-full">
+                      <span className="font-extrabold text-white text-base">Even</span>
+                      <span className="font-extrabold text-white text-sm">${(stake * 1.9522).toFixed(2)} USD</span>
                     </div>
-                    <div className="text-right">
-                      <p className="font-extrabold text-emerald-700 dark:text-emerald-400 text-xs">${potentialPayout.toFixed(2)} USD</p>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">95.22%</p>
+                    <div className="flex items-center justify-between w-full mt-1.5">
+                      <span className="text-xs font-bold text-emerald-100">95.22%</span>
+                      <span className="text-[10px] text-emerald-100 opacity-90 font-medium">Payout</span>
                     </div>
                   </button>
 
@@ -872,56 +870,85 @@ export default function DashboardPage() {
                   <button
                     onClick={() => handleExecuteTrade('ODD')}
                     disabled={tradeExecuting}
-                    className="w-full bg-rose-50/70 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-950/50 border border-rose-300 dark:border-rose-800/50 p-3 rounded-2xl flex items-center justify-between transition-all group shadow-xs cursor-pointer"
+                    className="w-full bg-[#f43f5e] hover:bg-[#e11d48] p-4 rounded-2xl text-white shadow-lg shadow-rose-950/40 flex flex-col justify-between transition-all group cursor-pointer text-left"
                   >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center group-hover:scale-105 transition-transform shadow-xs">
-                        <Triangle className="w-5 h-5" />
-                      </div>
-                      <span className="font-extrabold text-slate-900 dark:text-slate-100 text-sm">Odd</span>
+                    <div className="flex items-center justify-between w-full">
+                      <span className="font-extrabold text-white text-base">Odd</span>
+                      <span className="font-extrabold text-white text-sm">${(stake * 1.9522).toFixed(2)} USD</span>
                     </div>
-                    <div className="text-right">
-                      <p className="font-extrabold text-rose-700 dark:text-rose-400 text-xs">${potentialPayout.toFixed(2)} USD</p>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">95.22%</p>
+                    <div className="flex items-center justify-between w-full mt-1.5">
+                      <span className="text-xs font-bold text-rose-100">95.22%</span>
+                      <span className="text-[10px] text-rose-100 opacity-90 font-medium">Payout</span>
                     </div>
                   </button>
                 </div>
               )}
 
               {tradeType === 'MATCH_DIFFER' && (
-                <div className="grid grid-cols-2 gap-2 font-mono">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 font-mono">
+                  {/* Match Action Card (Screenshot 1) */}
                   <button
                     onClick={() => handleExecuteTrade('MATCH')}
                     disabled={tradeExecuting}
-                    className="py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs flex items-center justify-center space-x-1 cursor-pointer"
+                    className="w-full bg-[#10b981] hover:bg-[#059669] p-4 rounded-2xl text-white shadow-lg shadow-emerald-950/40 flex flex-col justify-between transition-all group cursor-pointer text-left"
                   >
-                    <span>MATCHES ({barrier})</span>
+                    <div className="flex items-center justify-between w-full">
+                      <span className="font-extrabold text-white text-base">Match</span>
+                      <span className="font-extrabold text-white text-sm">${(stake * 9.5).toFixed(2)} USD</span>
+                    </div>
+                    <div className="flex items-center justify-between w-full mt-1.5">
+                      <span className="text-xs font-bold text-emerald-100">850%</span>
+                      <span className="text-[10px] text-emerald-100 opacity-90 font-medium">Payout</span>
+                    </div>
                   </button>
+
+                  {/* Differ Action Card (Screenshot 1) */}
                   <button
                     onClick={() => handleExecuteTrade('DIFFER')}
                     disabled={tradeExecuting}
-                    className="py-3 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-xl shadow-xs flex items-center justify-center space-x-1 cursor-pointer"
+                    className="w-full bg-[#f43f5e] hover:bg-[#e11d48] p-4 rounded-2xl text-white shadow-lg shadow-rose-950/40 flex flex-col justify-between transition-all group cursor-pointer text-left"
                   >
-                    <span>DIFFERS ({barrier})</span>
+                    <div className="flex items-center justify-between w-full">
+                      <span className="font-extrabold text-white text-base">Differ</span>
+                      <span className="font-extrabold text-white text-sm">${(stake * 1.056).toFixed(2)} USD</span>
+                    </div>
+                    <div className="flex items-center justify-between w-full mt-1.5">
+                      <span className="text-xs font-bold text-rose-100">5.6%</span>
+                      <span className="text-[10px] text-rose-100 opacity-90 font-medium">Payout</span>
+                    </div>
                   </button>
                 </div>
               )}
 
               {tradeType === 'OVER_UNDER' && (
-                <div className="grid grid-cols-2 gap-2 font-mono">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 font-mono">
                   <button
                     onClick={() => handleExecuteTrade('OVER')}
                     disabled={tradeExecuting}
-                    className="py-3 bg-teal-600 hover:bg-teal-700 text-white font-extrabold text-xs rounded-xl shadow-xs flex items-center justify-center space-x-1 cursor-pointer"
+                    className="w-full bg-[#10b981] hover:bg-[#059669] p-4 rounded-2xl text-white shadow-lg shadow-emerald-950/40 flex flex-col justify-between transition-all group cursor-pointer text-left"
                   >
-                    <span>OVER ({barrier})</span>
+                    <div className="flex items-center justify-between w-full">
+                      <span className="font-extrabold text-white text-base">Over</span>
+                      <span className="font-extrabold text-white text-sm">${(stake * 1.95).toFixed(2)} USD</span>
+                    </div>
+                    <div className="flex items-center justify-between w-full mt-1.5">
+                      <span className="text-xs font-bold text-emerald-100">95.0%</span>
+                      <span className="text-[10px] text-emerald-100 opacity-90 font-medium">Payout</span>
+                    </div>
                   </button>
                   <button
                     onClick={() => handleExecuteTrade('UNDER')}
                     disabled={tradeExecuting}
-                    className="py-3 bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs rounded-xl shadow-xs flex items-center justify-center space-x-1 cursor-pointer"
+                    className="w-full bg-[#f43f5e] hover:bg-[#e11d48] p-4 rounded-2xl text-white shadow-lg shadow-rose-950/40 flex flex-col justify-between transition-all group cursor-pointer text-left"
                   >
-                    <span>UNDER ({barrier})</span>
+                    <div className="flex items-center justify-between w-full">
+                      <span className="font-extrabold text-white text-base">Under</span>
+                      <span className="font-extrabold text-white text-sm">${(stake * 1.95).toFixed(2)} USD</span>
+                    </div>
+                    <div className="flex items-center justify-between w-full mt-1.5">
+                      <span className="text-xs font-bold text-rose-100">95.0%</span>
+                      <span className="text-[10px] text-rose-100 opacity-90 font-medium">Payout</span>
+                    </div>
                   </button>
                 </div>
               )}
