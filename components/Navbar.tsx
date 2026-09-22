@@ -28,6 +28,11 @@ import {
   MessageSquare,
   Sparkles,
   ChevronDown,
+  ChevronUp,
+  Settings,
+  Pencil,
+  Smartphone,
+  UserCheck,
 } from 'lucide-react';
 import { getStoredAccountMode, setStoredAccountMode, EVENT_NAME, AccountMode } from '@/lib/accountMode';
 import { useTheme } from '@/components/ThemeProvider';
@@ -70,6 +75,7 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [isDepositOpen, setIsDepositOpen] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [accountSettingsOpen, setAccountSettingsOpen] = useState(true);
 
   useEffect(() => {
     setActiveMode(accountMode || getStoredAccountMode());
@@ -429,18 +435,79 @@ export default function Navbar({ onOpenAIScanner, accountMode, onAccountModeChan
                   <span className="font-bold text-white text-sm">PalOption</span>
                 </div>
 
-                {/* Account Settings */}
-                <Link
-                  href="/profile"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-between p-3 rounded-xl hover:bg-[#1c163a] text-slate-200 transition-colors"
-                >
-                  <div className="flex items-center space-x-3">
-                    <User className="w-4 h-4 text-slate-400" />
-                    <span>Account settings</span>
-                  </div>
-                  <span className="text-slate-500 text-xs">›</span>
-                </Link>
+                {/* Account Settings Collapsible Accordion (Screenshot 2) */}
+                <div className="space-y-1">
+                  <button
+                    onClick={() => setAccountSettingsOpen(!accountSettingsOpen)}
+                    className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-[#1c163a] text-slate-200 transition-colors cursor-pointer text-left"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Settings className="w-4 h-4 text-slate-400" />
+                      <span className="font-semibold text-white">Account settings</span>
+                    </div>
+                    {accountSettingsOpen ? (
+                      <ChevronUp className="w-4 h-4 text-slate-400" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-slate-400" />
+                    )}
+                  </button>
+
+                  {accountSettingsOpen && (
+                    <div className="pl-6 pr-1 space-y-1">
+                      {/* Change Name */}
+                      <Link
+                        href="/profile"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center justify-between p-2.5 rounded-xl hover:bg-[#1c163a] text-slate-300 hover:text-white transition-colors"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <Pencil className="w-3.5 h-3.5 text-slate-400" />
+                          <span className="text-xs">Change Name</span>
+                        </div>
+                        <span className="text-slate-500 text-xs">›</span>
+                      </Link>
+
+                      {/* Change Password */}
+                      <Link
+                        href="/settings/security"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center justify-between p-2.5 rounded-xl hover:bg-[#1c163a] text-slate-300 hover:text-white transition-colors"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <Lock className="w-3.5 h-3.5 text-slate-400" />
+                          <span className="text-xs">Change Password</span>
+                        </div>
+                        <span className="text-slate-500 text-xs">›</span>
+                      </Link>
+
+                      {/* Two-Factor Auth (2FA) */}
+                      <Link
+                        href="/settings/security"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center justify-between p-2.5 rounded-xl hover:bg-[#1c163a] text-slate-300 hover:text-white transition-colors"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <Smartphone className="w-3.5 h-3.5 text-slate-400" />
+                          <span className="text-xs">Two-Factor Auth (2FA)</span>
+                        </div>
+                        <span className="text-slate-500 text-xs">›</span>
+                      </Link>
+
+                      {/* Verify Identity */}
+                      <Link
+                        href="/verify-identity"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center justify-between p-2.5 rounded-xl hover:bg-[#1c163a] text-slate-300 hover:text-white transition-colors"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <UserCheck className="w-3.5 h-3.5 text-slate-400" />
+                          <span className="text-xs">Verify Identity</span>
+                        </div>
+                        <span className="text-slate-500 text-xs">›</span>
+                      </Link>
+                    </div>
+                  )}
+                </div>
 
                 {/* Deposit */}
                 <button

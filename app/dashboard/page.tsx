@@ -608,10 +608,49 @@ export default function DashboardPage() {
 
         {/* CENTER PANEL: Sleek Integrated Trading Terminal Chart (Desktop Col 6) */}
         <div
-          className={`lg:col-span-6 ${
+          className={`lg:col-span-6 space-y-3 ${
             mobileTab === 'TRADE' ? 'block' : 'hidden lg:block'
           }`}
         >
+          {/* Top Horizontal Trade Mode Selector Bar (Matching Screenshot 1) */}
+          <div className="bg-[#120e26] border border-[#241a45] rounded-2xl p-1 flex items-center justify-around sm:justify-start space-x-1 sm:space-x-2 text-xs font-bold shadow-md">
+            <button
+              onClick={() => setTradeType('MATCH_DIFFER')}
+              className={`flex-1 sm:flex-initial px-3 sm:px-4 py-2 rounded-xl flex items-center justify-center space-x-1.5 transition-all cursor-pointer whitespace-nowrap ${
+                tradeType === 'MATCH_DIFFER'
+                  ? 'bg-[#7c3aed] text-white shadow-lg'
+                  : 'text-slate-400 hover:text-white hover:bg-purple-900/30'
+              }`}
+            >
+              <Grid className="w-4 h-4 text-purple-300" />
+              <span>Matches/Differs</span>
+            </button>
+
+            <button
+              onClick={() => setTradeType('EVEN_ODD')}
+              className={`flex-1 sm:flex-initial px-3 sm:px-4 py-2 rounded-xl flex items-center justify-center space-x-1.5 transition-all cursor-pointer whitespace-nowrap ${
+                tradeType === 'EVEN_ODD'
+                  ? 'bg-[#7c3aed] text-white shadow-lg'
+                  : 'text-slate-400 hover:text-white hover:bg-purple-900/30'
+              }`}
+            >
+              <Layers className="w-4 h-4 text-purple-300" />
+              <span>Even/Odd</span>
+            </button>
+
+            <button
+              onClick={() => setTradeType('OVER_UNDER')}
+              className={`flex-1 sm:flex-initial px-3 sm:px-4 py-2 rounded-xl flex items-center justify-center space-x-1.5 transition-all cursor-pointer whitespace-nowrap ${
+                tradeType === 'OVER_UNDER'
+                  ? 'bg-[#7c3aed] text-white shadow-lg'
+                  : 'text-slate-400 hover:text-white hover:bg-purple-900/30'
+              }`}
+            >
+              <TrendingUp className="w-4 h-4 text-purple-300" />
+              <span>Over/Under</span>
+            </button>
+          </div>
+
           {selectedInstrument && (
             <TradingChart
               instrument={selectedInstrument}
