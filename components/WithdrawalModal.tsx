@@ -125,8 +125,8 @@ export default function WithdrawalModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-      <div className="bg-[#1d1838] border border-[#2b2256] rounded-3xl w-full max-w-md overflow-hidden p-6 sm:p-7 shadow-2xl text-white transition-colors relative">
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+      <div className="bg-[#191432] border-t sm:border border-[#2b2256] rounded-t-3xl sm:rounded-3xl w-full max-w-md overflow-hidden p-6 sm:p-7 shadow-2xl text-white transition-all relative">
         {/* Header matching Screenshots 3 & 4 */}
         <div className="flex items-start justify-between mb-5">
           <div>

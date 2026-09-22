@@ -155,17 +155,17 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-      <div className="bg-[#1d1838] border border-[#2b2256] rounded-3xl w-full max-w-md overflow-hidden p-6 sm:p-7 shadow-2xl text-white transition-colors relative">
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+      <div className="bg-[#191432] border-t sm:border border-[#2b2256] rounded-t-3xl sm:rounded-3xl w-full max-w-md overflow-hidden p-6 sm:p-7 shadow-2xl text-white transition-all relative">
         {/* Modal Header (Matching Screenshots 1 & 2) */}
         <div className="flex items-start justify-between mb-5">
           <div>
             <h3 className="font-bold text-xl text-white tracking-tight">Deposit Funds</h3>
-            <p className="text-xs text-slate-400 font-medium mt-0.5">Choose payment method</p>
+            <p className="text-xs text-slate-400 font-medium mt-0.5">Choose your payment method</p>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -177,10 +177,10 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
             {/* M-Pesa Option */}
             <button
               onClick={() => handleSelectMethod('MPESA')}
-              className="w-full bg-[#16112e] hover:bg-[#1f193e] border border-[#2b2256] hover:border-purple-500/50 rounded-2xl p-4 flex items-center justify-between transition-all cursor-pointer group text-left"
+              className="w-full bg-[#140f2a] hover:bg-[#1f193e] border border-[#2b2256] hover:border-purple-500/50 rounded-2xl p-4 flex items-center justify-between transition-all cursor-pointer group text-left"
             >
               <div className="flex items-center space-x-4">
-                <div className="w-11 h-11 rounded-2xl bg-[#2a2252] text-[#a78bfa] flex items-center justify-center shrink-0">
+                <div className="w-11 h-11 rounded-2xl bg-[#251b4c] text-[#a78bfa] flex items-center justify-center shrink-0">
                   <Smartphone className="w-5 h-5" />
                 </div>
                 <div>
@@ -194,7 +194,7 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
             {/* USDT (TRC20) Option */}
             <button
               onClick={() => handleSelectMethod('USDT')}
-              className="w-full bg-[#16112e] hover:bg-[#1f193e] border border-[#2b2256] hover:border-purple-500/50 rounded-2xl p-4 flex items-center justify-between transition-all cursor-pointer group text-left"
+              className="w-full bg-[#140f2a] hover:bg-[#1f193e] border border-[#2b2256] hover:border-purple-500/50 rounded-2xl p-4 flex items-center justify-between transition-all cursor-pointer group text-left"
             >
               <div className="flex items-center space-x-4">
                 <div className="w-11 h-11 rounded-2xl bg-[#0d9488]/20 text-[#14b8a6] flex items-center justify-center shrink-0">
@@ -211,19 +211,35 @@ export default function DepositModal({ isOpen, onClose, onSuccess }: DepositModa
             {/* Credit/Debit Card Option */}
             <button
               onClick={() => handleSelectMethod('CARD')}
-              className="w-full bg-[#16112e] hover:bg-[#1f193e] border border-[#2b2256] hover:border-purple-500/50 rounded-2xl p-4 flex items-center justify-between transition-all cursor-pointer group text-left"
+              className="w-full bg-[#140f2a] hover:bg-[#1f193e] border border-[#2b2256] hover:border-purple-500/50 rounded-2xl p-4 flex items-center justify-between transition-all cursor-pointer group text-left"
             >
               <div className="flex items-center space-x-4">
-                <div className="w-11 h-11 rounded-2xl bg-[#2a2252] text-[#a78bfa] flex items-center justify-center shrink-0">
+                <div className="w-11 h-11 rounded-2xl bg-[#251b4c] text-[#a78bfa] flex items-center justify-center shrink-0">
                   <CreditCard className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-white text-sm">Credit/Debit Card</h4>
+                  <h4 className="font-bold text-white text-sm">Card</h4>
                   <p className="text-xs text-slate-400 mt-0.5">Visa, Mastercard</p>
                 </div>
               </div>
               <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-white transition-colors" />
             </button>
+
+            {/* Bottom Footer Indicators (Matching uploaded screenshot) */}
+            <div className="pt-4 mt-2 flex items-center justify-center space-x-6 text-[11px] text-slate-400 font-semibold border-t border-[#251d48]">
+              <div className="flex items-center space-x-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                <span>Secure</span>
+              </div>
+              <div className="flex items-center space-x-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                <span>Instant</span>
+              </div>
+              <div className="flex items-center space-x-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                <span>24/7 Support</span>
+              </div>
+            </div>
           </div>
         )}
 
